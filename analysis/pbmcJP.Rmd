@@ -1,0 +1,210 @@
+---
+title: "Data exploration: healthy human PBMCs"
+author: "Belinda Phipson"
+date: "31 May 2022"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    message = FALSE,
+    warning = FALSE
+)
+```
+
+# Load the libraries
+
+```{r}
+library(Seurat)
+library(speckle)
+library(limma)
+library(ggplot2)
+library(edgeR)
+library(patchwork)
+library(cowplot)
+library(gridGraphics)
+```
+
+```{r}
+set.seed(10)
+```
+
+# Read the data into R
+
+The data is stored in a Seurat object. The cells have been classified into 
+broader and more refined cell types.
+
+```{r}
+pbmc <- readRDS("./data/pool_1.rds")
+```
+
+# Visualise the data by cell type and individual 
+
+```{r}
+# Cell type information
+table(pbmc$predicted.celltype.l2)
+DimPlot(pbmc, group.by = "predicted.celltype.l2")
+```
+
+```{r}
+table(pbmc$individual)
+DimPlot(pbmc, group.by = "individual")
+```
+
+# Run the Seurat workflow for normalisation, scaling, PCA and UMAP
+
+```{r}
+pbmc <- NormalizeData(pbmc)
+pbmc <- FindVariableFeatures(pbmc, selection.method = "vst", nfeatures = 2000)
+pbmc <- ScaleData(pbmc)
+pbmc <- RunPCA(pbmc, features = VariableFeatures(object = pbmc))
+ElbowPlot(pbmc)
+pbmc <- RunUMAP(pbmc, dims = 1:11)
+```
+
+# Visualise data with UMAP
+
+```{r, fig.width=8, fig.height=5}
+DimPlot(pbmc, reduction = "umap",group.by = "predicted.celltype.l1", label=TRUE, label.size=6) + theme(legend.position = "none")  + ggtitle("Broad cell type predictions")
+```
+
+```{r}
+DimPlot(pbmc, reduction = "umap",group.by = "predicted.celltype.l2") + ggtitle("Refined cell type predictions")
+```
+
+```{r}
+d1 <- DimPlot(pbmc, reduction = "umap",group.by = "predicted.celltype.l2") + theme(legend.position = "none") + ggtitle("a") + theme(plot.title = element_text(size = 18, hjust = 0))
+```
+
+# Explore cell type proportions among the 12 individuals
+
+```{r, fig.width=8, fig.height=5}
+props <- getTransformedProps(clusters = pbmc$predicted.celltype.l2, 
+                             sample = pbmc$individual)
+
+p1 <- plotCellTypeProps(clusters = pbmc$predicted.celltype.l2, sample = pbmc$individual) + theme(axis.text.x = element_text(angle = 45))+ ggtitle("Refined cell type proportions") + 
+theme(plot.title = element_text(size = 18, hjust = 0))
+p1 + theme_bw() + theme(panel.grid.major = element_blank(),
+                        panel.grid.minor = element_blank()) + theme(axis.text.x = element_text(angle = 45))
+```
+
+```{r}
+p2 <- plotCellTypeProps(clusters = pbmc$predicted.celltype.l1, sample = pbmc$individual)
+p2 + theme(axis.text.x = element_text(angle = 45)) + ggtitle("Broad cell type proportions")
+```
+
+```{r}
+pdf(file="./output/Fig1ab.pdf", width =14, height=6)
+d1 + p1
+dev.off()
+```
+
+# Exploring heterogeneity in cell type proportions between individuals
+
+
+```{r}
+counts <- table(pbmc$predicted.celltype.l2, pbmc$individual)
+baselineN <- rowSums(counts)
+N <- sum(baselineN)
+baselineprops <- baselineN/N
+```
+
+
+```{r}
+pbmc$final_ct <- factor(pbmc$predicted.celltype.l2, levels=names(sort(baselineprops, decreasing = TRUE)))
+```
+
+```{r}
+counts <- table(pbmc$final_ct, pbmc$individual)
+baselineN <- rowSums(counts)
+N <- sum(baselineN)
+baselineprops <- baselineN/N
+```
+
+```{r}
+props <- getTransformedProps(clusters = pbmc$final_ct, 
+                             sample = pbmc$individual)
+```
+
+```{r}
+cols <- ggplotColors(nrow(props$Proportions))
+m <- match(rownames(props$Proportions),levels(factor(pbmc$predicted.celltype.l2)))
+
+```
+
+```{r}
+par(mfrow=c(1,1))
+par(mar=c(7,5,2,2))
+plot(jitter(props$Proportions[,1]), col = cols[m], pch=16, ylim=c(0,max(props$Proportions)),
+     xaxt="n", xlab="", ylab="Cell type proportion", cex.lab=1.5, cex.axis=1.5)
+for(i in 2:ncol(props$Proportions)){
+  points(jitter(1:nrow(props$Proportions)),props$Proportions[,i], col = cols[m],
+         pch=16)
+}
+axis(side=1, at=1:nrow(props$Proportions), las=2, 
+     labels=rownames(props$Proportions))
+title("Cell type proportions estimates for 12 individuals")
+```
+
+The mean-variance relationship plots below show that the data is overdispersed
+compared to what would be expected under a Binomial or Poisson distribution.
+
+```{r, fig.width=7, fig.height=6}
+plotCellTypeMeanVar(counts)
+
+plotCellTypePropsMeanVar(counts)
+```
+
+```{r,echo=FALSE, eval=FALSE}
+layout(matrix(c(1,1,2,3), 2, 2, byrow = TRUE))
+#layout.show(2)
+
+par(mar=c(7,5,2,2))
+plot(jitter(props$Proportions[,1]), col = cols[m], pch=16, ylim=c(0,max(props$Proportions)),
+     xaxt="n", xlab="", ylab="Cell type proportion", cex.lab=1.5, cex.axis=1.5)
+for(i in 2:ncol(props$Proportions)){
+  points(jitter(1:nrow(props$Proportions)),props$Proportions[,i], col = cols[m],
+         pch=16)
+}
+axis(side=1, at=1:nrow(props$Proportions), las=2, 
+     labels=rownames(props$Proportions))
+title("c", adj=0, cex.main=2)
+
+plotCellTypeMeanVar(counts)
+title("d", adj = 0, cex.main=2)
+
+plotCellTypePropsMeanVar(counts)
+title("e", adj = 0, cex.main=2)
+
+```
+
+```{r, echo=FALSE, eval=FALSE}
+pdf(file="./output/Fig1cde.pdf", width =14, height=12)
+
+layout(matrix(c(1,1,2,3), 2, 2, byrow = TRUE))
+#layout.show(2)
+
+par(mar=c(7,5,2,2))
+plot(jitter(props$Proportions[,1]), col = cols[m], pch=16, ylim=c(0,max(props$Proportions)),
+     xaxt="n", xlab="", ylab="Cell type proportion", cex.lab=1.5, cex.axis=1.5)
+for(i in 2:ncol(props$Proportions)){
+  points(jitter(1:nrow(props$Proportions)),props$Proportions[,i], col = cols[m],
+         pch=16)
+}
+axis(side=1, at=1:nrow(props$Proportions), las=2, 
+     labels=rownames(props$Proportions))
+title("c", adj=0, cex.main=2)
+
+plotCellTypeMeanVar(counts)
+title("d", adj = 0, cex.main=2)
+
+plotCellTypePropsMeanVar(counts)
+title("e", adj = 0, cex.main=2)
+
+dev.off()
+```
+
+

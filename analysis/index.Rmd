@@ -1,11 +1,27 @@
 ---
-title: "Home"
+title: "propeller: finding statistically significant differences in cell type populations in single cell data"
 site: workflowr::wflow_site
 output:
   workflowr::wflow_html:
     toc: false
 editor_options:
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
 
-Welcome to my research website.
+The website hosts the analysis and evaluation of different statistical methods for 
+determining differences in cell type proportions in single cell RNA-seq data. 
+
+
+* [Data exploration in healthy human PBMCs](pbmcJP.html)
+
+* Simulation studies 
+  + [Null simulations]()
+  + [Simulations with true differences]()
+  + [Extreme case: 2 vs 20 cell types]()
+  + [Extreme case: varying numbers of cells]()
+
+* Analysis of real datasets
+  + [Young and old female and male PBMCs]()
+  + [Healthy human heart biopsies across development]()
+  + [bronchoalveolar lavage fluid across healthy controls, moderate and severe COVID-19)]()
+
