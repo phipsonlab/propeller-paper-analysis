@@ -9,3 +9,7 @@ analysis/*png
 analysis/*html
 analysis/*_cache
 analysis/site_libs
+data/heartFYA.Rds
+data/pool_1.Rds
+data/cold_warm_fresh_cellinfo.txt
+data/covid.cell.annotation.meta.txt
