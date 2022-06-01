@@ -1,0 +1,1788 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Belinda Phipson" />
+
+<meta name="date" content="2022-01-06" />
+
+<title>Null simulations</title>
+
+<script src="site_libs/header-attrs-2.14/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/main/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">propeller-paper-analysis</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/phipsonlab/propeller-paper-analysis">
+    <span class="fab fa-github"></span>
+     
+    Source code
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Null simulations</h1>
+<h4 class="author">Belinda Phipson</h4>
+<h4 class="date">01/06/2022</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span>
+workflowr <span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2022-06-01
+</p>
+<p>
+<strong>Checks:</strong> <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7
+<span class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span> 0
+</p>
+<p>
+<strong>Knit directory:</strong> <code>propeller-paper-analysis/</code>
+<span class="glyphicon glyphicon-question-sign" aria-hidden="true"
+title="This is the local directory in which the code in this file was executed.">
+</span>
+</p>
+<p>
+This reproducible <a href="https://rmarkdown.rstudio.com">R Markdown</a>
+analysis was created with <a
+  href="https://github.com/workflowr/workflowr">workflowr</a> (version
+1.7.0). The <em>Checks</em> tab describes the reproducibility checks
+that were applied when the results were created. The <em>Past
+versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date
+</a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguptodate"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great! Since the R Markdown file has been committed to the Git
+repository, you know the exact version of the code that produced these
+results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the
+global environment can affect the analysis in your R Markdown file in
+unknown ways. For reproduciblity it’s best to always run the code in an
+empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20220531code">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Seed:</strong>
+<code>set.seed(20220531)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20220531code"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20220531)</code> was run prior to running
+the code in the R Markdown file. Setting a seed ensures that any results
+that rely on randomness, e.g. subsampling or permutations, are
+reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Session information:</strong>
+recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package
+versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be
+confident that you successfully produced the results during this
+run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr
+project makes it easier to run your code on other machines.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistree7ec7a76e370fed19ee662c9a0e89705f2a1ed826targetblank7ec7a76a">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Repository version:</strong>
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/7ec7a76e370fed19ee662c9a0e89705f2a1ed826" target="_blank">7ec7a76</a>
+</a>
+</p>
+</div>
+<div
+id="strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistree7ec7a76e370fed19ee662c9a0e89705f2a1ed826targetblank7ec7a76a"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development
+and connecting the code version to the results is critical for
+reproducibility.
+</p>
+<p>
+The results in this page were generated with repository version
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/7ec7a76e370fed19ee662c9a0e89705f2a1ed826" target="_blank">7ec7a76</a>.
+See the <em>Past versions</em> tab to see a history of the changes made
+to the R Markdown and HTML files.
+</p>
+<p>
+Note that you need to be careful to ensure that all relevant files for
+the analysis have been committed to Git prior to generating the results
+(you can use <code>wflow_publish</code> or
+<code>wflow_git_commit</code>). workflowr only checks the R Markdown
+file, but you know if there are other scripts or data files that it
+depends on. Below is the status of the Git repository when the results
+were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .Rproj.user/
+    Ignored:    data/cold_warm_fresh_cellinfo.txt
+    Ignored:    data/covid.cell.annotation.meta.txt
+    Ignored:    data/heartFYA.Rds
+    Ignored:    data/pool_1.rds
+
+Untracked files:
+    Untracked:  analysis/Sims2vs20CT.Rmd
+    Untracked:  code/SimCode.R
+    Untracked:  code/SimCodeTrueDiff.R
+    Untracked:  code/auroc.R
+    Untracked:  data/CTpropsTransposed.txt
+    Untracked:  data/CelltypeLevels.csv
+    Untracked:  data/TypeIErrTables.Rdata
+    Untracked:  data/appnote1cdata.rdata
+    Untracked:  data/cellinfo.csv
+    Untracked:  data/nullsimsVaryN_results.Rdata
+    Untracked:  data/sampleinfo.csv
+    Untracked:  output/Fig1ab.pdf
+    Untracked:  output/Fig1cde.pdf
+    Untracked:  output/example_simdata.pdf
+    Untracked:  output/fig2d.pdf
+    Untracked:  output/legend-fig2d.pdf
+    Untracked:  output/typeIerrorResults.Rda
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not
+included in this status report because it is ok for generated content to
+have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+
+<p>
+These are the previous versions of the repository in which changes were
+made to the R Markdown (<code>analysis/nullsims.Rmd</code>) and HTML
+(<code>docs/nullsims.html</code>) files. If you’ve configured a remote
+Git repository (see <code>?wflow_git_remote</code>), click on the
+hyperlinks in the table below to view the files as they were in that
+past version.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/blob/3a453fbc2ba4f1e2c4493f443866950c204d237e/analysis/nullsims.Rmd" target="_blank">3a453fb</a>
+</td>
+<td>
+bphipson
+</td>
+<td>
+2022-06-01
+</td>
+<td>
+add null simulation results
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div id="load-the-libraries" class="section level1">
+<h1>Load the libraries</h1>
+<pre class="r"><code>library(speckle)
+library(limma)
+library(edgeR)</code></pre>
+<p>Source the simulation code:</p>
+<pre class="r"><code>source(&quot;./code/SimCode.R&quot;)</code></pre>
+</div>
+<div id="hierarchical-model-for-simulating-cell-type-proportions"
+class="section level1">
+<h1>Hierarchical model for simulating cell type proportions</h1>
+<p>I am simulating cell type proportions in a hierarchical manner.</p>
+<ul>
+<li>The total number of cells, <span class="math inline">\(n_j\)</span>,
+for each sample <span class="math inline">\(j\)</span>, are drawn from a
+negative binomial distribution with mean 5000 and dispersion 20.</li>
+<li>The true cell type proportions for 5 cell types are 0.01, 0.05,
+0.15, 0.35, 0.45.</li>
+<li>The sample proportion <span class="math inline">\(p_{ij}\)</span>
+for cell type <span class="math inline">\(i\)</span> and sample <span
+class="math inline">\(j\)</span> is assumed to be drawn from a Beta
+distribution with parameters <span class="math inline">\(\alpha\)</span>
+and <span class="math inline">\(\beta\)</span>.</li>
+<li>The count for cell type <span class="math inline">\(i\)</span> and
+sample <span class="math inline">\(j\)</span> is then drawn from a
+binomial distribution with probability <span
+class="math inline">\(p_{ij}\)</span> and size <span
+class="math inline">\(n_j\)</span>.</li>
+</ul>
+<p>The Beta-Binomial model allows for biological variability to be
+simulated between samples. The paramaters of the Beta distribution,
+<span class="math inline">\(\alpha\)</span> and <span
+class="math inline">\(\beta\)</span>, determine how variable the <span
+class="math inline">\(p_{ij}\)</span> will be. Larger values of <span
+class="math inline">\(\alpha\)</span> and <span
+class="math inline">\(\beta\)</span> result in a more precise
+distribution centred around the true proportions, while smaller values
+result in a more diffuse prior. Figure @ref(fig:betadist) shows the
+distributions of the <span class="math inline">\(p_{ij}\)</span> as
+<span class="math inline">\(\alpha\)</span> and <span
+class="math inline">\(\beta\)</span> vary.</p>
+<p>For a given value of <span class="math inline">\(\alpha\)</span> and
+<span class="math inline">\(p\)</span>, <span
+class="math inline">\(\beta\)</span> can be calculated as <span
+class="math display">\[\beta = \frac{\alpha (1-p)}{p}\]</span></p>
+<pre class="r"><code>p &lt;- c(0.01, 0.05, 0.15, 0.34, 0.45)
+a &lt;- c(seq(0.1, 1, by=0.1), seq(2,10,by=2), seq(25,50,by=5), 100, 150, 200)
+par(mfrow=c(1,1))
+for(j in 1: length(p)){
+    myp &lt;- p[j]
+
+    b = a*(1-myp)/myp
+    
+    cols &lt;- ggplotColors(length(a))
+    
+    plot(density(rbeta(1000,a[length(a)],b[length(a)])),xlim=c(0,1), 
+         main=paste(&quot;True proportion = &quot;,myp), col=&quot;white&quot;, 
+         xlab=&quot;&quot;, cex.axis=1.5, cex.lab=1.5)
+    legend(&quot;topright&quot;, legend=paste(a,round(b,2),sep=&quot;,&quot;),lty=1,col=cols, cex=0.6)
+    for(i in 1:length(a)){
+    lines(density(rbeta(1000,a[i],b[i])),xlim=c(0,1), col=cols[i])
+    }
+    abline(v=myp,lty=2,lwd=2)
+    lines(density(rbeta(1000,a[15],b[15])), col=&quot;dark blue&quot;, lwd=2, lty=3)
+}</code></pre>
+<div class="figure" style="text-align: center">
+<img src="figure/nullsims.Rmd/betadist-1.png" alt="Density plots of simulated proportions" width="960" />
+<p class="caption">
+Density plots of simulated proportions
+</p>
+</div>
+<div class="figure" style="text-align: center">
+<img src="figure/nullsims.Rmd/betadist-2.png" alt="Density plots of simulated proportions" width="960" />
+<p class="caption">
+Density plots of simulated proportions
+</p>
+</div>
+<div class="figure" style="text-align: center">
+<img src="figure/nullsims.Rmd/betadist-3.png" alt="Density plots of simulated proportions" width="960" />
+<p class="caption">
+Density plots of simulated proportions
+</p>
+</div>
+<div class="figure" style="text-align: center">
+<img src="figure/nullsims.Rmd/betadist-4.png" alt="Density plots of simulated proportions" width="960" />
+<p class="caption">
+Density plots of simulated proportions
+</p>
+</div>
+<div class="figure" style="text-align: center">
+<img src="figure/nullsims.Rmd/betadist-5.png" alt="Density plots of simulated proportions" width="960" />
+<p class="caption">
+Density plots of simulated proportions
+</p>
+</div>
+</div>
+<div id="null-simulations-two-groups-5-cell-types"
+class="section level1">
+<h1>Null simulations, two groups, 5 cell types</h1>
+<p>I will generate cell type counts for five cell types, assuming two
+experimental groups with a sample size of n=(3,5,10,20) in each group. I
+will calculate p-values from the following models:</p>
+<ul>
+<li>propeller (arcsin sqrt transformation)</li>
+<li>propeller (logit transformation)</li>
+<li>chi-square test of differences in proportions</li>
+<li>beta-binomial model using alternative parameterisation in edgeR</li>
+<li>logistic binomial regression (beta-binomial with dispersion=0)</li>
+<li>negative binomial regression (LRT and QLF in edgeR)</li>
+<li>Poisson regression (negative binomial with dispersion=0)</li>
+<li>CODA model</li>
+</ul>
+<p>Ten thousand simulation datasets will be generated. First I set up
+the simulation parameters and set up the objects to capture the
+output.</p>
+<pre class="r"><code># Sim parameters
+set.seed(10)
+nsim &lt;- 10000
+depth &lt;- 5000
+
+# True cell type proportions
+p &lt;- c(0.01, 0.05, 0.15, 0.34, 0.45)
+
+# Parameters for beta distribution
+a &lt;- 10
+b &lt;- a*(1-p)/p
+
+# Decide on what output to keep
+pval.chsq &lt;- pval.bb &lt;- pval.lb &lt;- pval.nb &lt;- pval.qlf &lt;- pval.pois &lt;- pval.logit &lt;-  pval.asin &lt;- 
+  pval.coda &lt;- matrix(NA,nrow=length(p),ncol=nsim)</code></pre>
+<p>Next we simulate the cell type counts and run the various statistical
+models for testing cell type proportion differences between the two
+groups. In this scenario we don’t expect to detect many statistically
+significant differences if a test correctly controls the type I error
+rate.</p>
+<div id="sample-size-of-3-in-each-group" class="section level2">
+<h2>Sample size of 3 in each group</h2>
+<pre class="r"><code>nsamp &lt;- 6
+for(i in 1:nsim){
+    #Simulate cell type counts
+    counts &lt;- SimulateCellCounts(props=p,nsamp=nsamp,depth=depth,a=a,b=b)
+
+    tot.cells &lt;- colSums(counts)
+
+    # propeller
+    est.props &lt;- t(t(counts)/tot.cells)
+    
+    #asin transform
+    trans.prop &lt;- asin(sqrt(est.props))
+    
+    #logit transform
+    nc &lt;- normCounts(counts)
+    est.props.logit &lt;- t(t(nc+0.5)/(colSums(nc+0.5)))
+    logit.prop &lt;- log(est.props.logit/(1-est.props.logit))
+
+    grp &lt;- rep(c(0,1), each=nsamp/2)
+    des &lt;- model.matrix(~grp)
+  
+    # asinsqrt transform
+    fit &lt;- lmFit(trans.prop, des)
+    fit &lt;- eBayes(fit, robust=TRUE)
+
+    pval.asin[,i] &lt;- fit$p.value[,2]
+    
+    # logit transform
+    fit.logit &lt;- lmFit(logit.prop, des)
+    fit.logit &lt;- eBayes(fit.logit, robust=TRUE)
+
+    pval.logit[,i] &lt;- fit.logit$p.value[,2]
+
+    # Chi-square test for differences in proportions
+    n &lt;- tapply(tot.cells, grp, sum)
+    for(h in 1:length(p)){
+        pval.chsq[h,i] &lt;- prop.test(tapply(counts[h,],grp,sum),n)$p.value
+    }
+
+    # Beta binomial implemented in edgeR (methylation workflow)
+    meth.counts &lt;- counts
+    unmeth.counts &lt;- t(tot.cells - t(counts))
+    new.counts &lt;- cbind(meth.counts,unmeth.counts)
+    sam.info &lt;- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c(&quot;me&quot;,&quot;un&quot;), each=nsamp))
+
+    design.samples &lt;- model.matrix(~0+factor(sam.info$Sample))
+    colnames(design.samples) &lt;- paste(&quot;S&quot;,1:nsamp,sep=&quot;&quot;)
+    design.group &lt;- model.matrix(~0+factor(sam.info$Group))   
+    colnames(design.group) &lt;- c(&quot;A&quot;,&quot;B&quot;)
+    design.bb &lt;- cbind(design.samples, (sam.info$Meth==&quot;me&quot;) * design.group)
+    lib.size = rep(tot.cells,2)
+
+    y &lt;- DGEList(new.counts)
+    y$samples$lib.size &lt;- lib.size
+    y &lt;- estimateDisp(y, design.bb, trend=&quot;none&quot;)
+    fit.bb &lt;- glmFit(y, design.bb)
+    contr &lt;- makeContrasts(Grp=B-A, levels=design.bb)
+    lrt &lt;- glmLRT(fit.bb, contrast=contr)
+    pval.bb[,i] &lt;- lrt$table$PValue
+
+    # Logistic binomial regression
+    fit.lb &lt;- glmFit(y, design.bb, dispersion = 0)
+    lrt.lb &lt;- glmLRT(fit.lb, contrast=contr)
+    pval.lb[,i] &lt;- lrt.lb$table$PValue
+
+    # Negative binomial
+    y.nb &lt;- DGEList(counts)
+    y.nb &lt;- estimateDisp(y.nb, des, trend=&quot;none&quot;)
+    fit.nb &lt;- glmFit(y.nb, des)
+    lrt.nb &lt;- glmLRT(fit.nb, coef=2)
+    pval.nb[,i] &lt;- lrt.nb$table$PValue
+    
+    # Negative binomial QLF test
+    fit.qlf &lt;- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
+    res.qlf &lt;- glmQLFTest(fit.qlf, coef=2)
+    pval.qlf[,i] &lt;- res.qlf$table$PValue
+
+    # Poisson
+    fit.poi &lt;- glmFit(y.nb, des, dispersion = 0)
+    lrt.poi &lt;- glmLRT(fit.poi, coef=2)
+    pval.pois[,i] &lt;- lrt.poi$table$PValue
+    
+    # CODA
+    # Replace zero counts with 0.5 so that the geometric mean always works
+    if(any(counts==0)) counts[counts==0] &lt;- 0.5
+    geomean &lt;- apply(counts,2, function(x) exp(mean(log(x))))
+    geomean.mat &lt;- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
+    clr &lt;- counts/geomean.mat
+    logratio &lt;- log(clr)
+    
+    fit.coda &lt;- lmFit(logratio, des)
+    fit.coda &lt;- eBayes(fit.coda, robust=TRUE)
+
+    pval.coda[,i] &lt;- fit.coda$p.value[,2]
+
+}</code></pre>
+<p>We can look at the number of significant tests at different p-value
+cut-offs:</p>
+<pre class="r"><code>pcut &lt;- 0.01
+type1error &lt;- matrix(NA,nrow=length(p),ncol=9)
+rownames(type1error) &lt;- rownames(counts)
+colnames(type1error) &lt;- c(&quot;chisq&quot;,&quot;logbin&quot;,&quot;pois&quot;,&quot;asin&quot;, &quot;logit&quot;,&quot;betabin&quot;,&quot;negbin&quot;, &quot;nbQLF&quot;,&quot;CODA&quot;)
+
+type1error[,1]&lt;-rowSums(pval.chsq&lt;pcut)/nsim 
+type1error[,2]&lt;-rowSums(pval.lb&lt;pcut)/nsim
+type1error[,3]&lt;-rowSums(pval.pois&lt;pcut)/nsim 
+type1error[,4]&lt;-rowSums(pval.asin&lt;pcut)/nsim 
+type1error[,5]&lt;-rowSums(pval.logit&lt;pcut)/nsim 
+type1error[,6]&lt;-rowSums(pval.bb&lt;pcut)/nsim
+type1error[,7]&lt;-rowSums(pval.nb&lt;pcut)/nsim 
+type1error[,8]&lt;-rowSums(pval.qlf&lt;pcut)/nsim 
+type1error[,9]&lt;-rowSums(pval.coda&lt;pcut)/nsim 
+type1error</code></pre>
+<pre><code>    chisq logbin   pois   asin  logit betabin negbin  nbQLF   CODA
+c0 0.3208 0.3327 0.3304 0.0010 0.0235  0.0241 0.0470 0.0307 0.0254
+c1 0.6159 0.6210 0.6112 0.0077 0.0150  0.0263 0.0454 0.0275 0.0171
+c2 0.7645 0.7668 0.7460 0.0254 0.0162  0.0323 0.0390 0.0233 0.0158
+c3 0.7963 0.7975 0.7540 0.0394 0.0135  0.0239 0.0179 0.0093 0.0117
+c4 0.8074 0.8088 0.7413 0.0357 0.0103  0.0200 0.0088 0.0046 0.0074</code></pre>
+<pre class="r"><code>pcut &lt;- 0.05
+type1error &lt;- matrix(NA,nrow=length(p),ncol=9)
+rownames(type1error) &lt;- rownames(counts)
+colnames(type1error) &lt;- c(&quot;chisq&quot;,&quot;logbin&quot;,&quot;pois&quot;,&quot;asin&quot;, &quot;logit&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;nbQLF&quot;,&quot;CODA&quot;)
+
+type1error[,1]&lt;-rowSums(pval.chsq&lt;pcut)/nsim 
+type1error[,2]&lt;-rowSums(pval.lb&lt;pcut)/nsim
+type1error[,3]&lt;-rowSums(pval.pois&lt;pcut)/nsim 
+type1error[,4]&lt;-rowSums(pval.asin&lt;pcut)/nsim 
+type1error[,5]&lt;-rowSums(pval.logit&lt;pcut)/nsim 
+type1error[,6]&lt;-rowSums(pval.bb&lt;pcut)/nsim
+type1error[,7]&lt;-rowSums(pval.nb&lt;pcut)/nsim 
+type1error[,8]&lt;-rowSums(pval.qlf&lt;pcut)/nsim
+type1error[,9]&lt;-rowSums(pval.coda&lt;pcut)/nsim 
+type1error</code></pre>
+<pre><code>    chisq logbin   pois   asin  logit betabin negbin  nbQLF   CODA
+c0 0.4491 0.4612 0.4588 0.0111 0.0860  0.0813 0.1167 0.0956 0.0922
+c1 0.7007 0.7054 0.6971 0.0413 0.0643  0.0812 0.1144 0.0917 0.0672
+c2 0.8209 0.8224 0.8069 0.0871 0.0637  0.0849 0.0964 0.0757 0.0604
+c3 0.8448 0.8460 0.8098 0.1076 0.0555  0.0753 0.0501 0.0421 0.0495
+c4 0.8552 0.8559 0.8027 0.1041 0.0438  0.0632 0.0261 0.0220 0.0403</code></pre>
+<p>Plot of all type I error rates for the 5 cell types:</p>
+<pre class="r"><code>par(mfrow=c(1,1))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error,beside=TRUE,col=ggplotColors(length(p)),
+        ylab=&quot;Proportion sig. tests&quot;,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
+legend(&quot;topright&quot;,fill=ggplotColors(length(p)),legend=c(paste(&quot;True p=&quot;,p,sep=&quot;&quot;)), cex=1.5)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste(&quot;Type I error rate at alpha = 0.05, n=&quot;, nsamp/2,sep=&quot;&quot;)), cex.main=1.75)</code></pre>
+<p><img src="figure/nullsims.Rmd/unnamed-chunk-8-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p>Removing the most poorly performing methods (1-3):</p>
+<pre class="r"><code>par(mfrow=c(1,1))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error[,4:9],beside=TRUE,col=ggplotColors(length(p)),
+        ylab=&quot;Proportion sig. tests&quot;,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,0.15), las=2)
+#legend(&quot;top&quot;,fill=ggplotColors(length(b)),legend=c(paste(&quot;True p=&quot;,p,sep=&quot;&quot;)), cex=1.5)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste(&quot;Type I error rate at alpha = 0.05, n=&quot;, nsamp/2,sep=&quot;&quot;)), cex.main=1.75)</code></pre>
+<p><img src="figure/nullsims.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># save the type 1 error objects for n=3
+type1error3 &lt;- type1error</code></pre>
+</div>
+<div id="sample-size-of-5-in-each-group" class="section level2">
+<h2>Sample size of 5 in each group</h2>
+<pre class="r"><code>nsamp &lt;- 10
+for(i in 1:nsim){
+    #Simulate cell type counts
+    counts &lt;- SimulateCellCounts(props=p,nsamp=nsamp,depth=depth,a=a,b=b)
+
+    tot.cells &lt;- colSums(counts)
+
+    # propeller
+    est.props &lt;- t(t(counts)/tot.cells)
+    
+    #asin transform
+    trans.prop &lt;- asin(sqrt(est.props))
+    
+    #logit transform
+    nc &lt;- normCounts(counts)
+    est.props.logit &lt;- t(t(nc+0.5)/(colSums(nc+0.5)))
+    logit.prop &lt;- log(est.props.logit/(1-est.props.logit))
+
+    grp &lt;- rep(c(0,1), each=nsamp/2)
+    des &lt;- model.matrix(~grp)
+  
+    # asinsqrt transform
+    fit &lt;- lmFit(trans.prop, des)
+    fit &lt;- eBayes(fit, robust=TRUE)
+
+    pval.asin[,i] &lt;- fit$p.value[,2]
+    
+    # logit transform
+    fit.logit &lt;- lmFit(logit.prop, des)
+    fit.logit &lt;- eBayes(fit.logit, robust=TRUE)
+
+    pval.logit[,i] &lt;- fit.logit$p.value[,2]
+
+    # Chi-square test for differences in proportions
+    n &lt;- tapply(tot.cells, grp, sum)
+    for(h in 1:length(p)){
+        pval.chsq[h,i] &lt;- prop.test(tapply(counts[h,],grp,sum),n)$p.value
+    }
+
+    # Beta binomial implemented in edgeR (methylation workflow)
+    meth.counts &lt;- counts
+    unmeth.counts &lt;- t(tot.cells - t(counts))
+    new.counts &lt;- cbind(meth.counts,unmeth.counts)
+    sam.info &lt;- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c(&quot;me&quot;,&quot;un&quot;), each=nsamp))
+
+    design.samples &lt;- model.matrix(~0+factor(sam.info$Sample))
+    colnames(design.samples) &lt;- paste(&quot;S&quot;,1:nsamp,sep=&quot;&quot;)
+    design.group &lt;- model.matrix(~0+factor(sam.info$Group))   
+    colnames(design.group) &lt;- c(&quot;A&quot;,&quot;B&quot;)
+    design.bb &lt;- cbind(design.samples, (sam.info$Meth==&quot;me&quot;) * design.group)
+    lib.size = rep(tot.cells,2)
+
+    y &lt;- DGEList(new.counts)
+    y$samples$lib.size &lt;- lib.size
+    y &lt;- estimateDisp(y, design.bb, trend=&quot;none&quot;)
+    fit.bb &lt;- glmFit(y, design.bb)
+    contr &lt;- makeContrasts(Grp=B-A, levels=design.bb)
+    lrt &lt;- glmLRT(fit.bb, contrast=contr)
+    pval.bb[,i] &lt;- lrt$table$PValue
+
+    # Logistic binomial regression
+    fit.lb &lt;- glmFit(y, design.bb, dispersion = 0)
+    lrt.lb &lt;- glmLRT(fit.lb, contrast=contr)
+    pval.lb[,i] &lt;- lrt.lb$table$PValue
+
+    # Negative binomial
+    y.nb &lt;- DGEList(counts)
+    y.nb &lt;- estimateDisp(y.nb, des, trend=&quot;none&quot;)
+    fit.nb &lt;- glmFit(y.nb, des)
+    lrt.nb &lt;- glmLRT(fit.nb, coef=2)
+    pval.nb[,i] &lt;- lrt.nb$table$PValue
+    
+    # Negative binomial QLF test
+    fit.qlf &lt;- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
+    res.qlf &lt;- glmQLFTest(fit.qlf, coef=2)
+    pval.qlf[,i] &lt;- res.qlf$table$PValue
+
+    # Poisson
+    fit.poi &lt;- glmFit(y.nb, des, dispersion = 0)
+    lrt.poi &lt;- glmLRT(fit.poi, coef=2)
+    pval.pois[,i] &lt;- lrt.poi$table$PValue
+    
+    # CODA
+    # Replace zero counts with 0.5 so that the geometric mean always works
+    if(any(counts==0)) counts[counts==0] &lt;- 0.5
+    geomean &lt;- apply(counts,2, function(x) exp(mean(log(x))))
+    geomean.mat &lt;- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
+    clr &lt;- counts/geomean.mat
+    logratio &lt;- log(clr)
+    
+    fit.coda &lt;- lmFit(logratio, des)
+    fit.coda &lt;- eBayes(fit.coda, robust=TRUE)
+
+    pval.coda[,i] &lt;- fit.coda$p.value[,2]
+
+}</code></pre>
+<p>We can look at the number of significant tests at different p-value
+cut-offs:</p>
+<pre class="r"><code>pcut &lt;- 0.01
+type1error &lt;- matrix(NA,nrow=length(p),ncol=9)
+rownames(type1error) &lt;- rownames(counts)
+colnames(type1error) &lt;- c(&quot;chisq&quot;,&quot;logbin&quot;,&quot;pois&quot;,&quot;asin&quot;, &quot;logit&quot;,&quot;betabin&quot;,&quot;negbin&quot;, &quot;nbQLF&quot;,&quot;CODA&quot;)
+
+type1error[,1]&lt;-rowSums(pval.chsq&lt;pcut)/nsim 
+type1error[,2]&lt;-rowSums(pval.lb&lt;pcut)/nsim
+type1error[,3]&lt;-rowSums(pval.pois&lt;pcut)/nsim 
+type1error[,4]&lt;-rowSums(pval.asin&lt;pcut)/nsim 
+type1error[,5]&lt;-rowSums(pval.logit&lt;pcut)/nsim 
+type1error[,6]&lt;-rowSums(pval.bb&lt;pcut)/nsim
+type1error[,7]&lt;-rowSums(pval.nb&lt;pcut)/nsim 
+type1error[,8]&lt;-rowSums(pval.qlf&lt;pcut)/nsim 
+type1error[,9]&lt;-rowSums(pval.coda&lt;pcut)/nsim 
+type1error</code></pre>
+<pre><code>    chisq logbin   pois   asin  logit betabin negbin  nbQLF   CODA
+c0 0.3220 0.3309 0.3283 0.0014 0.0203  0.0193 0.0310 0.0219 0.0199
+c1 0.6382 0.6408 0.6323 0.0106 0.0162  0.0228 0.0365 0.0245 0.0170
+c2 0.7586 0.7601 0.7396 0.0171 0.0129  0.0205 0.0242 0.0162 0.0149
+c3 0.8012 0.8021 0.7614 0.0212 0.0097  0.0166 0.0130 0.0074 0.0076
+c4 0.8095 0.8101 0.7420 0.0210 0.0086  0.0131 0.0069 0.0040 0.0061</code></pre>
+<pre class="r"><code>pcut &lt;- 0.05
+type1error &lt;- matrix(NA,nrow=length(p),ncol=9)
+rownames(type1error) &lt;- rownames(counts)
+colnames(type1error) &lt;- c(&quot;chisq&quot;,&quot;logbin&quot;,&quot;pois&quot;,&quot;asin&quot;, &quot;logit&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;nbQLF&quot;,&quot;CODA&quot;)
+
+type1error[,1]&lt;-rowSums(pval.chsq&lt;pcut)/nsim 
+type1error[,2]&lt;-rowSums(pval.lb&lt;pcut)/nsim
+type1error[,3]&lt;-rowSums(pval.pois&lt;pcut)/nsim 
+type1error[,4]&lt;-rowSums(pval.asin&lt;pcut)/nsim 
+type1error[,5]&lt;-rowSums(pval.logit&lt;pcut)/nsim 
+type1error[,6]&lt;-rowSums(pval.bb&lt;pcut)/nsim
+type1error[,7]&lt;-rowSums(pval.nb&lt;pcut)/nsim 
+type1error[,8]&lt;-rowSums(pval.qlf&lt;pcut)/nsim
+type1error[,9]&lt;-rowSums(pval.coda&lt;pcut)/nsim 
+type1error</code></pre>
+<pre><code>    chisq logbin   pois   asin  logit betabin negbin  nbQLF   CODA
+c0 0.4501 0.4605 0.4586 0.0141 0.0738  0.0651 0.0951 0.0815 0.0791
+c1 0.7238 0.7268 0.7198 0.0493 0.0662  0.0757 0.1003 0.0854 0.0693
+c2 0.8142 0.8155 0.7980 0.0705 0.0579  0.0694 0.0789 0.0672 0.0585
+c3 0.8473 0.8478 0.8160 0.0774 0.0466  0.0578 0.0428 0.0364 0.0433
+c4 0.8552 0.8563 0.8041 0.0746 0.0389  0.0487 0.0254 0.0201 0.0348</code></pre>
+<p>Plot of all type I error rates for the 5 cell types:</p>
+<pre class="r"><code>par(mfrow=c(1,1))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error,beside=TRUE,col=ggplotColors(length(p)),
+        ylab=&quot;Proportion sig. tests&quot;,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
+legend(&quot;topright&quot;,fill=ggplotColors(length(p)),legend=c(paste(&quot;True p=&quot;,p,sep=&quot;&quot;)), cex=1.5)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste(&quot;Type I error rate at alpha = 0.05, n=&quot;, nsamp/2,sep=&quot;&quot;)), cex.main=1.75)</code></pre>
+<p><img src="figure/nullsims.Rmd/unnamed-chunk-14-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p>Removing the most poorly performing methods (1-3):</p>
+<pre class="r"><code>par(mfrow=c(1,1))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error[,4:9],beside=TRUE,col=ggplotColors(length(p)),
+        ylab=&quot;Proportion sig. tests&quot;,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,0.15), las=2)
+#legend(&quot;top&quot;,fill=ggplotColors(length(b)),legend=c(paste(&quot;True p=&quot;,p,sep=&quot;&quot;)), cex=1.5)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste(&quot;Type I error rate at alpha = 0.05, n=&quot;, nsamp/2,sep=&quot;&quot;)), cex.main=1.75)</code></pre>
+<p><img src="figure/nullsims.Rmd/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># save the type 1 error objects for n=5
+type1error5 &lt;- type1error</code></pre>
+</div>
+<div id="sample-size-of-10-in-each-group" class="section level2">
+<h2>Sample size of 10 in each group</h2>
+<pre class="r"><code>nsamp &lt;- 20
+for(i in 1:nsim){
+    #Simulate cell type counts
+    counts &lt;- SimulateCellCounts(props=p,nsamp=nsamp,depth=depth,a=a,b=b)
+
+    tot.cells &lt;- colSums(counts)
+
+    # propeller
+    est.props &lt;- t(t(counts)/tot.cells)
+    
+    #asin transform
+    trans.prop &lt;- asin(sqrt(est.props))
+    
+    #logit transform
+    nc &lt;- normCounts(counts)
+    est.props.logit &lt;- t(t(nc+0.5)/(colSums(nc+0.5)))
+    logit.prop &lt;- log(est.props.logit/(1-est.props.logit))
+
+    grp &lt;- rep(c(0,1), each=nsamp/2)
+    des &lt;- model.matrix(~grp)
+  
+    # asinsqrt transform
+    fit &lt;- lmFit(trans.prop, des)
+    fit &lt;- eBayes(fit, robust=TRUE)
+
+    pval.asin[,i] &lt;- fit$p.value[,2]
+    
+    # logit transform
+    fit.logit &lt;- lmFit(logit.prop, des)
+    fit.logit &lt;- eBayes(fit.logit, robust=TRUE)
+
+    pval.logit[,i] &lt;- fit.logit$p.value[,2]
+
+    # Chi-square test for differences in proportions
+    n &lt;- tapply(tot.cells, grp, sum)
+    for(h in 1:length(p)){
+        pval.chsq[h,i] &lt;- prop.test(tapply(counts[h,],grp,sum),n)$p.value
+    }
+
+    # Beta binomial implemented in edgeR (methylation workflow)
+    meth.counts &lt;- counts
+    unmeth.counts &lt;- t(tot.cells - t(counts))
+    new.counts &lt;- cbind(meth.counts,unmeth.counts)
+    sam.info &lt;- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c(&quot;me&quot;,&quot;un&quot;), each=nsamp))
+
+    design.samples &lt;- model.matrix(~0+factor(sam.info$Sample))
+    colnames(design.samples) &lt;- paste(&quot;S&quot;,1:nsamp,sep=&quot;&quot;)
+    design.group &lt;- model.matrix(~0+factor(sam.info$Group))   
+    colnames(design.group) &lt;- c(&quot;A&quot;,&quot;B&quot;)
+    design.bb &lt;- cbind(design.samples, (sam.info$Meth==&quot;me&quot;) * design.group)
+    lib.size = rep(tot.cells,2)
+
+    y &lt;- DGEList(new.counts)
+    y$samples$lib.size &lt;- lib.size
+    y &lt;- estimateDisp(y, design.bb, trend=&quot;none&quot;)
+    fit.bb &lt;- glmFit(y, design.bb)
+    contr &lt;- makeContrasts(Grp=B-A, levels=design.bb)
+    lrt &lt;- glmLRT(fit.bb, contrast=contr)
+    pval.bb[,i] &lt;- lrt$table$PValue
+
+    # Logistic binomial regression
+    fit.lb &lt;- glmFit(y, design.bb, dispersion = 0)
+    lrt.lb &lt;- glmLRT(fit.lb, contrast=contr)
+    pval.lb[,i] &lt;- lrt.lb$table$PValue
+
+    # Negative binomial
+    y.nb &lt;- DGEList(counts)
+    y.nb &lt;- estimateDisp(y.nb, des, trend=&quot;none&quot;)
+    fit.nb &lt;- glmFit(y.nb, des)
+    lrt.nb &lt;- glmLRT(fit.nb, coef=2)
+    pval.nb[,i] &lt;- lrt.nb$table$PValue
+    
+    # Negative binomial QLF test
+    fit.qlf &lt;- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
+    res.qlf &lt;- glmQLFTest(fit.qlf, coef=2)
+    pval.qlf[,i] &lt;- res.qlf$table$PValue
+
+    # Poisson
+    fit.poi &lt;- glmFit(y.nb, des, dispersion = 0)
+    lrt.poi &lt;- glmLRT(fit.poi, coef=2)
+    pval.pois[,i] &lt;- lrt.poi$table$PValue
+    
+    # CODA
+    # Replace zero counts with 0.5 so that the geometric mean always works
+    if(any(counts==0)) counts[counts==0] &lt;- 0.5
+    geomean &lt;- apply(counts,2, function(x) exp(mean(log(x))))
+    geomean.mat &lt;- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
+    clr &lt;- counts/geomean.mat
+    logratio &lt;- log(clr)
+    
+    fit.coda &lt;- lmFit(logratio, des)
+    fit.coda &lt;- eBayes(fit.coda, robust=TRUE)
+
+    pval.coda[,i] &lt;- fit.coda$p.value[,2]
+
+}</code></pre>
+<p>We can look at the number of significant tests at different p-value
+cut-offs:</p>
+<pre class="r"><code>pcut &lt;- 0.01
+type1error &lt;- matrix(NA,nrow=length(p),ncol=9)
+rownames(type1error) &lt;- rownames(counts)
+colnames(type1error) &lt;- c(&quot;chisq&quot;,&quot;logbin&quot;,&quot;pois&quot;,&quot;asin&quot;, &quot;logit&quot;,&quot;betabin&quot;,&quot;negbin&quot;, &quot;nbQLF&quot;,&quot;CODA&quot;)
+
+type1error[,1]&lt;-rowSums(pval.chsq&lt;pcut)/nsim 
+type1error[,2]&lt;-rowSums(pval.lb&lt;pcut)/nsim
+type1error[,3]&lt;-rowSums(pval.pois&lt;pcut)/nsim 
+type1error[,4]&lt;-rowSums(pval.asin&lt;pcut)/nsim 
+type1error[,5]&lt;-rowSums(pval.logit&lt;pcut)/nsim 
+type1error[,6]&lt;-rowSums(pval.bb&lt;pcut)/nsim
+type1error[,7]&lt;-rowSums(pval.nb&lt;pcut)/nsim 
+type1error[,8]&lt;-rowSums(pval.qlf&lt;pcut)/nsim 
+type1error[,9]&lt;-rowSums(pval.coda&lt;pcut)/nsim 
+type1error</code></pre>
+<pre><code>    chisq logbin   pois   asin  logit betabin negbin  nbQLF   CODA
+c0 0.3309 0.3362 0.3341 0.0031 0.0187  0.0155 0.0260 0.0189 0.0198
+c1 0.6276 0.6296 0.6189 0.0103 0.0133  0.0167 0.0227 0.0166 0.0132
+c2 0.7628 0.7637 0.7435 0.0128 0.0104  0.0150 0.0173 0.0130 0.0116
+c3 0.8029 0.8037 0.7594 0.0145 0.0080  0.0115 0.0092 0.0062 0.0074
+c4 0.8039 0.8043 0.7361 0.0133 0.0055  0.0071 0.0045 0.0032 0.0055</code></pre>
+<pre class="r"><code>pcut &lt;- 0.05
+type1error &lt;- matrix(NA,nrow=length(p),ncol=9)
+rownames(type1error) &lt;- rownames(counts)
+colnames(type1error) &lt;- c(&quot;chisq&quot;,&quot;logbin&quot;,&quot;pois&quot;,&quot;asin&quot;, &quot;logit&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;nbQLF&quot;,&quot;CODA&quot;)
+
+type1error[,1]&lt;-rowSums(pval.chsq&lt;pcut)/nsim 
+type1error[,2]&lt;-rowSums(pval.lb&lt;pcut)/nsim
+type1error[,3]&lt;-rowSums(pval.pois&lt;pcut)/nsim 
+type1error[,4]&lt;-rowSums(pval.asin&lt;pcut)/nsim 
+type1error[,5]&lt;-rowSums(pval.logit&lt;pcut)/nsim 
+type1error[,6]&lt;-rowSums(pval.bb&lt;pcut)/nsim
+type1error[,7]&lt;-rowSums(pval.nb&lt;pcut)/nsim 
+type1error[,8]&lt;-rowSums(pval.qlf&lt;pcut)/nsim
+type1error[,9]&lt;-rowSums(pval.coda&lt;pcut)/nsim 
+type1error</code></pre>
+<pre><code>    chisq logbin   pois   asin  logit betabin negbin  nbQLF   CODA
+c0 0.4589 0.4679 0.4653 0.0259 0.0769  0.0682 0.0834 0.0735 0.0787
+c1 0.7129 0.7150 0.7079 0.0485 0.0562  0.0617 0.0748 0.0662 0.0592
+c2 0.8178 0.8187 0.8033 0.0589 0.0520  0.0604 0.0649 0.0583 0.0566
+c3 0.8482 0.8490 0.8162 0.0608 0.0458  0.0516 0.0425 0.0389 0.0406
+c4 0.8473 0.8475 0.7996 0.0574 0.0362  0.0414 0.0281 0.0248 0.0297</code></pre>
+<p>Plot of all type I error rates for the 5 cell types:</p>
+<pre class="r"><code>par(mfrow=c(1,1))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error,beside=TRUE,col=ggplotColors(length(p)),
+        ylab=&quot;Proportion sig. tests&quot;,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
+legend(&quot;topright&quot;,fill=ggplotColors(length(p)),legend=c(paste(&quot;True p=&quot;,p,sep=&quot;&quot;)), cex=1.5)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste(&quot;Type I error rate at alpha = 0.05, n=&quot;, nsamp/2,sep=&quot;&quot;)), cex.main=1.75)</code></pre>
+<p><img src="figure/nullsims.Rmd/unnamed-chunk-20-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p>Removing the most poorly performing methods (1-3):</p>
+<pre class="r"><code>par(mfrow=c(1,1))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error[,4:9],beside=TRUE,col=ggplotColors(length(p)),
+        ylab=&quot;Proportion sig. tests&quot;,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,0.15), las=2)
+#legend(&quot;top&quot;,fill=ggplotColors(length(b)),legend=c(paste(&quot;True p=&quot;,p,sep=&quot;&quot;)), cex=1.5)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste(&quot;Type I error rate at alpha = 0.05, n=&quot;, nsamp/2,sep=&quot;&quot;)), cex.main=1.75)</code></pre>
+<p><img src="figure/nullsims.Rmd/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># save the type 1 error objects for n=10
+type1error10 &lt;- type1error</code></pre>
+</div>
+<div id="sample-size-of-20-in-each-group" class="section level2">
+<h2>Sample size of 20 in each group</h2>
+<pre class="r"><code>nsamp &lt;- 40
+for(i in 1:nsim){
+    #Simulate cell type counts
+    counts &lt;- SimulateCellCounts(props=p,nsamp=nsamp,depth=depth,a=a,b=b)
+
+    tot.cells &lt;- colSums(counts)
+
+    # propeller
+    est.props &lt;- t(t(counts)/tot.cells)
+    
+    #asin transform
+    trans.prop &lt;- asin(sqrt(est.props))
+    
+    #logit transform
+    nc &lt;- normCounts(counts)
+    est.props.logit &lt;- t(t(nc+0.5)/(colSums(nc+0.5)))
+    logit.prop &lt;- log(est.props.logit/(1-est.props.logit))
+
+    grp &lt;- rep(c(0,1), each=nsamp/2)
+    des &lt;- model.matrix(~grp)
+  
+    # asinsqrt transform
+    fit &lt;- lmFit(trans.prop, des)
+    fit &lt;- eBayes(fit, robust=TRUE)
+
+    pval.asin[,i] &lt;- fit$p.value[,2]
+    
+    # logit transform
+    fit.logit &lt;- lmFit(logit.prop, des)
+    fit.logit &lt;- eBayes(fit.logit, robust=TRUE)
+
+    pval.logit[,i] &lt;- fit.logit$p.value[,2]
+
+    # Chi-square test for differences in proportions
+    n &lt;- tapply(tot.cells, grp, sum)
+    for(h in 1:length(p)){
+        pval.chsq[h,i] &lt;- prop.test(tapply(counts[h,],grp,sum),n)$p.value
+    }
+
+    # Beta binomial implemented in edgeR (methylation workflow)
+    meth.counts &lt;- counts
+    unmeth.counts &lt;- t(tot.cells - t(counts))
+    new.counts &lt;- cbind(meth.counts,unmeth.counts)
+    sam.info &lt;- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c(&quot;me&quot;,&quot;un&quot;), each=nsamp))
+
+    design.samples &lt;- model.matrix(~0+factor(sam.info$Sample))
+    colnames(design.samples) &lt;- paste(&quot;S&quot;,1:nsamp,sep=&quot;&quot;)
+    design.group &lt;- model.matrix(~0+factor(sam.info$Group))   
+    colnames(design.group) &lt;- c(&quot;A&quot;,&quot;B&quot;)
+    design.bb &lt;- cbind(design.samples, (sam.info$Meth==&quot;me&quot;) * design.group)
+    lib.size = rep(tot.cells,2)
+
+    y &lt;- DGEList(new.counts)
+    y$samples$lib.size &lt;- lib.size
+    y &lt;- estimateDisp(y, design.bb, trend=&quot;none&quot;)
+    fit.bb &lt;- glmFit(y, design.bb)
+    contr &lt;- makeContrasts(Grp=B-A, levels=design.bb)
+    lrt &lt;- glmLRT(fit.bb, contrast=contr)
+    pval.bb[,i] &lt;- lrt$table$PValue
+
+    # Logistic binomial regression
+    fit.lb &lt;- glmFit(y, design.bb, dispersion = 0)
+    lrt.lb &lt;- glmLRT(fit.lb, contrast=contr)
+    pval.lb[,i] &lt;- lrt.lb$table$PValue
+
+    # Negative binomial
+    y.nb &lt;- DGEList(counts)
+    y.nb &lt;- estimateDisp(y.nb, des, trend=&quot;none&quot;)
+    fit.nb &lt;- glmFit(y.nb, des)
+    lrt.nb &lt;- glmLRT(fit.nb, coef=2)
+    pval.nb[,i] &lt;- lrt.nb$table$PValue
+    
+    # Negative binomial QLF test
+    fit.qlf &lt;- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
+    res.qlf &lt;- glmQLFTest(fit.qlf, coef=2)
+    pval.qlf[,i] &lt;- res.qlf$table$PValue
+
+    # Poisson
+    fit.poi &lt;- glmFit(y.nb, des, dispersion = 0)
+    lrt.poi &lt;- glmLRT(fit.poi, coef=2)
+    pval.pois[,i] &lt;- lrt.poi$table$PValue
+    
+    # CODA
+    # Replace zero counts with 0.5 so that the geometric mean always works
+    if(any(counts==0)) counts[counts==0] &lt;- 0.5
+    geomean &lt;- apply(counts,2, function(x) exp(mean(log(x))))
+    geomean.mat &lt;- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
+    clr &lt;- counts/geomean.mat
+    logratio &lt;- log(clr)
+    
+    fit.coda &lt;- lmFit(logratio, des)
+    fit.coda &lt;- eBayes(fit.coda, robust=TRUE)
+
+    pval.coda[,i] &lt;- fit.coda$p.value[,2]
+
+}</code></pre>
+<p>We can look at the number of significant tests at different p-value
+cut-offs:</p>
+<pre class="r"><code>pcut &lt;- 0.01
+type1error &lt;- matrix(NA,nrow=length(p),ncol=9)
+rownames(type1error) &lt;- rownames(counts)
+colnames(type1error) &lt;- c(&quot;chisq&quot;,&quot;logbin&quot;,&quot;pois&quot;,&quot;asin&quot;, &quot;logit&quot;,&quot;betabin&quot;,&quot;negbin&quot;, &quot;nbQLF&quot;,&quot;CODA&quot;)
+
+type1error[,1]&lt;-rowSums(pval.chsq&lt;pcut)/nsim 
+type1error[,2]&lt;-rowSums(pval.lb&lt;pcut)/nsim
+type1error[,3]&lt;-rowSums(pval.pois&lt;pcut)/nsim 
+type1error[,4]&lt;-rowSums(pval.asin&lt;pcut)/nsim 
+type1error[,5]&lt;-rowSums(pval.logit&lt;pcut)/nsim 
+type1error[,6]&lt;-rowSums(pval.bb&lt;pcut)/nsim
+type1error[,7]&lt;-rowSums(pval.nb&lt;pcut)/nsim 
+type1error[,8]&lt;-rowSums(pval.qlf&lt;pcut)/nsim 
+type1error[,9]&lt;-rowSums(pval.coda&lt;pcut)/nsim 
+type1error</code></pre>
+<pre><code>    chisq logbin   pois   asin  logit betabin negbin  nbQLF   CODA
+c0 0.3399 0.3428 0.3409 0.0055 0.0175  0.0140 0.0180 0.0142 0.0183
+c1 0.6338 0.6353 0.6263 0.0082 0.0102  0.0120 0.0140 0.0102 0.0123
+c2 0.7626 0.7632 0.7434 0.0126 0.0121  0.0143 0.0143 0.0114 0.0134
+c3 0.8016 0.8021 0.7551 0.0121 0.0082  0.0104 0.0094 0.0073 0.0063
+c4 0.8078 0.8081 0.7442 0.0133 0.0074  0.0097 0.0080 0.0062 0.0072</code></pre>
+<pre class="r"><code>pcut &lt;- 0.05
+type1error &lt;- matrix(NA,nrow=length(p),ncol=9)
+rownames(type1error) &lt;- rownames(counts)
+colnames(type1error) &lt;- c(&quot;chisq&quot;,&quot;logbin&quot;,&quot;pois&quot;,&quot;asin&quot;, &quot;logit&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;nbQLF&quot;,&quot;CODA&quot;)
+
+type1error[,1]&lt;-rowSums(pval.chsq&lt;pcut)/nsim 
+type1error[,2]&lt;-rowSums(pval.lb&lt;pcut)/nsim
+type1error[,3]&lt;-rowSums(pval.pois&lt;pcut)/nsim 
+type1error[,4]&lt;-rowSums(pval.asin&lt;pcut)/nsim 
+type1error[,5]&lt;-rowSums(pval.logit&lt;pcut)/nsim 
+type1error[,6]&lt;-rowSums(pval.bb&lt;pcut)/nsim
+type1error[,7]&lt;-rowSums(pval.nb&lt;pcut)/nsim 
+type1error[,8]&lt;-rowSums(pval.qlf&lt;pcut)/nsim
+type1error[,9]&lt;-rowSums(pval.coda&lt;pcut)/nsim 
+type1error</code></pre>
+<pre><code>    chisq logbin   pois   asin  logit betabin negbin  nbQLF   CODA
+c0 0.4632 0.4683 0.4660 0.0372 0.0716  0.0622 0.0698 0.0628 0.0722
+c1 0.7155 0.7172 0.7102 0.0472 0.0564  0.0602 0.0618 0.0565 0.0566
+c2 0.8171 0.8174 0.8030 0.0596 0.0571  0.0636 0.0597 0.0568 0.0544
+c3 0.8486 0.8490 0.8149 0.0551 0.0440  0.0478 0.0435 0.0410 0.0417
+c4 0.8542 0.8543 0.8038 0.0568 0.0409  0.0445 0.0352 0.0322 0.0391</code></pre>
+<p>Plot of all type I error rates for the 5 cell types:</p>
+<pre class="r"><code>par(mfrow=c(1,1))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error,beside=TRUE,col=ggplotColors(length(p)),
+        ylab=&quot;Proportion sig. tests&quot;,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
+legend(&quot;topright&quot;,fill=ggplotColors(length(p)),legend=c(paste(&quot;True p=&quot;,p,sep=&quot;&quot;)), cex=1.5)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste(&quot;Type I error rate at alpha = 0.05, n=&quot;, nsamp/2,sep=&quot;&quot;)), cex.main=1.75)</code></pre>
+<p><img src="figure/nullsims.Rmd/unnamed-chunk-26-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p>Removing the most poorly performing methods (1-3):</p>
+<pre class="r"><code>par(mfrow=c(1,1))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error[,4:9],beside=TRUE,col=ggplotColors(length(p)),
+        ylab=&quot;Proportion sig. tests&quot;,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,0.15), las=2)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste(&quot;Type I error rate at alpha = 0.05, n=&quot;, nsamp/2,sep=&quot;&quot;)), cex.main=1.75)</code></pre>
+<p><img src="figure/nullsims.Rmd/barplotN20-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># save the type 1 error objects for n=20
+type1error20 &lt;- type1error</code></pre>
+</div>
+</div>
+<div id="plot-results-together-across-all-sample-sizes"
+class="section level1">
+<h1>Plot results together across all sample sizes</h1>
+<pre class="r"><code>par(mar=c(8,5,3,2))
+par(mgp=c(3, 0.5, 0))
+layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
+#layout.show(2)
+names &lt;- c(&quot;propeller (asin)&quot;,&quot;propeller (logit)&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;negbinQLF&quot;,&quot;CODA&quot;)    
+barplot(cbind(type1error3[,4:9], type1error5[,4:9],type1error10[,4:9], type1error20[,4:9]),
+        beside=TRUE,col=ggplotColors(5), ylab=&quot;Proportion sig. tests&quot;,
+        cex.axis = 1.25, cex.lab=1.5, cex.names = 1.25, ylim=c(0,0.15),
+        names=rep(names,4), las=2)
+title(&quot;Type I error at alpha = 0.05&quot;, cex.main=2, adj=0)
+#legend(&quot;topright&quot;,fill=ggplotColors(5),legend=c(paste(&quot;True p=&quot;,p,sep=&quot;&quot;)), cex=1.2)
+abline(v=36.5, lty=1, lwd=2)
+abline(v=72.5, lty=1, lwd=2)
+abline(v=108.5, lty=1, lwd=2)
+abline(h=0.05, col=&quot;dark blue&quot;, lty=2, lwd=2)
+ text(20,0.14, labels = &quot;n = 3&quot;, cex=1.5)
+ text(55,0.14, labels = &quot;n = 5&quot;, cex=1.5)
+ text(90,0.14, labels = &quot;n = 10&quot;, cex=1.5)
+ text(125,0.14, labels = &quot;n = 20&quot;, cex=1.5)
+ text(0,0.055, labels = &quot;0.05&quot;, cex=1.25, col=&quot;dark blue&quot;)
+ 
+par(mar=c(0,0,0,0))
+plot(1, type = &quot;n&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;, xaxt=&quot;n&quot;,yaxt=&quot;n&quot;, bty=&quot;n&quot;)
+legend(&quot;center&quot;,fill=ggplotColors(5),legend=c(paste(&quot;True p=&quot;,p,sep=&quot;&quot;)), cex=2)</code></pre>
+<p><img src="figure/nullsims.Rmd/barplotAll-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>pdf(file=&quot;./output/fig2d.pdf&quot;, width=12, height=5)
+par(mar=c(8,5,3,2))
+par(mgp=c(3, 0.5, 0))
+layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
+#layout.show(2)
+names &lt;- c(&quot;propeller (asin)&quot;,&quot;propeller (logit)&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;negbinQLF&quot;,&quot;CODA&quot;)    
+barplot(cbind(type1error3[,4:9], type1error5[,4:9],type1error10[,4:9], type1error20[,4:9]),
+        beside=TRUE,col=ggplotColors(5), ylab=&quot;Proportion sig. tests&quot;,
+        cex.axis = 1.25, cex.lab=1.5, cex.names = 1.25, ylim=c(0,0.15),
+        names=rep(names,4), las=2)
+title(&quot;Type I error at alpha = 0.05&quot;, cex.main=2, adj=0)
+#legend(&quot;topright&quot;,fill=ggplotColors(5),legend=c(paste(&quot;True p=&quot;,p,sep=&quot;&quot;)), cex=1.2)
+abline(v=36.5, lty=1, lwd=2)
+abline(v=72.5, lty=1, lwd=2)
+abline(v=108.5, lty=1, lwd=2)
+abline(h=0.05, col=&quot;dark blue&quot;, lty=2, lwd=2)
+ text(20,0.14, labels = &quot;n = 3&quot;, cex=1.5)
+ text(55,0.14, labels = &quot;n = 5&quot;, cex=1.5)
+ text(90,0.14, labels = &quot;n = 10&quot;, cex=1.5)
+ text(125,0.14, labels = &quot;n = 20&quot;, cex=1.5)
+ text(0,0.055, labels = &quot;0.05&quot;, cex=1.25, col=&quot;dark blue&quot;)
+ 
+par(mar=c(0,0,0,0))
+plot(1, type = &quot;n&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;, xaxt=&quot;n&quot;,yaxt=&quot;n&quot;, bty=&quot;n&quot;)
+legend(&quot;center&quot;,fill=ggplotColors(5),legend=c(paste(&quot;True p=&quot;,p,sep=&quot;&quot;)), cex=2)
+dev.off()</code></pre>
+<pre><code>png 
+  2 </code></pre>
+<pre class="r"><code>pdf(file=&quot;./output/legend-fig2d.pdf&quot;, height = 4, width = 4)
+par(mfrow=c(1,1))
+par(mar=c(0,0,0,0))
+plot.new()
+legend(&quot;center&quot;,fill=ggplotColors(5),legend=c(paste(&quot;True p=&quot;,p,sep=&quot;&quot;)), cex=2)
+dev.off()</code></pre>
+<pre><code>png 
+  2 </code></pre>
+</div>
+<div id="mean-variance-relationship-from-simulated-counts"
+class="section level1">
+<h1>Mean-variance relationship from simulated counts</h1>
+<p>This is the mean variance relationship from one simulated dataset,
+n=5.</p>
+<pre class="r"><code>counts &lt;- SimulateCellCounts(props=p,nsamp=10,depth=depth,a=a,b=b)
+tot.cells &lt;- colSums(counts)
+est.props &lt;- t(t(counts)/tot.cells)</code></pre>
+<pre class="r"><code>par(mfrow=c(1,3))
+par(mar=c(5,5,3,2))
+barplot(est.props, col=ggplotColors(5), names=paste(&quot;S&quot;,1:10,sep=&quot;&quot;),
+        cex.names = 1.25, cex.axis = 1.5, cex.lab = 1.5, cex.main=2,
+        ylab = &quot;Proportion&quot;, xlab=&quot;Sample&quot;, 
+        main = &quot;Cell type proportions&quot;)
+plotCellTypeMeanVar(counts)
+plotCellTypePropsMeanVar(counts)</code></pre>
+<p><img src="figure/nullsims.Rmd/unnamed-chunk-31-1.png" width="960" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>pdf(file=&quot;./output/example_simdata.pdf&quot;, width=13, height=5)
+par(mfrow=c(1,3))
+par(mar=c(5,5,3,2))
+barplot(est.props, col=ggplotColors(5), names=paste(&quot;S&quot;,1:10,sep=&quot;&quot;),
+        cex.names = 1.15, cex.axis = 1.5, cex.lab = 1.5, cex.main=2,
+        ylab = &quot;Proportion&quot;, xlab=&quot;Sample&quot;, 
+        main = &quot;a) Cell type proportions&quot;)
+plotCellTypeMeanVar(counts)
+plotCellTypePropsMeanVar(counts)
+dev.off()</code></pre>
+<pre><code>png 
+  2 </code></pre>
+</div>
+<div id="p-value-histograms" class="section level1">
+<h1>P-value histograms</h1>
+<pre class="r"><code># P-values across all cell types and simulations
+par(mfrow=c(3,3))
+hist(pval.coda)
+hist(pval.asin)
+hist(pval.logit)
+
+hist(pval.chsq)
+hist(pval.lb)
+hist(pval.pois)
+
+hist(pval.bb)
+hist(pval.nb)
+hist(pval.qlf)</code></pre>
+<p><img src="figure/nullsims.Rmd/unnamed-chunk-34-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># P-values for each cell type across simulations
+par(mfrow=c(3,3))
+for(k in 1:5){
+  hist(pval.coda[k,], main=p[k]) 
+  hist(pval.asin[k,])
+  hist(pval.logit[k,])
+
+  hist(pval.chsq[k,])
+  hist(pval.lb[k,])
+  hist(pval.pois[k,])
+
+  hist(pval.bb[k,])
+  hist(pval.nb[k,])
+  hist(pval.qlf[k,])
+}</code></pre>
+<p><img src="figure/nullsims.Rmd/unnamed-chunk-35-1.png" width="672" style="display: block; margin: auto;" /><img src="figure/nullsims.Rmd/unnamed-chunk-35-2.png" width="672" style="display: block; margin: auto;" /><img src="figure/nullsims.Rmd/unnamed-chunk-35-3.png" width="672" style="display: block; margin: auto;" /><img src="figure/nullsims.Rmd/unnamed-chunk-35-4.png" width="672" style="display: block; margin: auto;" /><img src="figure/nullsims.Rmd/unnamed-chunk-35-5.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>save(type1error3, type1error5, type1error10, type1error20, 
+     file=&quot;./output/typeIerrorResults.Rda&quot;)</code></pre>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 4.2.0 (2022-04-22 ucrt)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows 10 x64 (build 22000)
+
+Matrix products: default
+
+locale:
+[1] LC_COLLATE=English_United States.utf8 
+[2] LC_CTYPE=English_United States.utf8   
+[3] LC_MONETARY=English_United States.utf8
+[4] LC_NUMERIC=C                          
+[5] LC_TIME=English_United States.utf8    
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] edgeR_3.38.1    limma_3.52.1    speckle_0.99.0  workflowr_1.7.0
+
+loaded via a namespace (and not attached):
+  [1] plyr_1.8.7                  igraph_1.3.1               
+  [3] lazyeval_0.2.2              sp_1.4-7                   
+  [5] splines_4.2.0               BiocParallel_1.30.2        
+  [7] listenv_0.8.0               scattermore_0.8            
+  [9] GenomeInfoDb_1.32.2         ggplot2_3.3.6              
+ [11] digest_0.6.29               htmltools_0.5.2            
+ [13] fansi_1.0.3                 magrittr_2.0.3             
+ [15] memoise_2.0.1               tensor_1.5                 
+ [17] cluster_2.1.3               ROCR_1.0-11                
+ [19] globals_0.15.0              Biostrings_2.64.0          
+ [21] matrixStats_0.62.0          spatstat.sparse_2.1-1      
+ [23] colorspace_2.0-3            blob_1.2.3                 
+ [25] ggrepel_0.9.1               xfun_0.31                  
+ [27] dplyr_1.0.9                 callr_3.7.0                
+ [29] crayon_1.5.1                RCurl_1.98-1.6             
+ [31] jsonlite_1.8.0              org.Mm.eg.db_3.15.0        
+ [33] progressr_0.10.0            spatstat.data_2.2-0        
+ [35] survival_3.3-1              zoo_1.8-10                 
+ [37] glue_1.6.2                  polyclip_1.10-0            
+ [39] gtable_0.3.0                zlibbioc_1.42.0            
+ [41] XVector_0.36.0              leiden_0.4.2               
+ [43] DelayedArray_0.22.0         SingleCellExperiment_1.18.0
+ [45] future.apply_1.9.0          BiocGenerics_0.42.0        
+ [47] abind_1.4-5                 scales_1.2.0               
+ [49] DBI_1.1.2                   spatstat.random_2.2-0      
+ [51] miniUI_0.1.1.1              Rcpp_1.0.8.3               
+ [53] viridisLite_0.4.0           xtable_1.8-4               
+ [55] reticulate_1.25             spatstat.core_2.4-4        
+ [57] bit_4.0.4                   stats4_4.2.0               
+ [59] htmlwidgets_1.5.4           httr_1.4.3                 
+ [61] RColorBrewer_1.1-3          ellipsis_0.3.2             
+ [63] Seurat_4.1.1                ica_1.0-2                  
+ [65] scuttle_1.6.2               pkgconfig_2.0.3            
+ [67] uwot_0.1.11                 sass_0.4.1                 
+ [69] deldir_1.0-6                locfit_1.5-9.5             
+ [71] utf8_1.2.2                  tidyselect_1.1.2           
+ [73] rlang_1.0.2                 reshape2_1.4.4             
+ [75] later_1.3.0                 AnnotationDbi_1.58.0       
+ [77] munsell_0.5.0               tools_4.2.0                
+ [79] cachem_1.0.6                cli_3.3.0                  
+ [81] generics_0.1.2              RSQLite_2.2.14             
+ [83] ggridges_0.5.3              evaluate_0.15              
+ [85] stringr_1.4.0               fastmap_1.1.0              
+ [87] yaml_2.3.5                  goftest_1.2-3              
+ [89] org.Hs.eg.db_3.15.0         processx_3.5.3             
+ [91] knitr_1.39                  bit64_4.0.5                
+ [93] fs_1.5.2                    fitdistrplus_1.1-8         
+ [95] purrr_0.3.4                 RANN_2.6.1                 
+ [97] KEGGREST_1.36.0             sparseMatrixStats_1.8.0    
+ [99] pbapply_1.5-0               future_1.26.1              
+[101] nlme_3.1-157                whisker_0.4                
+[103] mime_0.12                   compiler_4.2.0             
+[105] rstudioapi_0.13             plotly_4.10.0              
+[107] png_0.1-7                   spatstat.utils_2.3-1       
+[109] tibble_3.1.7                bslib_0.3.1                
+[111] stringi_1.7.6               highr_0.9                  
+[113] ps_1.7.0                    rgeos_0.5-9                
+[115] lattice_0.20-45             Matrix_1.4-1               
+[117] vctrs_0.4.1                 pillar_1.7.0               
+[119] lifecycle_1.0.1             spatstat.geom_2.4-0        
+[121] lmtest_0.9-40               jquerylib_0.1.4            
+[123] RcppAnnoy_0.0.19            data.table_1.14.2          
+[125] cowplot_1.1.1               bitops_1.0-7               
+[127] irlba_2.3.5                 GenomicRanges_1.48.0       
+[129] httpuv_1.6.5                patchwork_1.1.1            
+[131] R6_2.5.1                    promises_1.2.0.1           
+[133] KernSmooth_2.23-20          gridExtra_2.3              
+[135] IRanges_2.30.0              parallelly_1.31.1          
+[137] codetools_0.2-18            MASS_7.3-57                
+[139] assertthat_0.2.1            SummarizedExperiment_1.26.1
+[141] rprojroot_2.0.3             SeuratObject_4.1.0         
+[143] sctransform_0.3.3           S4Vectors_0.34.0           
+[145] GenomeInfoDbData_1.2.8      mgcv_1.8-40                
+[147] parallel_4.2.0              beachmat_2.12.0            
+[149] rpart_4.1.16                grid_4.2.0                 
+[151] tidyr_1.2.0                 DelayedMatrixStats_1.18.0  
+[153] rmarkdown_2.14              MatrixGenerics_1.8.0       
+[155] Rtsne_0.16                  git2r_0.30.1               
+[157] getPass_0.2-2               Biobase_2.56.0             
+[159] shiny_1.7.1                </code></pre>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+https://docs.mathjax.org/en/latest/web/configuration.html. This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1702 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Belinda Phipson" />
+
+<meta name="date" content="2022-01-06" />
+
+<title>Simulations with true cell type proportion differences</title>
+
+<script src="site_libs/header-attrs-2.14/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/main/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">propeller-paper-analysis</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/phipsonlab/propeller-paper-analysis">
+    <span class="fab fa-github"></span>
+     
+    Source code
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Simulations with true cell type proportion
+differences</h1>
+<h4 class="author">Belinda Phipson</h4>
+<h4 class="date">01/06/2022</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span>
+workflowr <span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2022-06-01
+</p>
+<p>
+<strong>Checks:</strong> <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7
+<span class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span> 0
+</p>
+<p>
+<strong>Knit directory:</strong> <code>propeller-paper-analysis/</code>
+<span class="glyphicon glyphicon-question-sign" aria-hidden="true"
+title="This is the local directory in which the code in this file was executed.">
+</span>
+</p>
+<p>
+This reproducible <a href="https://rmarkdown.rstudio.com">R Markdown</a>
+analysis was created with <a
+  href="https://github.com/workflowr/workflowr">workflowr</a> (version
+1.7.0). The <em>Checks</em> tab describes the reproducibility checks
+that were applied when the results were created. The <em>Past
+versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date
+</a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguptodate"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great! Since the R Markdown file has been committed to the Git
+repository, you know the exact version of the code that produced these
+results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the
+global environment can affect the analysis in your R Markdown file in
+unknown ways. For reproduciblity it’s best to always run the code in an
+empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20220531code">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Seed:</strong>
+<code>set.seed(20220531)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20220531code"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20220531)</code> was run prior to running
+the code in the R Markdown file. Setting a seed ensures that any results
+that rely on randomness, e.g. subsampling or permutations, are
+reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Session information:</strong>
+recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package
+versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be
+confident that you successfully produced the results during this
+run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr
+project makes it easier to run your code on other machines.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistree7ec7a76e370fed19ee662c9a0e89705f2a1ed826targetblank7ec7a76a">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Repository version:</strong>
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/7ec7a76e370fed19ee662c9a0e89705f2a1ed826" target="_blank">7ec7a76</a>
+</a>
+</p>
+</div>
+<div
+id="strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistree7ec7a76e370fed19ee662c9a0e89705f2a1ed826targetblank7ec7a76a"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development
+and connecting the code version to the results is critical for
+reproducibility.
+</p>
+<p>
+The results in this page were generated with repository version
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/7ec7a76e370fed19ee662c9a0e89705f2a1ed826" target="_blank">7ec7a76</a>.
+See the <em>Past versions</em> tab to see a history of the changes made
+to the R Markdown and HTML files.
+</p>
+<p>
+Note that you need to be careful to ensure that all relevant files for
+the analysis have been committed to Git prior to generating the results
+(you can use <code>wflow_publish</code> or
+<code>wflow_git_commit</code>). workflowr only checks the R Markdown
+file, but you know if there are other scripts or data files that it
+depends on. Below is the status of the Git repository when the results
+were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .Rproj.user/
+    Ignored:    data/cold_warm_fresh_cellinfo.txt
+    Ignored:    data/covid.cell.annotation.meta.txt
+    Ignored:    data/heartFYA.Rds
+    Ignored:    data/pool_1.rds
+
+Untracked files:
+    Untracked:  analysis/Sims2vs20CT.Rmd
+    Untracked:  code/SimCode.R
+    Untracked:  code/SimCodeTrueDiff.R
+    Untracked:  code/auroc.R
+    Untracked:  data/CTpropsTransposed.txt
+    Untracked:  data/CelltypeLevels.csv
+    Untracked:  data/TypeIErrTables.Rdata
+    Untracked:  data/appnote1cdata.rdata
+    Untracked:  data/cellinfo.csv
+    Untracked:  data/nullsimsVaryN_results.Rdata
+    Untracked:  data/sampleinfo.csv
+    Untracked:  output/Fig1ab.pdf
+    Untracked:  output/Fig1cde.pdf
+    Untracked:  output/example_simdata.pdf
+    Untracked:  output/fig2d.pdf
+    Untracked:  output/legend-fig2d.pdf
+    Untracked:  output/typeIerrorResults.Rda
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not
+included in this status report because it is ok for generated content to
+have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+
+<p>
+These are the previous versions of the repository in which changes were
+made to the R Markdown (<code>analysis/SimTrueDiff.Rmd</code>) and HTML
+(<code>docs/SimTrueDiff.html</code>) files. If you’ve configured a
+remote Git repository (see <code>?wflow_git_remote</code>), click on the
+hyperlinks in the table below to view the files as they were in that
+past version.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/blob/7ec7a76e370fed19ee662c9a0e89705f2a1ed826/analysis/SimTrueDiff.Rmd" target="_blank">7ec7a76</a>
+</td>
+<td>
+bphipson
+</td>
+<td>
+2022-06-01
+</td>
+<td>
+Add null simulation results and true difference simulation results
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div id="load-the-libraries" class="section level1">
+<h1>Load the libraries</h1>
+<pre class="r"><code>library(speckle)
+library(limma)
+library(edgeR)
+library(pheatmap)</code></pre>
+<p>Source the simulation code:</p>
+<pre class="r"><code>source(&quot;./code/SimCodeTrueDiff.R&quot;)
+source(&quot;./code/auroc.R&quot;)</code></pre>
+</div>
+<div id="hierarchical-model-for-simulating-cell-type-proportions"
+class="section level1">
+<h1>Hierarchical model for simulating cell type proportions</h1>
+<p>I am simulating cell type proportions in a hierarchical manner.</p>
+<ul>
+<li>The total number of cells, <span class="math inline">\(n_j\)</span>,
+for each sample <span class="math inline">\(j\)</span>, are drawn from a
+negative binomial distribution with mean 5000 and dispersion 20.</li>
+<li>The true cell type proportions for 7 cell types are estimated from a
+human heart dataset</li>
+<li>The sample proportion <span class="math inline">\(p_{ij}\)</span>
+for cell type <span class="math inline">\(i\)</span> and sample <span
+class="math inline">\(j\)</span> is assumed to be drawn from a Beta
+distribution with parameters <span class="math inline">\(\alpha\)</span>
+and <span class="math inline">\(\beta\)</span>.</li>
+<li>The count for cell type <span class="math inline">\(i\)</span> and
+sample <span class="math inline">\(j\)</span> is then drawn from a
+binomial distribution with probability <span
+class="math inline">\(p_{ij}\)</span> and size <span
+class="math inline">\(n_j\)</span>.</li>
+</ul>
+<p>The Beta-Binomial model allows for biological variability to be
+simulated between samples. The paramaters of the Beta distribution,
+<span class="math inline">\(\alpha\)</span> and <span
+class="math inline">\(\beta\)</span>, determine how variable the <span
+class="math inline">\(p_{ij}\)</span> will be. Larger values of <span
+class="math inline">\(\alpha\)</span> and <span
+class="math inline">\(\beta\)</span> result in a more precise
+distribution centred around the true proportions, while smaller values
+result in a more diffuse prior. The parameters for the Beta distribution
+were estimated from the cell type counts observed in the human heart
+dataset using the function estimateBetaParamsFromCounts in the speckle
+package.</p>
+</div>
+<div id="two-group-simulation-set-up" class="section level1">
+<h1>Two group simulation set up</h1>
+<p>I will generate cell type counts for 7 cell types, assuming two
+experimental groups with a sample size of n=(3,5,10,20) in each group. I
+will calculate p-values from the following models:</p>
+<ul>
+<li>propeller (arcsin sqrt transformation)</li>
+<li>propeller (logit transformation)</li>
+<li>chi-square test of differences in proportions</li>
+<li>beta-binomial model using alternative parameterisation in edgeR</li>
+<li>logistic binomial regression (beta-binomial with dispersion=0)</li>
+<li>negative binomial regression (LRT and QLF in edgeR)</li>
+<li>Poisson regression (negative binomial with dispersion=0)</li>
+<li>CODA model</li>
+</ul>
+<p>One thousand simulation datasets will be generated.</p>
+<p>First I set up the simulation parameters and set up the objects to
+capture the output.</p>
+<pre class="r"><code># Sim parameters
+set.seed(10)
+nsim &lt;- 1000
+depth &lt;- 5000
+
+# True cell type proportions from human heart dataset
+heart.info &lt;- read.csv(file=&quot;./data/cellinfo.csv&quot;, row.names = 1)
+heart.counts &lt;- table(heart.info$Celltype, heart.info$Sample)
+heart.counts &lt;- heart.counts[-4,]
+trueprops &lt;- rowSums(heart.counts)/sum(rowSums(heart.counts))</code></pre>
+<pre class="r"><code>betaparams &lt;- estimateBetaParamsFromCounts(heart.counts)
+
+# Parameters for beta distribution
+a &lt;- betaparams$alpha
+b &lt;- betaparams$beta
+
+# Decide on what output to keep
+pval.chsq &lt;- pval.bb &lt;- pval.lb &lt;- pval.nb &lt;- pval.qlf &lt;- pval.pois &lt;- pval.logit &lt;-  pval.asin &lt;- 
+  pval.coda &lt;- matrix(NA,nrow=length(trueprops),ncol=nsim)</code></pre>
+<p>Set up true proportions for the two groups:</p>
+<pre class="r"><code># Set up true props for the two groups
+grp1.trueprops &lt;- grp2.trueprops &lt;- trueprops
+grp2.trueprops[1] &lt;- grp1.trueprops[1]/2
+grp2.trueprops[4] &lt;- grp2.trueprops[4]*2
+grp2.trueprops[7] &lt;- grp1.trueprops[7]*3
+
+grp2.trueprops[1] &lt;- grp2.trueprops[1] + (1-sum(grp2.trueprops))/2
+grp2.trueprops[4] &lt;- grp2.trueprops[4] + (1-sum(grp2.trueprops))
+ 
+sum(grp1.trueprops)</code></pre>
+<pre><code>[1] 1</code></pre>
+<pre class="r"><code>sum(grp2.trueprops)</code></pre>
+<pre><code>[1] 1</code></pre>
+<pre class="r"><code>da.fac &lt;- grp2.trueprops/grp1.trueprops</code></pre>
+<pre class="r"><code>o &lt;- order(trueprops)
+par(mar=c(9,5,2,2))
+barplot(t(cbind(grp1.trueprops[o],grp2.trueprops[o])), beside=TRUE, col=c(2,4), 
+        las=2, ylab=&quot;True cell type proportion&quot;)
+legend(&quot;topleft&quot;, fill=c(2,4),legend=c(&quot;Group 1&quot;,&quot;Group 2&quot;))
+title(&quot;True cell type proportions for Group 1 and 2&quot;)</code></pre>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Get hyperparameters for alpha and beta
+# Note group 1 and group 2 have different b parameters to accommodate true
+# differences in cell type proportions
+a &lt;- a
+b.grp1 &lt;- a*(1-grp1.trueprops)/grp1.trueprops
+b.grp2 &lt;- a*(1-grp2.trueprops)/grp2.trueprops</code></pre>
+<p>Next we simulate the cell type counts and run the various statistical
+models for testing cell type proportion differences between the two
+groups. We expect to see significant differences in cell type
+proportions in three cell types, and no significant differences in the
+remaining four cell types between group 1 and group 2. We expect
+differences in the Smooth muscle cells (most rare), Fibroblasts (second
+most abundant) and Cardiomyocytes (most abundant).</p>
+<div id="sample-size-of-3-in-each-group" class="section level2">
+<h2>Sample size of 3 in each group</h2>
+<pre class="r"><code>nsamp &lt;- 6
+
+for(i in 1:nsim){
+    #Simulate cell type counts
+    counts &lt;- SimulateCellCountsTrueDiff(props=trueprops,nsamp=nsamp,depth=depth,a=a,
+                                         b.grp1=b.grp1,b.grp2=b.grp2)
+
+    tot.cells &lt;- colSums(counts)
+    # propeller
+    est.props &lt;- t(t(counts)/tot.cells)
+    
+    #asin transform
+    trans.prop &lt;- asin(sqrt(est.props))
+    
+    #logit transform
+    nc &lt;- normCounts(counts)
+    est.props.logit &lt;- t(t(nc+0.5)/(colSums(nc+0.5)))
+    logit.prop &lt;- log(est.props.logit/(1-est.props.logit))
+
+    grp &lt;- rep(c(0,1), each=nsamp/2)
+    des &lt;- model.matrix(~grp)
+  
+    # asinsqrt transform
+    fit &lt;- lmFit(trans.prop, des)
+    fit &lt;- eBayes(fit, robust=TRUE)
+
+    pval.asin[,i] &lt;- fit$p.value[,2]
+    
+    # logit transform
+    fit.logit &lt;- lmFit(logit.prop, des)
+    fit.logit &lt;- eBayes(fit.logit, robust=TRUE)
+
+    pval.logit[,i] &lt;- fit.logit$p.value[,2]
+
+    # Chi-square test for differences in proportions
+    n &lt;- tapply(tot.cells, grp, sum)
+    for(h in 1:nrow(counts)){
+        pval.chsq[h,i] &lt;- prop.test(tapply(counts[h,],grp,sum),n)$p.value
+    }
+
+    # Beta binomial implemented in edgeR (methylation workflow)
+    meth.counts &lt;- counts
+    unmeth.counts &lt;- t(tot.cells - t(counts))
+    new.counts &lt;- cbind(meth.counts,unmeth.counts)
+    sam.info &lt;- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c(&quot;me&quot;,&quot;un&quot;), each=nsamp))
+
+    design.samples &lt;- model.matrix(~0+factor(sam.info$Sample))
+    colnames(design.samples) &lt;- paste(&quot;S&quot;,1:nsamp,sep=&quot;&quot;)
+    design.group &lt;- model.matrix(~0+factor(sam.info$Group))   
+    colnames(design.group) &lt;- c(&quot;A&quot;,&quot;B&quot;)
+    design.bb &lt;- cbind(design.samples, (sam.info$Meth==&quot;me&quot;) * design.group)
+    lib.size = rep(tot.cells,2)
+
+    y &lt;- DGEList(new.counts)
+    y$samples$lib.size &lt;- lib.size
+    y &lt;- estimateDisp(y, design.bb, trend=&quot;none&quot;)
+    fit.bb &lt;- glmFit(y, design.bb)
+    contr &lt;- makeContrasts(Grp=B-A, levels=design.bb)
+    lrt &lt;- glmLRT(fit.bb, contrast=contr)
+    pval.bb[,i] &lt;- lrt$table$PValue
+
+    # Logistic binomial regression
+    fit.lb &lt;- glmFit(y, design.bb, dispersion = 0)
+    lrt.lb &lt;- glmLRT(fit.lb, contrast=contr)
+    pval.lb[,i] &lt;- lrt.lb$table$PValue
+
+    # Negative binomial
+    y.nb &lt;- DGEList(counts)
+    y.nb &lt;- estimateDisp(y.nb, des, trend=&quot;none&quot;)
+    fit.nb &lt;- glmFit(y.nb, des)
+    lrt.nb &lt;- glmLRT(fit.nb, coef=2)
+    pval.nb[,i] &lt;- lrt.nb$table$PValue
+    
+    # Negative binomial QLF test
+    fit.qlf &lt;- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
+    res.qlf &lt;- glmQLFTest(fit.qlf, coef=2)
+    pval.qlf[,i] &lt;- res.qlf$table$PValue
+
+    # Poisson
+    fit.poi &lt;- glmFit(y.nb, des, dispersion = 0)
+    lrt.poi &lt;- glmLRT(fit.poi, coef=2)
+    pval.pois[,i] &lt;- lrt.poi$table$PValue
+    
+    # CODA
+    # Replace zero counts with 0.5 so that the geometric mean always works
+    if(any(counts==0)) counts[counts==0] &lt;- 0.5
+    geomean &lt;- apply(counts,2, function(x) exp(mean(log(x))))
+    geomean.mat &lt;- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
+    clr &lt;- counts/geomean.mat
+    logratio &lt;- log(clr)
+    
+    fit.coda &lt;- lmFit(logratio, des)
+    fit.coda &lt;- eBayes(fit.coda, robust=TRUE)
+
+    pval.coda[,i] &lt;- fit.coda$p.value[,2]
+
+}</code></pre>
+<p>We can look at the number of significant tests at certain p-value
+cut-offs:</p>
+<pre class="r"><code>pcut &lt;- 0.05
+de &lt;- da.fac != 1
+sig.disc &lt;- matrix(NA,nrow=length(trueprops),ncol=9)
+rownames(sig.disc) &lt;- names(trueprops)
+colnames(sig.disc) &lt;- c(&quot;chisq&quot;,&quot;logbin&quot;,&quot;pois&quot;,&quot;asin&quot;, &quot;logit&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;nbQLF&quot;,&quot;CODA&quot;)
+
+sig.disc[,1]&lt;-rowSums(pval.chsq&lt;pcut)/nsim 
+sig.disc[,2]&lt;-rowSums(pval.lb&lt;pcut)/nsim
+sig.disc[,3]&lt;-rowSums(pval.pois&lt;pcut)/nsim 
+sig.disc[,4]&lt;-rowSums(pval.asin&lt;pcut)/nsim 
+sig.disc[,5]&lt;-rowSums(pval.logit&lt;pcut)/nsim 
+sig.disc[,6]&lt;-rowSums(pval.bb&lt;pcut)/nsim
+sig.disc[,7]&lt;-rowSums(pval.nb&lt;pcut)/nsim 
+sig.disc[,8]&lt;-rowSums(pval.qlf&lt;pcut)/nsim
+sig.disc[,9]&lt;-rowSums(pval.coda&lt;pcut)/nsim 
+o &lt;- order(trueprops)
+sig.disc[o,]</code></pre>
+<pre><code>                    chisq logbin  pois  asin logit betabin negbin nbQLF  CODA
+Smooth muscle cells 0.964  0.967 0.966 0.210 0.530   0.570  0.643 0.580 0.491
+Neurons             0.736  0.741 0.740 0.020 0.079   0.097  0.119 0.097 0.097
+Epicardial cells    0.868  0.869 0.866 0.042 0.037   0.046  0.064 0.049 0.059
+Immune cells        0.908  0.908 0.905 0.102 0.119   0.137  0.139 0.116 0.124
+Endothelial cells   0.805  0.806 0.798 0.042 0.016   0.017  0.018 0.018 0.023
+Fibroblast          0.998  0.998 0.997 0.643 0.539   0.594  0.442 0.407 0.275
+Cardiomyocytes      0.996  0.996 0.995 0.581 0.479   0.532  0.247 0.223 0.405</code></pre>
+<pre class="r"><code>layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
+par(mar=c(8,5,3,2))
+par(mgp=c(3, 0.5, 0))
+o &lt;- order(trueprops)
+names &lt;- c(&quot;propeller (asin)&quot;,&quot;propeller (logit)&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;negbinQLF&quot;,&quot;CODA&quot;)
+barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(b)),
+        ylab=&quot;Proportion sig. tests&quot;, names=names,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
+title(paste(&quot;Significant tests, n=&quot;,nsamp/2,sep=&quot;&quot;), cex.main=1.5)
+abline(h=pcut,lty=2,lwd=2)
+par(mar=c(0,0,0,0))
+plot(1, type = &quot;n&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;, xaxt=&quot;n&quot;,yaxt=&quot;n&quot;, bty=&quot;n&quot;)
+legend(&quot;center&quot;, legend=paste(&quot;True p =&quot;,round(trueprops,3)[o]), fill=ggplotColors(length(b)), cex=1.5)</code></pre>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>o &lt;- order(trueprops)
+mysig &lt;- sig.disc[o,4:9]
+colnames(mysig) &lt;- names
+pheatmap(mysig, scale=&quot;none&quot;, cluster_rows = FALSE, cluster_cols = FALSE,
+         labels_row = c(expression(paste(pi, &quot; = 0.008*&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.016&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.064&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.076&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.102&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.183*&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.551*&quot;, sep=&quot;&quot;))),
+         main=paste(&quot;Significant tests, n=&quot;,nsamp/2,sep=&quot;&quot;))</code></pre>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>auc.asin &lt;- auc.logit &lt;- auc.bb &lt;- auc.nb &lt;- auc.qlf &lt;- auc.coda &lt;- rep(NA,nsim)
+for(i in 1:nsim){
+  auc.asin[i] &lt;- auroc(score=1-pval.asin[,i],bool=de)
+  auc.logit[i] &lt;- auroc(score=1-pval.logit[,i],bool=de)
+  auc.bb[i] &lt;- auroc(score=1-pval.bb[,i],bool=de)
+  auc.nb[i] &lt;- auroc(score=1-pval.nb[,i],bool=de)
+  auc.qlf[i] &lt;- auroc(score=1-pval.qlf[,i],bool=de)
+  auc.coda[i] &lt;- auroc(score=1-pval.coda[,i],bool=de)
+}
+
+mean(auc.asin)</code></pre>
+<pre><code>[1] 0.8560833</code></pre>
+<pre class="r"><code>mean(auc.logit)</code></pre>
+<pre><code>[1] 0.85875</code></pre>
+<pre class="r"><code>mean(auc.bb)</code></pre>
+<pre><code>[1] 0.8645833</code></pre>
+<pre class="r"><code>mean(auc.nb)</code></pre>
+<pre><code>[1] 0.823</code></pre>
+<pre class="r"><code>mean(auc.qlf)</code></pre>
+<pre><code>[1] 0.8266667</code></pre>
+<pre class="r"><code>mean(auc.coda)</code></pre>
+<pre><code>[1] 0.7779167</code></pre>
+<pre class="r"><code>par(mfrow=c(1,1))
+par(mar=c(9,5,3,2))
+barplot(c(mean(auc.asin),mean(auc.logit),mean(auc.bb),mean(auc.nb),mean(auc.qlf),mean(auc.coda)), ylim=c(0,1), ylab= &quot;AUC&quot;, cex.axis=1.5, cex.lab=1.5, names=names, las=2, cex.names = 1.5)
+title(paste(&quot;AUC: sample size n=&quot;,nsamp/2,sep=&quot;&quot;),cex.main=1.5)</code></pre>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>sig.disc3 &lt;- sig.disc</code></pre>
+</div>
+<div id="sample-size-of-5-in-each-group" class="section level2">
+<h2>Sample size of 5 in each group</h2>
+<pre class="r"><code>nsamp &lt;- 10
+
+for(i in 1:nsim){
+    #Simulate cell type counts
+    counts &lt;- SimulateCellCountsTrueDiff(props=trueprops,nsamp=nsamp,depth=depth,a=a,
+                                         b.grp1=b.grp1,b.grp2=b.grp2)
+
+    tot.cells &lt;- colSums(counts)
+    # propeller
+    est.props &lt;- t(t(counts)/tot.cells)
+    
+    #asin transform
+    trans.prop &lt;- asin(sqrt(est.props))
+    
+    #logit transform
+    nc &lt;- normCounts(counts)
+    est.props.logit &lt;- t(t(nc+0.5)/(colSums(nc+0.5)))
+    logit.prop &lt;- log(est.props.logit/(1-est.props.logit))
+
+    grp &lt;- rep(c(0,1), each=nsamp/2)
+    des &lt;- model.matrix(~grp)
+  
+    # asinsqrt transform
+    fit &lt;- lmFit(trans.prop, des)
+    fit &lt;- eBayes(fit, robust=TRUE)
+
+    pval.asin[,i] &lt;- fit$p.value[,2]
+    
+    # logit transform
+    fit.logit &lt;- lmFit(logit.prop, des)
+    fit.logit &lt;- eBayes(fit.logit, robust=TRUE)
+
+    pval.logit[,i] &lt;- fit.logit$p.value[,2]
+
+    # Chi-square test for differences in proportions
+    n &lt;- tapply(tot.cells, grp, sum)
+    for(h in 1:nrow(counts)){
+        pval.chsq[h,i] &lt;- prop.test(tapply(counts[h,],grp,sum),n)$p.value
+    }
+
+    # Beta binomial implemented in edgeR (methylation workflow)
+    meth.counts &lt;- counts
+    unmeth.counts &lt;- t(tot.cells - t(counts))
+    new.counts &lt;- cbind(meth.counts,unmeth.counts)
+    sam.info &lt;- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c(&quot;me&quot;,&quot;un&quot;), each=nsamp))
+
+    design.samples &lt;- model.matrix(~0+factor(sam.info$Sample))
+    colnames(design.samples) &lt;- paste(&quot;S&quot;,1:nsamp,sep=&quot;&quot;)
+    design.group &lt;- model.matrix(~0+factor(sam.info$Group))   
+    colnames(design.group) &lt;- c(&quot;A&quot;,&quot;B&quot;)
+    design.bb &lt;- cbind(design.samples, (sam.info$Meth==&quot;me&quot;) * design.group)
+    lib.size = rep(tot.cells,2)
+
+    y &lt;- DGEList(new.counts)
+    y$samples$lib.size &lt;- lib.size
+    y &lt;- estimateDisp(y, design.bb, trend=&quot;none&quot;)
+    fit.bb &lt;- glmFit(y, design.bb)
+    contr &lt;- makeContrasts(Grp=B-A, levels=design.bb)
+    lrt &lt;- glmLRT(fit.bb, contrast=contr)
+    pval.bb[,i] &lt;- lrt$table$PValue
+
+    # Logistic binomial regression
+    fit.lb &lt;- glmFit(y, design.bb, dispersion = 0)
+    lrt.lb &lt;- glmLRT(fit.lb, contrast=contr)
+    pval.lb[,i] &lt;- lrt.lb$table$PValue
+
+    # Negative binomial
+    y.nb &lt;- DGEList(counts)
+    y.nb &lt;- estimateDisp(y.nb, des, trend=&quot;none&quot;)
+    fit.nb &lt;- glmFit(y.nb, des)
+    lrt.nb &lt;- glmLRT(fit.nb, coef=2)
+    pval.nb[,i] &lt;- lrt.nb$table$PValue
+    
+    # Negative binomial QLF test
+    fit.qlf &lt;- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
+    res.qlf &lt;- glmQLFTest(fit.qlf, coef=2)
+    pval.qlf[,i] &lt;- res.qlf$table$PValue
+
+    # Poisson
+    fit.poi &lt;- glmFit(y.nb, des, dispersion = 0)
+    lrt.poi &lt;- glmLRT(fit.poi, coef=2)
+    pval.pois[,i] &lt;- lrt.poi$table$PValue
+    
+    # CODA
+    # Replace zero counts with 0.5 so that the geometric mean always works
+    if(any(counts==0)) counts[counts==0] &lt;- 0.5
+    geomean &lt;- apply(counts,2, function(x) exp(mean(log(x))))
+    geomean.mat &lt;- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
+    clr &lt;- counts/geomean.mat
+    logratio &lt;- log(clr)
+    
+    fit.coda &lt;- lmFit(logratio, des)
+    fit.coda &lt;- eBayes(fit.coda, robust=TRUE)
+
+    pval.coda[,i] &lt;- fit.coda$p.value[,2]
+
+}</code></pre>
+<p>We can look at the number of significant tests at certain p-value
+cut-offs:</p>
+<pre class="r"><code>pcut &lt;- 0.05
+de &lt;- da.fac != 1
+sig.disc &lt;- matrix(NA,nrow=length(trueprops),ncol=9)
+rownames(sig.disc) &lt;- names(trueprops)
+colnames(sig.disc) &lt;- c(&quot;chisq&quot;,&quot;logbin&quot;,&quot;pois&quot;,&quot;asin&quot;, &quot;logit&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;nbQLF&quot;,&quot;CODA&quot;)
+
+sig.disc[,1]&lt;-rowSums(pval.chsq&lt;pcut)/nsim 
+sig.disc[,2]&lt;-rowSums(pval.lb&lt;pcut)/nsim
+sig.disc[,3]&lt;-rowSums(pval.pois&lt;pcut)/nsim 
+sig.disc[,4]&lt;-rowSums(pval.asin&lt;pcut)/nsim 
+sig.disc[,5]&lt;-rowSums(pval.logit&lt;pcut)/nsim 
+sig.disc[,6]&lt;-rowSums(pval.bb&lt;pcut)/nsim
+sig.disc[,7]&lt;-rowSums(pval.nb&lt;pcut)/nsim 
+sig.disc[,8]&lt;-rowSums(pval.qlf&lt;pcut)/nsim
+sig.disc[,9]&lt;-rowSums(pval.coda&lt;pcut)/nsim 
+o &lt;- order(trueprops)
+sig.disc[o,]</code></pre>
+<pre><code>                    chisq logbin  pois  asin logit betabin negbin nbQLF  CODA
+Smooth muscle cells 0.994  0.994 0.994 0.519 0.737   0.762  0.813 0.770 0.714
+Neurons             0.743  0.746 0.745 0.024 0.071   0.081  0.104 0.089 0.095
+Epicardial cells    0.845  0.847 0.839 0.053 0.050   0.055  0.067 0.057 0.083
+Immune cells        0.906  0.906 0.904 0.084 0.112   0.126  0.113 0.094 0.130
+Endothelial cells   0.824  0.824 0.813 0.050 0.014   0.016  0.027 0.025 0.053
+Fibroblast          0.998  0.998 0.998 0.817 0.777   0.812  0.727 0.691 0.477
+Cardiomyocytes      0.998  0.998 0.998 0.737 0.706   0.731  0.485 0.470 0.625</code></pre>
+<pre class="r"><code>layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
+par(mar=c(8,5,3,2))
+par(mgp=c(3, 0.5, 0))
+o &lt;- order(trueprops)
+names &lt;- c(&quot;propeller (asin)&quot;,&quot;propeller (logit)&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;negbinQLF&quot;,&quot;CODA&quot;)
+barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(b)),
+        ylab=&quot;Proportion sig. tests&quot;, names=names,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
+title(paste(&quot;Significant tests, n=&quot;,nsamp/2,sep=&quot;&quot;), cex.main=1.5)
+abline(h=pcut,lty=2,lwd=2)
+par(mar=c(0,0,0,0))
+plot(1, type = &quot;n&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;, xaxt=&quot;n&quot;,yaxt=&quot;n&quot;, bty=&quot;n&quot;)
+legend(&quot;center&quot;, legend=paste(&quot;True p =&quot;,round(trueprops,3)[o]), fill=ggplotColors(length(b)), cex=1.5)</code></pre>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>o &lt;- order(trueprops)
+mysig &lt;- sig.disc[o,4:9]
+colnames(mysig) &lt;- names
+pheatmap(mysig, scale=&quot;none&quot;, cluster_rows = FALSE, cluster_cols = FALSE,
+         labels_row = c(expression(paste(pi, &quot; = 0.008*&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.016&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.064&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.076&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.102&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.183*&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.551*&quot;, sep=&quot;&quot;))),
+         main=paste(&quot;Significant tests, n=&quot;,nsamp/2,sep=&quot;&quot;))</code></pre>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>auc.asin &lt;- auc.logit &lt;- auc.bb &lt;- auc.nb &lt;- auc.qlf &lt;- auc.coda &lt;- rep(NA,nsim)
+for(i in 1:nsim){
+  auc.asin[i] &lt;- auroc(score=1-pval.asin[,i],bool=de)
+  auc.logit[i] &lt;- auroc(score=1-pval.logit[,i],bool=de)
+  auc.bb[i] &lt;- auroc(score=1-pval.bb[,i],bool=de)
+  auc.nb[i] &lt;- auroc(score=1-pval.nb[,i],bool=de)
+  auc.qlf[i] &lt;- auroc(score=1-pval.qlf[,i],bool=de)
+  auc.coda[i] &lt;- auroc(score=1-pval.coda[,i],bool=de)
+}
+
+mean(auc.asin)</code></pre>
+<pre><code>[1] 0.9315833</code></pre>
+<pre class="r"><code>mean(auc.logit)</code></pre>
+<pre><code>[1] 0.9343333</code></pre>
+<pre class="r"><code>mean(auc.bb)</code></pre>
+<pre><code>[1] 0.93575</code></pre>
+<pre class="r"><code>mean(auc.nb)</code></pre>
+<pre><code>[1] 0.9121667</code></pre>
+<pre class="r"><code>mean(auc.qlf)</code></pre>
+<pre><code>[1] 0.9145</code></pre>
+<pre class="r"><code>mean(auc.coda)</code></pre>
+<pre><code>[1] 0.8660833</code></pre>
+<pre class="r"><code>par(mfrow=c(1,1))
+par(mar=c(9,5,3,2))
+barplot(c(mean(auc.asin),mean(auc.logit),mean(auc.bb),mean(auc.nb),mean(auc.qlf),mean(auc.coda)), ylim=c(0,1), ylab= &quot;AUC&quot;, cex.axis=1.5, cex.lab=1.5, names=names, las=2, cex.names = 1.5)
+title(paste(&quot;AUC: sample size n=&quot;,nsamp/2,sep=&quot;&quot;),cex.main=1.5)</code></pre>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>sig.disc5 &lt;- sig.disc</code></pre>
+</div>
+<div id="sample-size-of-10-in-each-group" class="section level2">
+<h2>Sample size of 10 in each group</h2>
+<pre class="r"><code>nsamp &lt;- 20
+
+for(i in 1:nsim){
+    #Simulate cell type counts
+    counts &lt;- SimulateCellCountsTrueDiff(props=trueprops,nsamp=nsamp,depth=depth,a=a,
+                                         b.grp1=b.grp1,b.grp2=b.grp2)
+
+    tot.cells &lt;- colSums(counts)
+    # propeller
+    est.props &lt;- t(t(counts)/tot.cells)
+    
+    #asin transform
+    trans.prop &lt;- asin(sqrt(est.props))
+    
+    #logit transform
+    nc &lt;- normCounts(counts)
+    est.props.logit &lt;- t(t(nc+0.5)/(colSums(nc+0.5)))
+    logit.prop &lt;- log(est.props.logit/(1-est.props.logit))
+
+    grp &lt;- rep(c(0,1), each=nsamp/2)
+    des &lt;- model.matrix(~grp)
+  
+    # asinsqrt transform
+    fit &lt;- lmFit(trans.prop, des)
+    fit &lt;- eBayes(fit, robust=TRUE)
+
+    pval.asin[,i] &lt;- fit$p.value[,2]
+    
+    # logit transform
+    fit.logit &lt;- lmFit(logit.prop, des)
+    fit.logit &lt;- eBayes(fit.logit, robust=TRUE)
+
+    pval.logit[,i] &lt;- fit.logit$p.value[,2]
+
+    # Chi-square test for differences in proportions
+    n &lt;- tapply(tot.cells, grp, sum)
+    for(h in 1:nrow(counts)){
+        pval.chsq[h,i] &lt;- prop.test(tapply(counts[h,],grp,sum),n)$p.value
+    }
+
+    # Beta binomial implemented in edgeR (methylation workflow)
+    meth.counts &lt;- counts
+    unmeth.counts &lt;- t(tot.cells - t(counts))
+    new.counts &lt;- cbind(meth.counts,unmeth.counts)
+    sam.info &lt;- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c(&quot;me&quot;,&quot;un&quot;), each=nsamp))
+
+    design.samples &lt;- model.matrix(~0+factor(sam.info$Sample))
+    colnames(design.samples) &lt;- paste(&quot;S&quot;,1:nsamp,sep=&quot;&quot;)
+    design.group &lt;- model.matrix(~0+factor(sam.info$Group))   
+    colnames(design.group) &lt;- c(&quot;A&quot;,&quot;B&quot;)
+    design.bb &lt;- cbind(design.samples, (sam.info$Meth==&quot;me&quot;) * design.group)
+    lib.size = rep(tot.cells,2)
+
+    y &lt;- DGEList(new.counts)
+    y$samples$lib.size &lt;- lib.size
+    y &lt;- estimateDisp(y, design.bb, trend=&quot;none&quot;)
+    fit.bb &lt;- glmFit(y, design.bb)
+    contr &lt;- makeContrasts(Grp=B-A, levels=design.bb)
+    lrt &lt;- glmLRT(fit.bb, contrast=contr)
+    pval.bb[,i] &lt;- lrt$table$PValue
+
+    # Logistic binomial regression
+    fit.lb &lt;- glmFit(y, design.bb, dispersion = 0)
+    lrt.lb &lt;- glmLRT(fit.lb, contrast=contr)
+    pval.lb[,i] &lt;- lrt.lb$table$PValue
+
+    # Negative binomial
+    y.nb &lt;- DGEList(counts)
+    y.nb &lt;- estimateDisp(y.nb, des, trend=&quot;none&quot;)
+    fit.nb &lt;- glmFit(y.nb, des)
+    lrt.nb &lt;- glmLRT(fit.nb, coef=2)
+    pval.nb[,i] &lt;- lrt.nb$table$PValue
+    
+    # Negative binomial QLF test
+    fit.qlf &lt;- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
+    res.qlf &lt;- glmQLFTest(fit.qlf, coef=2)
+    pval.qlf[,i] &lt;- res.qlf$table$PValue
+
+    # Poisson
+    fit.poi &lt;- glmFit(y.nb, des, dispersion = 0)
+    lrt.poi &lt;- glmLRT(fit.poi, coef=2)
+    pval.pois[,i] &lt;- lrt.poi$table$PValue
+    
+    # CODA
+    # Replace zero counts with 0.5 so that the geometric mean always works
+    if(any(counts==0)) counts[counts==0] &lt;- 0.5
+    geomean &lt;- apply(counts,2, function(x) exp(mean(log(x))))
+    geomean.mat &lt;- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
+    clr &lt;- counts/geomean.mat
+    logratio &lt;- log(clr)
+    
+    fit.coda &lt;- lmFit(logratio, des)
+    fit.coda &lt;- eBayes(fit.coda, robust=TRUE)
+
+    pval.coda[,i] &lt;- fit.coda$p.value[,2]
+
+}</code></pre>
+<p>We can look at the number of significant tests at certain p-value
+cut-offs:</p>
+<pre class="r"><code>pcut &lt;- 0.05
+de &lt;- da.fac != 1
+sig.disc &lt;- matrix(NA,nrow=length(trueprops),ncol=9)
+rownames(sig.disc) &lt;- names(trueprops)
+colnames(sig.disc) &lt;- c(&quot;chisq&quot;,&quot;logbin&quot;,&quot;pois&quot;,&quot;asin&quot;, &quot;logit&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;nbQLF&quot;,&quot;CODA&quot;)
+
+sig.disc[,1]&lt;-rowSums(pval.chsq&lt;pcut)/nsim 
+sig.disc[,2]&lt;-rowSums(pval.lb&lt;pcut)/nsim
+sig.disc[,3]&lt;-rowSums(pval.pois&lt;pcut)/nsim 
+sig.disc[,4]&lt;-rowSums(pval.asin&lt;pcut)/nsim 
+sig.disc[,5]&lt;-rowSums(pval.logit&lt;pcut)/nsim 
+sig.disc[,6]&lt;-rowSums(pval.bb&lt;pcut)/nsim
+sig.disc[,7]&lt;-rowSums(pval.nb&lt;pcut)/nsim 
+sig.disc[,8]&lt;-rowSums(pval.qlf&lt;pcut)/nsim
+sig.disc[,9]&lt;-rowSums(pval.coda&lt;pcut)/nsim 
+o &lt;- order(trueprops)
+sig.disc[o,]</code></pre>
+<pre><code>                    chisq logbin  pois  asin logit betabin negbin nbQLF  CODA
+Smooth muscle cells 1.000  1.000 1.000 0.944 0.971   0.976  0.976 0.971 0.964
+Neurons             0.754  0.755 0.754 0.041 0.061   0.067  0.089 0.068 0.108
+Epicardial cells    0.846  0.848 0.844 0.048 0.046   0.048  0.056 0.049 0.132
+Immune cells        0.886  0.886 0.884 0.062 0.074   0.084  0.076 0.060 0.113
+Endothelial cells   0.799  0.799 0.791 0.040 0.015   0.015  0.021 0.021 0.144
+Fibroblast          1.000  1.000 1.000 0.980 0.974   0.981  0.964 0.960 0.754
+Cardiomyocytes      1.000  1.000 0.999 0.938 0.925   0.938  0.866 0.857 0.881</code></pre>
+<pre class="r"><code>layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
+par(mar=c(8,5,3,2))
+par(mgp=c(3, 0.5, 0))
+o &lt;- order(trueprops)
+names &lt;- c(&quot;propeller (asin)&quot;,&quot;propeller (logit)&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;negbinQLF&quot;,&quot;CODA&quot;)
+barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(b)),
+        ylab=&quot;Proportion sig. tests&quot;, names=names,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
+title(paste(&quot;Significant tests, n=&quot;,nsamp/2,sep=&quot;&quot;), cex.main=1.5)
+abline(h=pcut,lty=2,lwd=2)
+par(mar=c(0,0,0,0))
+plot(1, type = &quot;n&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;, xaxt=&quot;n&quot;,yaxt=&quot;n&quot;, bty=&quot;n&quot;)
+legend(&quot;center&quot;, legend=paste(&quot;True p =&quot;,round(trueprops,3)[o]), fill=ggplotColors(length(b)), cex=1.5)</code></pre>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>o &lt;- order(trueprops)
+mysig &lt;- sig.disc[o,4:9]
+colnames(mysig) &lt;- names
+pheatmap(mysig, scale=&quot;none&quot;, cluster_rows = FALSE, cluster_cols = FALSE,
+         labels_row = c(expression(paste(pi, &quot; = 0.008*&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.016&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.064&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.076&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.102&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.183*&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.551*&quot;, sep=&quot;&quot;))),
+         main=paste(&quot;Significant tests, n=&quot;,nsamp/2,sep=&quot;&quot;))</code></pre>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-25-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>auc.asin &lt;- auc.logit &lt;- auc.bb &lt;- auc.nb &lt;- auc.qlf &lt;- auc.coda &lt;- rep(NA,nsim)
+for(i in 1:nsim){
+  auc.asin[i] &lt;- auroc(score=1-pval.asin[,i],bool=de)
+  auc.logit[i] &lt;- auroc(score=1-pval.logit[,i],bool=de)
+  auc.bb[i] &lt;- auroc(score=1-pval.bb[,i],bool=de)
+  auc.nb[i] &lt;- auroc(score=1-pval.nb[,i],bool=de)
+  auc.qlf[i] &lt;- auroc(score=1-pval.qlf[,i],bool=de)
+  auc.coda[i] &lt;- auroc(score=1-pval.coda[,i],bool=de)
+}
+
+mean(auc.asin)</code></pre>
+<pre><code>[1] 0.99</code></pre>
+<pre class="r"><code>mean(auc.logit)</code></pre>
+<pre><code>[1] 0.9899167</code></pre>
+<pre class="r"><code>mean(auc.bb)</code></pre>
+<pre><code>[1] 0.99025</code></pre>
+<pre class="r"><code>mean(auc.nb)</code></pre>
+<pre><code>[1] 0.9850833</code></pre>
+<pre class="r"><code>mean(auc.qlf)</code></pre>
+<pre><code>[1] 0.9855</code></pre>
+<pre class="r"><code>mean(auc.coda)</code></pre>
+<pre><code>[1] 0.9489167</code></pre>
+<pre class="r"><code>par(mfrow=c(1,1))
+par(mar=c(9,5,3,2))
+barplot(c(mean(auc.asin),mean(auc.logit),mean(auc.bb),mean(auc.nb),mean(auc.qlf),mean(auc.coda)), ylim=c(0,1), ylab= &quot;AUC&quot;, cex.axis=1.5, cex.lab=1.5, names=names, las=2, cex.names = 1.5)
+title(paste(&quot;AUC: sample size n=&quot;,nsamp/2,sep=&quot;&quot;),cex.main=1.5)</code></pre>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-27-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>sig.disc10 &lt;- sig.disc</code></pre>
+</div>
+<div id="sample-size-of-20-in-each-group" class="section level2">
+<h2>Sample size of 20 in each group</h2>
+<pre class="r"><code>nsamp &lt;- 40
+
+for(i in 1:nsim){
+    #Simulate cell type counts
+    counts &lt;- SimulateCellCountsTrueDiff(props=trueprops,nsamp=nsamp,depth=depth,a=a,
+                                         b.grp1=b.grp1,b.grp2=b.grp2)
+
+    tot.cells &lt;- colSums(counts)
+    # propeller
+    est.props &lt;- t(t(counts)/tot.cells)
+    
+    #asin transform
+    trans.prop &lt;- asin(sqrt(est.props))
+    
+    #logit transform
+    nc &lt;- normCounts(counts)
+    est.props.logit &lt;- t(t(nc+0.5)/(colSums(nc+0.5)))
+    logit.prop &lt;- log(est.props.logit/(1-est.props.logit))
+
+    grp &lt;- rep(c(0,1), each=nsamp/2)
+    des &lt;- model.matrix(~grp)
+  
+    # asinsqrt transform
+    fit &lt;- lmFit(trans.prop, des)
+    fit &lt;- eBayes(fit, robust=TRUE)
+
+    pval.asin[,i] &lt;- fit$p.value[,2]
+    
+    # logit transform
+    fit.logit &lt;- lmFit(logit.prop, des)
+    fit.logit &lt;- eBayes(fit.logit, robust=TRUE)
+
+    pval.logit[,i] &lt;- fit.logit$p.value[,2]
+
+    # Chi-square test for differences in proportions
+    n &lt;- tapply(tot.cells, grp, sum)
+    for(h in 1:nrow(counts)){
+        pval.chsq[h,i] &lt;- prop.test(tapply(counts[h,],grp,sum),n)$p.value
+    }
+
+    # Beta binomial implemented in edgeR (methylation workflow)
+    meth.counts &lt;- counts
+    unmeth.counts &lt;- t(tot.cells - t(counts))
+    new.counts &lt;- cbind(meth.counts,unmeth.counts)
+    sam.info &lt;- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c(&quot;me&quot;,&quot;un&quot;), each=nsamp))
+
+    design.samples &lt;- model.matrix(~0+factor(sam.info$Sample))
+    colnames(design.samples) &lt;- paste(&quot;S&quot;,1:nsamp,sep=&quot;&quot;)
+    design.group &lt;- model.matrix(~0+factor(sam.info$Group))   
+    colnames(design.group) &lt;- c(&quot;A&quot;,&quot;B&quot;)
+    design.bb &lt;- cbind(design.samples, (sam.info$Meth==&quot;me&quot;) * design.group)
+    lib.size = rep(tot.cells,2)
+
+    y &lt;- DGEList(new.counts)
+    y$samples$lib.size &lt;- lib.size
+    y &lt;- estimateDisp(y, design.bb, trend=&quot;none&quot;)
+    fit.bb &lt;- glmFit(y, design.bb)
+    contr &lt;- makeContrasts(Grp=B-A, levels=design.bb)
+    lrt &lt;- glmLRT(fit.bb, contrast=contr)
+    pval.bb[,i] &lt;- lrt$table$PValue
+
+    # Logistic binomial regression
+    fit.lb &lt;- glmFit(y, design.bb, dispersion = 0)
+    lrt.lb &lt;- glmLRT(fit.lb, contrast=contr)
+    pval.lb[,i] &lt;- lrt.lb$table$PValue
+
+    # Negative binomial
+    y.nb &lt;- DGEList(counts)
+    y.nb &lt;- estimateDisp(y.nb, des, trend=&quot;none&quot;)
+    fit.nb &lt;- glmFit(y.nb, des)
+    lrt.nb &lt;- glmLRT(fit.nb, coef=2)
+    pval.nb[,i] &lt;- lrt.nb$table$PValue
+    
+    # Negative binomial QLF test
+    fit.qlf &lt;- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
+    res.qlf &lt;- glmQLFTest(fit.qlf, coef=2)
+    pval.qlf[,i] &lt;- res.qlf$table$PValue
+
+    # Poisson
+    fit.poi &lt;- glmFit(y.nb, des, dispersion = 0)
+    lrt.poi &lt;- glmLRT(fit.poi, coef=2)
+    pval.pois[,i] &lt;- lrt.poi$table$PValue
+    
+    # CODA
+    # Replace zero counts with 0.5 so that the geometric mean always works
+    if(any(counts==0)) counts[counts==0] &lt;- 0.5
+    geomean &lt;- apply(counts,2, function(x) exp(mean(log(x))))
+    geomean.mat &lt;- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
+    clr &lt;- counts/geomean.mat
+    logratio &lt;- log(clr)
+    
+    fit.coda &lt;- lmFit(logratio, des)
+    fit.coda &lt;- eBayes(fit.coda, robust=TRUE)
+
+    pval.coda[,i] &lt;- fit.coda$p.value[,2]
+
+}</code></pre>
+<p>We can look at the number of significant tests at certain p-value
+cut-offs:</p>
+<pre class="r"><code>pcut &lt;- 0.05
+de &lt;- da.fac != 1
+sig.disc &lt;- matrix(NA,nrow=length(trueprops),ncol=9)
+rownames(sig.disc) &lt;- names(trueprops)
+colnames(sig.disc) &lt;- c(&quot;chisq&quot;,&quot;logbin&quot;,&quot;pois&quot;,&quot;asin&quot;, &quot;logit&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;nbQLF&quot;,&quot;CODA&quot;)
+
+sig.disc[,1]&lt;-rowSums(pval.chsq&lt;pcut)/nsim 
+sig.disc[,2]&lt;-rowSums(pval.lb&lt;pcut)/nsim
+sig.disc[,3]&lt;-rowSums(pval.pois&lt;pcut)/nsim 
+sig.disc[,4]&lt;-rowSums(pval.asin&lt;pcut)/nsim 
+sig.disc[,5]&lt;-rowSums(pval.logit&lt;pcut)/nsim 
+sig.disc[,6]&lt;-rowSums(pval.bb&lt;pcut)/nsim
+sig.disc[,7]&lt;-rowSums(pval.nb&lt;pcut)/nsim 
+sig.disc[,8]&lt;-rowSums(pval.qlf&lt;pcut)/nsim
+sig.disc[,9]&lt;-rowSums(pval.coda&lt;pcut)/nsim 
+o &lt;- order(trueprops)
+sig.disc[o,]</code></pre>
+<pre><code>                    chisq logbin  pois  asin logit betabin negbin nbQLF  CODA
+Smooth muscle cells 1.000  1.000 1.000 1.000 1.000   1.000  1.000 1.000 1.000
+Neurons             0.752  0.756 0.752 0.039 0.055   0.057  0.066 0.054 0.145
+Epicardial cells    0.860  0.860 0.856 0.063 0.062   0.064  0.078 0.068 0.196
+Immune cells        0.903  0.904 0.899 0.062 0.069   0.080  0.062 0.046 0.133
+Endothelial cells   0.833  0.833 0.823 0.063 0.035   0.034  0.059 0.058 0.330
+Fibroblast          1.000  1.000 1.000 1.000 1.000   1.000  0.999 0.999 0.957
+Cardiomyocytes      1.000  1.000 1.000 0.997 0.997   0.997  0.997 0.996 0.993</code></pre>
+<pre class="r"><code>layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
+par(mar=c(8,5,3,2))
+par(mgp=c(3, 0.5, 0))
+o &lt;- order(trueprops)
+names &lt;- c(&quot;propeller (asin)&quot;,&quot;propeller (logit)&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;negbinQLF&quot;,&quot;CODA&quot;)
+barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(b)),
+        ylab=&quot;Proportion sig. tests&quot;, names=names,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
+title(paste(&quot;Significant tests, n=&quot;,nsamp/2,sep=&quot;&quot;), cex.main=1.5)
+abline(h=pcut,lty=2,lwd=2)
+par(mar=c(0,0,0,0))
+plot(1, type = &quot;n&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;, xaxt=&quot;n&quot;,yaxt=&quot;n&quot;, bty=&quot;n&quot;)
+legend(&quot;center&quot;, legend=paste(&quot;True p =&quot;,round(trueprops,3)[o]), fill=ggplotColors(length(b)), cex=1.5)</code></pre>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-31-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>o &lt;- order(trueprops)
+mysig &lt;- sig.disc[o,4:9]
+colnames(mysig) &lt;- names
+pheatmap(mysig, scale=&quot;none&quot;, cluster_rows = FALSE, cluster_cols = FALSE,
+         labels_row = c(expression(paste(pi, &quot; = 0.008*&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.016&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.064&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.076&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.102&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.183*&quot;, sep=&quot;&quot;)),
+                        expression(paste(pi, &quot; = 0.551*&quot;, sep=&quot;&quot;))),
+         main=paste(&quot;Significant tests, n=&quot;,nsamp/2,sep=&quot;&quot;))</code></pre>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-32-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>sig.disc20 &lt;- sig.disc</code></pre>
+<pre class="r"><code>auc.asin &lt;- auc.logit &lt;- auc.bb &lt;- auc.nb &lt;- auc.qlf &lt;- auc.coda &lt;- rep(NA,nsim)
+for(i in 1:nsim){
+  auc.asin[i] &lt;- auroc(score=1-pval.asin[,i],bool=de)
+  auc.logit[i] &lt;- auroc(score=1-pval.logit[,i],bool=de)
+  auc.bb[i] &lt;- auroc(score=1-pval.bb[,i],bool=de)
+  auc.nb[i] &lt;- auroc(score=1-pval.nb[,i],bool=de)
+  auc.qlf[i] &lt;- auroc(score=1-pval.qlf[,i],bool=de)
+  auc.coda[i] &lt;- auroc(score=1-pval.coda[,i],bool=de)
+}
+
+mean(auc.asin)</code></pre>
+<pre><code>[1] 0.9985833</code></pre>
+<pre class="r"><code>mean(auc.logit)</code></pre>
+<pre><code>[1] 0.99875</code></pre>
+<pre class="r"><code>mean(auc.bb)</code></pre>
+<pre><code>[1] 0.9988333</code></pre>
+<pre class="r"><code>mean(auc.nb)</code></pre>
+<pre><code>[1] 0.9975833</code></pre>
+<pre class="r"><code>mean(auc.qlf)</code></pre>
+<pre><code>[1] 0.998</code></pre>
+<pre class="r"><code>mean(auc.coda)</code></pre>
+<pre><code>[1] 0.9825</code></pre>
+<pre class="r"><code>par(mfrow=c(1,1))
+par(mar=c(9,5,3,2))
+barplot(c(mean(auc.asin),mean(auc.logit),mean(auc.bb),mean(auc.nb),mean(auc.qlf),mean(auc.coda)), ylim=c(0,1), ylab= &quot;AUC&quot;, cex.axis=1.5, cex.lab=1.5, names=names, las=2, cex.names = 1.5)
+title(paste(&quot;AUC: sample size n=&quot;,nsamp/2,sep=&quot;&quot;),cex.main=1.5)</code></pre>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-35-1.png" width="672" style="display: block; margin: auto;" /></p>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 4.2.0 (2022-04-22 ucrt)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows 10 x64 (build 22000)
+
+Matrix products: default
+
+locale:
+[1] LC_COLLATE=English_United States.utf8 
+[2] LC_CTYPE=English_United States.utf8   
+[3] LC_MONETARY=English_United States.utf8
+[4] LC_NUMERIC=C                          
+[5] LC_TIME=English_United States.utf8    
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] pheatmap_1.0.12 edgeR_3.38.1    limma_3.52.1    speckle_0.99.0 
+[5] workflowr_1.7.0
+
+loaded via a namespace (and not attached):
+  [1] plyr_1.8.7                  igraph_1.3.1               
+  [3] lazyeval_0.2.2              sp_1.4-7                   
+  [5] splines_4.2.0               BiocParallel_1.30.2        
+  [7] listenv_0.8.0               scattermore_0.8            
+  [9] GenomeInfoDb_1.32.2         ggplot2_3.3.6              
+ [11] digest_0.6.29               htmltools_0.5.2            
+ [13] fansi_1.0.3                 magrittr_2.0.3             
+ [15] memoise_2.0.1               tensor_1.5                 
+ [17] cluster_2.1.3               ROCR_1.0-11                
+ [19] globals_0.15.0              Biostrings_2.64.0          
+ [21] matrixStats_0.62.0          spatstat.sparse_2.1-1      
+ [23] colorspace_2.0-3            blob_1.2.3                 
+ [25] ggrepel_0.9.1               xfun_0.31                  
+ [27] dplyr_1.0.9                 callr_3.7.0                
+ [29] crayon_1.5.1                RCurl_1.98-1.6             
+ [31] jsonlite_1.8.0              org.Mm.eg.db_3.15.0        
+ [33] progressr_0.10.0            spatstat.data_2.2-0        
+ [35] survival_3.3-1              zoo_1.8-10                 
+ [37] glue_1.6.2                  polyclip_1.10-0            
+ [39] gtable_0.3.0                zlibbioc_1.42.0            
+ [41] XVector_0.36.0              leiden_0.4.2               
+ [43] DelayedArray_0.22.0         SingleCellExperiment_1.18.0
+ [45] future.apply_1.9.0          BiocGenerics_0.42.0        
+ [47] abind_1.4-5                 scales_1.2.0               
+ [49] DBI_1.1.2                   spatstat.random_2.2-0      
+ [51] miniUI_0.1.1.1              Rcpp_1.0.8.3               
+ [53] viridisLite_0.4.0           xtable_1.8-4               
+ [55] reticulate_1.25             spatstat.core_2.4-4        
+ [57] bit_4.0.4                   stats4_4.2.0               
+ [59] htmlwidgets_1.5.4           httr_1.4.3                 
+ [61] RColorBrewer_1.1-3          ellipsis_0.3.2             
+ [63] Seurat_4.1.1                ica_1.0-2                  
+ [65] scuttle_1.6.2               pkgconfig_2.0.3            
+ [67] uwot_0.1.11                 sass_0.4.1                 
+ [69] deldir_1.0-6                locfit_1.5-9.5             
+ [71] utf8_1.2.2                  tidyselect_1.1.2           
+ [73] rlang_1.0.2                 reshape2_1.4.4             
+ [75] later_1.3.0                 AnnotationDbi_1.58.0       
+ [77] munsell_0.5.0               tools_4.2.0                
+ [79] cachem_1.0.6                cli_3.3.0                  
+ [81] generics_0.1.2              RSQLite_2.2.14             
+ [83] ggridges_0.5.3              evaluate_0.15              
+ [85] stringr_1.4.0               fastmap_1.1.0              
+ [87] yaml_2.3.5                  goftest_1.2-3              
+ [89] org.Hs.eg.db_3.15.0         processx_3.5.3             
+ [91] knitr_1.39                  bit64_4.0.5                
+ [93] fs_1.5.2                    fitdistrplus_1.1-8         
+ [95] purrr_0.3.4                 RANN_2.6.1                 
+ [97] KEGGREST_1.36.0             sparseMatrixStats_1.8.0    
+ [99] pbapply_1.5-0               future_1.26.1              
+[101] nlme_3.1-157                whisker_0.4                
+[103] mime_0.12                   compiler_4.2.0             
+[105] rstudioapi_0.13             plotly_4.10.0              
+[107] png_0.1-7                   spatstat.utils_2.3-1       
+[109] tibble_3.1.7                bslib_0.3.1                
+[111] stringi_1.7.6               highr_0.9                  
+[113] ps_1.7.0                    rgeos_0.5-9                
+[115] lattice_0.20-45             Matrix_1.4-1               
+[117] vctrs_0.4.1                 pillar_1.7.0               
+[119] lifecycle_1.0.1             spatstat.geom_2.4-0        
+[121] lmtest_0.9-40               jquerylib_0.1.4            
+[123] RcppAnnoy_0.0.19            data.table_1.14.2          
+[125] cowplot_1.1.1               bitops_1.0-7               
+[127] irlba_2.3.5                 GenomicRanges_1.48.0       
+[129] httpuv_1.6.5                patchwork_1.1.1            
+[131] R6_2.5.1                    promises_1.2.0.1           
+[133] KernSmooth_2.23-20          gridExtra_2.3              
+[135] IRanges_2.30.0              parallelly_1.31.1          
+[137] codetools_0.2-18            MASS_7.3-57                
+[139] assertthat_0.2.1            SummarizedExperiment_1.26.1
+[141] rprojroot_2.0.3             SeuratObject_4.1.0         
+[143] sctransform_0.3.3           S4Vectors_0.34.0           
+[145] GenomeInfoDbData_1.2.8      mgcv_1.8-40                
+[147] parallel_4.2.0              beachmat_2.12.0            
+[149] rpart_4.1.16                grid_4.2.0                 
+[151] tidyr_1.2.0                 DelayedMatrixStats_1.18.0  
+[153] rmarkdown_2.14              MatrixGenerics_1.8.0       
+[155] Rtsne_0.16                  git2r_0.30.1               
+[157] getPass_0.2-2               Biobase_2.56.0             
+[159] shiny_1.7.1                </code></pre>
+</div>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+https://docs.mathjax.org/en/latest/web/configuration.html. This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
