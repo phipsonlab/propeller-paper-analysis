@@ -7,4 +7,6 @@ editor_options:
   chunk_output_type: console
 ---
 
-Describe your project.
+The website hosts the analysis and evaluation of different statistical methods for 
+determining differences in cell type proportions in single cell RNA-seq data for 
+the propeller paper.

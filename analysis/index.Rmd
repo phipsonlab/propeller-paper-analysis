@@ -11,6 +11,9 @@ editor_options:
 The website hosts the analysis and evaluation of different statistical methods for 
 determining differences in cell type proportions in single cell RNA-seq data. 
 
+Citation:
+Phipson, B, et al., Oshlack, A (2021). propeller: testing for differences in 
+cell type proportions in single cell data. bioRxiv. 
 
 * [Data exploration in healthy human PBMCs](pbmcJP.html)
 
