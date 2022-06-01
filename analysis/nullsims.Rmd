@@ -1,0 +1,1027 @@
+---
+title: "Null simulations"
+author: "Belinda Phipson"
+date: "01/06/2022"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    message = FALSE,
+    warning = FALSE
+)
+```
+
+# Load the libraries
+
+```{r}
+library(speckle)
+library(limma)
+library(edgeR)
+```
+
+Source the simulation code:
+```{r}
+source("./code/SimCode.R")
+```
+
+
+# Hierarchical model for simulating cell type proportions
+
+I am simulating cell type proportions in a hierarchical manner. 
+
+* The total number of cells, $n_j$, for each sample $j$, are drawn from a negative binomial
+distribution with mean 5000 and dispersion 20. 
+* The true cell type proportions for 5 cell types are 0.01, 0.05, 0.15, 0.35, 0.45.
+* The sample proportion $p_{ij}$ for cell type $i$ and sample $j$ is assumed to be drawn 
+from a Beta distribution with parameters $\alpha$ and $\beta$. 
+* The count for cell type $i$ and sample $j$ is then drawn from a binomial
+distribution with probability $p_{ij}$ and size $n_j$.
+
+The Beta-Binomial model allows for biological variability to be simulated between samples.
+The paramaters of the Beta distribution, $\alpha$ and $\beta$, determine how variable the
+$p_{ij}$ will be. Larger values of $\alpha$ and $\beta$ result in a more precise 
+distribution centred around the true proportions, while smaller values result in a more diffuse prior. Figure \@ref(fig:betadist) shows the distributions of the $p_{ij}$ as 
+$\alpha$ and $\beta$ vary.
+
+For a given value of $\alpha$ and $p$, $\beta$ can be calculated as 
+$$\beta = \frac{\alpha (1-p)}{p}$$
+
+
+```{r betadist, fig.cap="Density plots of simulated proportions", fig.width=10, fig.height=9}
+p <- c(0.01, 0.05, 0.15, 0.34, 0.45)
+a <- c(seq(0.1, 1, by=0.1), seq(2,10,by=2), seq(25,50,by=5), 100, 150, 200)
+par(mfrow=c(1,1))
+for(j in 1: length(p)){
+    myp <- p[j]
+
+    b = a*(1-myp)/myp
+    
+    cols <- ggplotColors(length(a))
+    
+    plot(density(rbeta(1000,a[length(a)],b[length(a)])),xlim=c(0,1), 
+         main=paste("True proportion = ",myp), col="white", 
+         xlab="", cex.axis=1.5, cex.lab=1.5)
+    legend("topright", legend=paste(a,round(b,2),sep=","),lty=1,col=cols, cex=0.6)
+    for(i in 1:length(a)){
+    lines(density(rbeta(1000,a[i],b[i])),xlim=c(0,1), col=cols[i])
+    }
+    abline(v=myp,lty=2,lwd=2)
+    lines(density(rbeta(1000,a[15],b[15])), col="dark blue", lwd=2, lty=3)
+}
+
+```
+
+
+```{r, echo=FALSE, eval=FALSE}
+pdf(file="./output/hyperplots-density.pdf", width = 12, height = 10)
+p2 <- c(0.05, 0.15, 0.34, 0.45)
+par(mfrow=c(2,2))
+par(mar=c(4,5,3,1))
+for(j in 1: length(p2)){
+    myp <- p2[j]
+
+    b = a*(1-myp)/myp
+    
+    cols <- ggplotColors(length(a))
+    
+    plot(density(rbeta(1000,a[length(a)],b[length(a)])),xlim=c(0,1), 
+         main=paste("True proportion = ",myp), col="white", 
+         xlab="", cex.axis=1.5, cex.lab=1.5, cex.main=2)
+    legend("topright", legend=paste(a,round(b,2),sep=","),lty=1,col=cols, cex=0.8)
+    for(i in 1:length(a)){
+    lines(density(rbeta(1000,a[i],b[i])),xlim=c(0,1), col=cols[i])
+    }
+    abline(v=myp,lty=2,lwd=2)
+    lines(density(rbeta(1000,a[15],b[15])), col=1, lwd=2, lty=1)
+}
+
+dev.off()
+```
+
+# Null simulations, two groups, 5 cell types
+
+I will generate cell type counts for five cell types, assuming two experimental
+groups with a sample size of n=(3,5,10,20) in each group. I will calculate 
+p-values from the following models:
+
+* propeller (arcsin sqrt transformation)
+* propeller (logit transformation)
+* chi-square test of differences in proportions
+* beta-binomial model using alternative parameterisation in edgeR
+* logistic binomial regression (beta-binomial with dispersion=0)
+* negative binomial regression (LRT and QLF in edgeR)
+* Poisson regression (negative binomial with dispersion=0)
+* CODA model
+
+Ten thousand simulation datasets will be generated. 
+First I set up the simulation parameters and set up the objects to capture the
+output.
+
+```{r}
+# Sim parameters
+set.seed(10)
+nsim <- 10000
+depth <- 5000
+
+# True cell type proportions
+p <- c(0.01, 0.05, 0.15, 0.34, 0.45)
+
+# Parameters for beta distribution
+a <- 10
+b <- a*(1-p)/p
+
+# Decide on what output to keep
+pval.chsq <- pval.bb <- pval.lb <- pval.nb <- pval.qlf <- pval.pois <- pval.logit <-  pval.asin <- 
+  pval.coda <- matrix(NA,nrow=length(p),ncol=nsim)
+```
+
+Next we simulate the cell type counts and run the various statistical models
+for testing cell type proportion differences between the two groups. In this 
+scenario we don't expect to detect many statistically significant differences 
+if a test correctly controls the type I error rate.
+
+## Sample size of 3 in each group 
+
+```{r}
+nsamp <- 6
+for(i in 1:nsim){
+    #Simulate cell type counts
+    counts <- SimulateCellCounts(props=p,nsamp=nsamp,depth=depth,a=a,b=b)
+
+    tot.cells <- colSums(counts)
+
+    # propeller
+    est.props <- t(t(counts)/tot.cells)
+    
+    #asin transform
+    trans.prop <- asin(sqrt(est.props))
+    
+    #logit transform
+    nc <- normCounts(counts)
+    est.props.logit <- t(t(nc+0.5)/(colSums(nc+0.5)))
+    logit.prop <- log(est.props.logit/(1-est.props.logit))
+
+    grp <- rep(c(0,1), each=nsamp/2)
+    des <- model.matrix(~grp)
+  
+    # asinsqrt transform
+    fit <- lmFit(trans.prop, des)
+    fit <- eBayes(fit, robust=TRUE)
+
+    pval.asin[,i] <- fit$p.value[,2]
+    
+    # logit transform
+    fit.logit <- lmFit(logit.prop, des)
+    fit.logit <- eBayes(fit.logit, robust=TRUE)
+
+    pval.logit[,i] <- fit.logit$p.value[,2]
+
+    # Chi-square test for differences in proportions
+    n <- tapply(tot.cells, grp, sum)
+    for(h in 1:length(p)){
+        pval.chsq[h,i] <- prop.test(tapply(counts[h,],grp,sum),n)$p.value
+    }
+
+    # Beta binomial implemented in edgeR (methylation workflow)
+    meth.counts <- counts
+    unmeth.counts <- t(tot.cells - t(counts))
+    new.counts <- cbind(meth.counts,unmeth.counts)
+    sam.info <- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c("me","un"), each=nsamp))
+
+    design.samples <- model.matrix(~0+factor(sam.info$Sample))
+    colnames(design.samples) <- paste("S",1:nsamp,sep="")
+    design.group <- model.matrix(~0+factor(sam.info$Group))   
+    colnames(design.group) <- c("A","B")
+    design.bb <- cbind(design.samples, (sam.info$Meth=="me") * design.group)
+    lib.size = rep(tot.cells,2)
+
+    y <- DGEList(new.counts)
+    y$samples$lib.size <- lib.size
+    y <- estimateDisp(y, design.bb, trend="none")
+    fit.bb <- glmFit(y, design.bb)
+    contr <- makeContrasts(Grp=B-A, levels=design.bb)
+    lrt <- glmLRT(fit.bb, contrast=contr)
+    pval.bb[,i] <- lrt$table$PValue
+
+    # Logistic binomial regression
+    fit.lb <- glmFit(y, design.bb, dispersion = 0)
+    lrt.lb <- glmLRT(fit.lb, contrast=contr)
+    pval.lb[,i] <- lrt.lb$table$PValue
+
+    # Negative binomial
+    y.nb <- DGEList(counts)
+    y.nb <- estimateDisp(y.nb, des, trend="none")
+    fit.nb <- glmFit(y.nb, des)
+    lrt.nb <- glmLRT(fit.nb, coef=2)
+    pval.nb[,i] <- lrt.nb$table$PValue
+    
+    # Negative binomial QLF test
+    fit.qlf <- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
+    res.qlf <- glmQLFTest(fit.qlf, coef=2)
+    pval.qlf[,i] <- res.qlf$table$PValue
+
+    # Poisson
+    fit.poi <- glmFit(y.nb, des, dispersion = 0)
+    lrt.poi <- glmLRT(fit.poi, coef=2)
+    pval.pois[,i] <- lrt.poi$table$PValue
+    
+    # CODA
+    # Replace zero counts with 0.5 so that the geometric mean always works
+    if(any(counts==0)) counts[counts==0] <- 0.5
+    geomean <- apply(counts,2, function(x) exp(mean(log(x))))
+    geomean.mat <- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
+    clr <- counts/geomean.mat
+    logratio <- log(clr)
+    
+    fit.coda <- lmFit(logratio, des)
+    fit.coda <- eBayes(fit.coda, robust=TRUE)
+
+    pval.coda[,i] <- fit.coda$p.value[,2]
+
+}
+```
+
+We can look at the number of significant tests at different p-value cut-offs:
+```{r}
+pcut <- 0.01
+type1error <- matrix(NA,nrow=length(p),ncol=9)
+rownames(type1error) <- rownames(counts)
+colnames(type1error) <- c("chisq","logbin","pois","asin", "logit","betabin","negbin", "nbQLF","CODA")
+
+type1error[,1]<-rowSums(pval.chsq<pcut)/nsim 
+type1error[,2]<-rowSums(pval.lb<pcut)/nsim
+type1error[,3]<-rowSums(pval.pois<pcut)/nsim 
+type1error[,4]<-rowSums(pval.asin<pcut)/nsim 
+type1error[,5]<-rowSums(pval.logit<pcut)/nsim 
+type1error[,6]<-rowSums(pval.bb<pcut)/nsim
+type1error[,7]<-rowSums(pval.nb<pcut)/nsim 
+type1error[,8]<-rowSums(pval.qlf<pcut)/nsim 
+type1error[,9]<-rowSums(pval.coda<pcut)/nsim 
+type1error
+```
+
+```{r}
+pcut <- 0.05
+type1error <- matrix(NA,nrow=length(p),ncol=9)
+rownames(type1error) <- rownames(counts)
+colnames(type1error) <- c("chisq","logbin","pois","asin", "logit","betabin","negbin","nbQLF","CODA")
+
+type1error[,1]<-rowSums(pval.chsq<pcut)/nsim 
+type1error[,2]<-rowSums(pval.lb<pcut)/nsim
+type1error[,3]<-rowSums(pval.pois<pcut)/nsim 
+type1error[,4]<-rowSums(pval.asin<pcut)/nsim 
+type1error[,5]<-rowSums(pval.logit<pcut)/nsim 
+type1error[,6]<-rowSums(pval.bb<pcut)/nsim
+type1error[,7]<-rowSums(pval.nb<pcut)/nsim 
+type1error[,8]<-rowSums(pval.qlf<pcut)/nsim
+type1error[,9]<-rowSums(pval.coda<pcut)/nsim 
+type1error
+```
+
+Plot of all type I error rates for the 5 cell types: 
+
+```{r, fig.height=5, fig.width=8}
+par(mfrow=c(1,1))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error,beside=TRUE,col=ggplotColors(length(p)),
+        ylab="Proportion sig. tests",
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
+legend("topright",fill=ggplotColors(length(p)),legend=c(paste("True p=",p,sep="")), cex=1.5)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste("Type I error rate at alpha = 0.05, n=", nsamp/2,sep="")), cex.main=1.75)
+```
+
+Removing the most poorly performing methods (1-3):
+
+```{r}
+par(mfrow=c(1,1))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error[,4:9],beside=TRUE,col=ggplotColors(length(p)),
+        ylab="Proportion sig. tests",
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,0.15), las=2)
+#legend("top",fill=ggplotColors(length(b)),legend=c(paste("True p=",p,sep="")), cex=1.5)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste("Type I error rate at alpha = 0.05, n=", nsamp/2,sep="")), cex.main=1.75)
+```
+
+```{r}
+# save the type 1 error objects for n=3
+type1error3 <- type1error
+```
+
+
+## Sample size of 5 in each group 
+
+```{r}
+nsamp <- 10
+for(i in 1:nsim){
+    #Simulate cell type counts
+    counts <- SimulateCellCounts(props=p,nsamp=nsamp,depth=depth,a=a,b=b)
+
+    tot.cells <- colSums(counts)
+
+    # propeller
+    est.props <- t(t(counts)/tot.cells)
+    
+    #asin transform
+    trans.prop <- asin(sqrt(est.props))
+    
+    #logit transform
+    nc <- normCounts(counts)
+    est.props.logit <- t(t(nc+0.5)/(colSums(nc+0.5)))
+    logit.prop <- log(est.props.logit/(1-est.props.logit))
+
+    grp <- rep(c(0,1), each=nsamp/2)
+    des <- model.matrix(~grp)
+  
+    # asinsqrt transform
+    fit <- lmFit(trans.prop, des)
+    fit <- eBayes(fit, robust=TRUE)
+
+    pval.asin[,i] <- fit$p.value[,2]
+    
+    # logit transform
+    fit.logit <- lmFit(logit.prop, des)
+    fit.logit <- eBayes(fit.logit, robust=TRUE)
+
+    pval.logit[,i] <- fit.logit$p.value[,2]
+
+    # Chi-square test for differences in proportions
+    n <- tapply(tot.cells, grp, sum)
+    for(h in 1:length(p)){
+        pval.chsq[h,i] <- prop.test(tapply(counts[h,],grp,sum),n)$p.value
+    }
+
+    # Beta binomial implemented in edgeR (methylation workflow)
+    meth.counts <- counts
+    unmeth.counts <- t(tot.cells - t(counts))
+    new.counts <- cbind(meth.counts,unmeth.counts)
+    sam.info <- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c("me","un"), each=nsamp))
+
+    design.samples <- model.matrix(~0+factor(sam.info$Sample))
+    colnames(design.samples) <- paste("S",1:nsamp,sep="")
+    design.group <- model.matrix(~0+factor(sam.info$Group))   
+    colnames(design.group) <- c("A","B")
+    design.bb <- cbind(design.samples, (sam.info$Meth=="me") * design.group)
+    lib.size = rep(tot.cells,2)
+
+    y <- DGEList(new.counts)
+    y$samples$lib.size <- lib.size
+    y <- estimateDisp(y, design.bb, trend="none")
+    fit.bb <- glmFit(y, design.bb)
+    contr <- makeContrasts(Grp=B-A, levels=design.bb)
+    lrt <- glmLRT(fit.bb, contrast=contr)
+    pval.bb[,i] <- lrt$table$PValue
+
+    # Logistic binomial regression
+    fit.lb <- glmFit(y, design.bb, dispersion = 0)
+    lrt.lb <- glmLRT(fit.lb, contrast=contr)
+    pval.lb[,i] <- lrt.lb$table$PValue
+
+    # Negative binomial
+    y.nb <- DGEList(counts)
+    y.nb <- estimateDisp(y.nb, des, trend="none")
+    fit.nb <- glmFit(y.nb, des)
+    lrt.nb <- glmLRT(fit.nb, coef=2)
+    pval.nb[,i] <- lrt.nb$table$PValue
+    
+    # Negative binomial QLF test
+    fit.qlf <- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
+    res.qlf <- glmQLFTest(fit.qlf, coef=2)
+    pval.qlf[,i] <- res.qlf$table$PValue
+
+    # Poisson
+    fit.poi <- glmFit(y.nb, des, dispersion = 0)
+    lrt.poi <- glmLRT(fit.poi, coef=2)
+    pval.pois[,i] <- lrt.poi$table$PValue
+    
+    # CODA
+    # Replace zero counts with 0.5 so that the geometric mean always works
+    if(any(counts==0)) counts[counts==0] <- 0.5
+    geomean <- apply(counts,2, function(x) exp(mean(log(x))))
+    geomean.mat <- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
+    clr <- counts/geomean.mat
+    logratio <- log(clr)
+    
+    fit.coda <- lmFit(logratio, des)
+    fit.coda <- eBayes(fit.coda, robust=TRUE)
+
+    pval.coda[,i] <- fit.coda$p.value[,2]
+
+}
+```
+
+We can look at the number of significant tests at different p-value cut-offs:
+
+```{r}
+pcut <- 0.01
+type1error <- matrix(NA,nrow=length(p),ncol=9)
+rownames(type1error) <- rownames(counts)
+colnames(type1error) <- c("chisq","logbin","pois","asin", "logit","betabin","negbin", "nbQLF","CODA")
+
+type1error[,1]<-rowSums(pval.chsq<pcut)/nsim 
+type1error[,2]<-rowSums(pval.lb<pcut)/nsim
+type1error[,3]<-rowSums(pval.pois<pcut)/nsim 
+type1error[,4]<-rowSums(pval.asin<pcut)/nsim 
+type1error[,5]<-rowSums(pval.logit<pcut)/nsim 
+type1error[,6]<-rowSums(pval.bb<pcut)/nsim
+type1error[,7]<-rowSums(pval.nb<pcut)/nsim 
+type1error[,8]<-rowSums(pval.qlf<pcut)/nsim 
+type1error[,9]<-rowSums(pval.coda<pcut)/nsim 
+type1error
+```
+
+```{r}
+pcut <- 0.05
+type1error <- matrix(NA,nrow=length(p),ncol=9)
+rownames(type1error) <- rownames(counts)
+colnames(type1error) <- c("chisq","logbin","pois","asin", "logit","betabin","negbin","nbQLF","CODA")
+
+type1error[,1]<-rowSums(pval.chsq<pcut)/nsim 
+type1error[,2]<-rowSums(pval.lb<pcut)/nsim
+type1error[,3]<-rowSums(pval.pois<pcut)/nsim 
+type1error[,4]<-rowSums(pval.asin<pcut)/nsim 
+type1error[,5]<-rowSums(pval.logit<pcut)/nsim 
+type1error[,6]<-rowSums(pval.bb<pcut)/nsim
+type1error[,7]<-rowSums(pval.nb<pcut)/nsim 
+type1error[,8]<-rowSums(pval.qlf<pcut)/nsim
+type1error[,9]<-rowSums(pval.coda<pcut)/nsim 
+type1error
+```
+
+Plot of all type I error rates for the 5 cell types: 
+
+```{r, fig.height=5, fig.width=8}
+par(mfrow=c(1,1))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error,beside=TRUE,col=ggplotColors(length(p)),
+        ylab="Proportion sig. tests",
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
+legend("topright",fill=ggplotColors(length(p)),legend=c(paste("True p=",p,sep="")), cex=1.5)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste("Type I error rate at alpha = 0.05, n=", nsamp/2,sep="")), cex.main=1.75)
+```
+
+Removing the most poorly performing methods (1-3):
+
+```{r}
+par(mfrow=c(1,1))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error[,4:9],beside=TRUE,col=ggplotColors(length(p)),
+        ylab="Proportion sig. tests",
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,0.15), las=2)
+#legend("top",fill=ggplotColors(length(b)),legend=c(paste("True p=",p,sep="")), cex=1.5)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste("Type I error rate at alpha = 0.05, n=", nsamp/2,sep="")), cex.main=1.75)
+```
+
+
+```{r}
+# save the type 1 error objects for n=5
+type1error5 <- type1error
+```
+
+
+## Sample size of 10 in each group 
+
+```{r}
+nsamp <- 20
+for(i in 1:nsim){
+    #Simulate cell type counts
+    counts <- SimulateCellCounts(props=p,nsamp=nsamp,depth=depth,a=a,b=b)
+
+    tot.cells <- colSums(counts)
+
+    # propeller
+    est.props <- t(t(counts)/tot.cells)
+    
+    #asin transform
+    trans.prop <- asin(sqrt(est.props))
+    
+    #logit transform
+    nc <- normCounts(counts)
+    est.props.logit <- t(t(nc+0.5)/(colSums(nc+0.5)))
+    logit.prop <- log(est.props.logit/(1-est.props.logit))
+
+    grp <- rep(c(0,1), each=nsamp/2)
+    des <- model.matrix(~grp)
+  
+    # asinsqrt transform
+    fit <- lmFit(trans.prop, des)
+    fit <- eBayes(fit, robust=TRUE)
+
+    pval.asin[,i] <- fit$p.value[,2]
+    
+    # logit transform
+    fit.logit <- lmFit(logit.prop, des)
+    fit.logit <- eBayes(fit.logit, robust=TRUE)
+
+    pval.logit[,i] <- fit.logit$p.value[,2]
+
+    # Chi-square test for differences in proportions
+    n <- tapply(tot.cells, grp, sum)
+    for(h in 1:length(p)){
+        pval.chsq[h,i] <- prop.test(tapply(counts[h,],grp,sum),n)$p.value
+    }
+
+    # Beta binomial implemented in edgeR (methylation workflow)
+    meth.counts <- counts
+    unmeth.counts <- t(tot.cells - t(counts))
+    new.counts <- cbind(meth.counts,unmeth.counts)
+    sam.info <- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c("me","un"), each=nsamp))
+
+    design.samples <- model.matrix(~0+factor(sam.info$Sample))
+    colnames(design.samples) <- paste("S",1:nsamp,sep="")
+    design.group <- model.matrix(~0+factor(sam.info$Group))   
+    colnames(design.group) <- c("A","B")
+    design.bb <- cbind(design.samples, (sam.info$Meth=="me") * design.group)
+    lib.size = rep(tot.cells,2)
+
+    y <- DGEList(new.counts)
+    y$samples$lib.size <- lib.size
+    y <- estimateDisp(y, design.bb, trend="none")
+    fit.bb <- glmFit(y, design.bb)
+    contr <- makeContrasts(Grp=B-A, levels=design.bb)
+    lrt <- glmLRT(fit.bb, contrast=contr)
+    pval.bb[,i] <- lrt$table$PValue
+
+    # Logistic binomial regression
+    fit.lb <- glmFit(y, design.bb, dispersion = 0)
+    lrt.lb <- glmLRT(fit.lb, contrast=contr)
+    pval.lb[,i] <- lrt.lb$table$PValue
+
+    # Negative binomial
+    y.nb <- DGEList(counts)
+    y.nb <- estimateDisp(y.nb, des, trend="none")
+    fit.nb <- glmFit(y.nb, des)
+    lrt.nb <- glmLRT(fit.nb, coef=2)
+    pval.nb[,i] <- lrt.nb$table$PValue
+    
+    # Negative binomial QLF test
+    fit.qlf <- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
+    res.qlf <- glmQLFTest(fit.qlf, coef=2)
+    pval.qlf[,i] <- res.qlf$table$PValue
+
+    # Poisson
+    fit.poi <- glmFit(y.nb, des, dispersion = 0)
+    lrt.poi <- glmLRT(fit.poi, coef=2)
+    pval.pois[,i] <- lrt.poi$table$PValue
+    
+    # CODA
+    # Replace zero counts with 0.5 so that the geometric mean always works
+    if(any(counts==0)) counts[counts==0] <- 0.5
+    geomean <- apply(counts,2, function(x) exp(mean(log(x))))
+    geomean.mat <- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
+    clr <- counts/geomean.mat
+    logratio <- log(clr)
+    
+    fit.coda <- lmFit(logratio, des)
+    fit.coda <- eBayes(fit.coda, robust=TRUE)
+
+    pval.coda[,i] <- fit.coda$p.value[,2]
+
+}
+```
+
+We can look at the number of significant tests at different p-value cut-offs:
+
+```{r}
+pcut <- 0.01
+type1error <- matrix(NA,nrow=length(p),ncol=9)
+rownames(type1error) <- rownames(counts)
+colnames(type1error) <- c("chisq","logbin","pois","asin", "logit","betabin","negbin", "nbQLF","CODA")
+
+type1error[,1]<-rowSums(pval.chsq<pcut)/nsim 
+type1error[,2]<-rowSums(pval.lb<pcut)/nsim
+type1error[,3]<-rowSums(pval.pois<pcut)/nsim 
+type1error[,4]<-rowSums(pval.asin<pcut)/nsim 
+type1error[,5]<-rowSums(pval.logit<pcut)/nsim 
+type1error[,6]<-rowSums(pval.bb<pcut)/nsim
+type1error[,7]<-rowSums(pval.nb<pcut)/nsim 
+type1error[,8]<-rowSums(pval.qlf<pcut)/nsim 
+type1error[,9]<-rowSums(pval.coda<pcut)/nsim 
+type1error
+```
+
+```{r}
+pcut <- 0.05
+type1error <- matrix(NA,nrow=length(p),ncol=9)
+rownames(type1error) <- rownames(counts)
+colnames(type1error) <- c("chisq","logbin","pois","asin", "logit","betabin","negbin","nbQLF","CODA")
+
+type1error[,1]<-rowSums(pval.chsq<pcut)/nsim 
+type1error[,2]<-rowSums(pval.lb<pcut)/nsim
+type1error[,3]<-rowSums(pval.pois<pcut)/nsim 
+type1error[,4]<-rowSums(pval.asin<pcut)/nsim 
+type1error[,5]<-rowSums(pval.logit<pcut)/nsim 
+type1error[,6]<-rowSums(pval.bb<pcut)/nsim
+type1error[,7]<-rowSums(pval.nb<pcut)/nsim 
+type1error[,8]<-rowSums(pval.qlf<pcut)/nsim
+type1error[,9]<-rowSums(pval.coda<pcut)/nsim 
+type1error
+```
+
+Plot of all type I error rates for the 5 cell types: 
+```{r, fig.height=5, fig.width=8}
+par(mfrow=c(1,1))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error,beside=TRUE,col=ggplotColors(length(p)),
+        ylab="Proportion sig. tests",
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
+legend("topright",fill=ggplotColors(length(p)),legend=c(paste("True p=",p,sep="")), cex=1.5)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste("Type I error rate at alpha = 0.05, n=", nsamp/2,sep="")), cex.main=1.75)
+```
+
+Removing the most poorly performing methods (1-3):
+
+```{r}
+par(mfrow=c(1,1))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error[,4:9],beside=TRUE,col=ggplotColors(length(p)),
+        ylab="Proportion sig. tests",
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,0.15), las=2)
+#legend("top",fill=ggplotColors(length(b)),legend=c(paste("True p=",p,sep="")), cex=1.5)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste("Type I error rate at alpha = 0.05, n=", nsamp/2,sep="")), cex.main=1.75)
+```
+
+
+```{r}
+# save the type 1 error objects for n=10
+type1error10 <- type1error
+```
+
+
+## Sample size of 20 in each group 
+
+```{r}
+nsamp <- 40
+for(i in 1:nsim){
+    #Simulate cell type counts
+    counts <- SimulateCellCounts(props=p,nsamp=nsamp,depth=depth,a=a,b=b)
+
+    tot.cells <- colSums(counts)
+
+    # propeller
+    est.props <- t(t(counts)/tot.cells)
+    
+    #asin transform
+    trans.prop <- asin(sqrt(est.props))
+    
+    #logit transform
+    nc <- normCounts(counts)
+    est.props.logit <- t(t(nc+0.5)/(colSums(nc+0.5)))
+    logit.prop <- log(est.props.logit/(1-est.props.logit))
+
+    grp <- rep(c(0,1), each=nsamp/2)
+    des <- model.matrix(~grp)
+  
+    # asinsqrt transform
+    fit <- lmFit(trans.prop, des)
+    fit <- eBayes(fit, robust=TRUE)
+
+    pval.asin[,i] <- fit$p.value[,2]
+    
+    # logit transform
+    fit.logit <- lmFit(logit.prop, des)
+    fit.logit <- eBayes(fit.logit, robust=TRUE)
+
+    pval.logit[,i] <- fit.logit$p.value[,2]
+
+    # Chi-square test for differences in proportions
+    n <- tapply(tot.cells, grp, sum)
+    for(h in 1:length(p)){
+        pval.chsq[h,i] <- prop.test(tapply(counts[h,],grp,sum),n)$p.value
+    }
+
+    # Beta binomial implemented in edgeR (methylation workflow)
+    meth.counts <- counts
+    unmeth.counts <- t(tot.cells - t(counts))
+    new.counts <- cbind(meth.counts,unmeth.counts)
+    sam.info <- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c("me","un"), each=nsamp))
+
+    design.samples <- model.matrix(~0+factor(sam.info$Sample))
+    colnames(design.samples) <- paste("S",1:nsamp,sep="")
+    design.group <- model.matrix(~0+factor(sam.info$Group))   
+    colnames(design.group) <- c("A","B")
+    design.bb <- cbind(design.samples, (sam.info$Meth=="me") * design.group)
+    lib.size = rep(tot.cells,2)
+
+    y <- DGEList(new.counts)
+    y$samples$lib.size <- lib.size
+    y <- estimateDisp(y, design.bb, trend="none")
+    fit.bb <- glmFit(y, design.bb)
+    contr <- makeContrasts(Grp=B-A, levels=design.bb)
+    lrt <- glmLRT(fit.bb, contrast=contr)
+    pval.bb[,i] <- lrt$table$PValue
+
+    # Logistic binomial regression
+    fit.lb <- glmFit(y, design.bb, dispersion = 0)
+    lrt.lb <- glmLRT(fit.lb, contrast=contr)
+    pval.lb[,i] <- lrt.lb$table$PValue
+
+    # Negative binomial
+    y.nb <- DGEList(counts)
+    y.nb <- estimateDisp(y.nb, des, trend="none")
+    fit.nb <- glmFit(y.nb, des)
+    lrt.nb <- glmLRT(fit.nb, coef=2)
+    pval.nb[,i] <- lrt.nb$table$PValue
+    
+    # Negative binomial QLF test
+    fit.qlf <- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
+    res.qlf <- glmQLFTest(fit.qlf, coef=2)
+    pval.qlf[,i] <- res.qlf$table$PValue
+
+    # Poisson
+    fit.poi <- glmFit(y.nb, des, dispersion = 0)
+    lrt.poi <- glmLRT(fit.poi, coef=2)
+    pval.pois[,i] <- lrt.poi$table$PValue
+    
+    # CODA
+    # Replace zero counts with 0.5 so that the geometric mean always works
+    if(any(counts==0)) counts[counts==0] <- 0.5
+    geomean <- apply(counts,2, function(x) exp(mean(log(x))))
+    geomean.mat <- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
+    clr <- counts/geomean.mat
+    logratio <- log(clr)
+    
+    fit.coda <- lmFit(logratio, des)
+    fit.coda <- eBayes(fit.coda, robust=TRUE)
+
+    pval.coda[,i] <- fit.coda$p.value[,2]
+
+}
+```
+
+We can look at the number of significant tests at different p-value cut-offs:
+```{r}
+pcut <- 0.01
+type1error <- matrix(NA,nrow=length(p),ncol=9)
+rownames(type1error) <- rownames(counts)
+colnames(type1error) <- c("chisq","logbin","pois","asin", "logit","betabin","negbin", "nbQLF","CODA")
+
+type1error[,1]<-rowSums(pval.chsq<pcut)/nsim 
+type1error[,2]<-rowSums(pval.lb<pcut)/nsim
+type1error[,3]<-rowSums(pval.pois<pcut)/nsim 
+type1error[,4]<-rowSums(pval.asin<pcut)/nsim 
+type1error[,5]<-rowSums(pval.logit<pcut)/nsim 
+type1error[,6]<-rowSums(pval.bb<pcut)/nsim
+type1error[,7]<-rowSums(pval.nb<pcut)/nsim 
+type1error[,8]<-rowSums(pval.qlf<pcut)/nsim 
+type1error[,9]<-rowSums(pval.coda<pcut)/nsim 
+type1error
+```
+
+```{r}
+pcut <- 0.05
+type1error <- matrix(NA,nrow=length(p),ncol=9)
+rownames(type1error) <- rownames(counts)
+colnames(type1error) <- c("chisq","logbin","pois","asin", "logit","betabin","negbin","nbQLF","CODA")
+
+type1error[,1]<-rowSums(pval.chsq<pcut)/nsim 
+type1error[,2]<-rowSums(pval.lb<pcut)/nsim
+type1error[,3]<-rowSums(pval.pois<pcut)/nsim 
+type1error[,4]<-rowSums(pval.asin<pcut)/nsim 
+type1error[,5]<-rowSums(pval.logit<pcut)/nsim 
+type1error[,6]<-rowSums(pval.bb<pcut)/nsim
+type1error[,7]<-rowSums(pval.nb<pcut)/nsim 
+type1error[,8]<-rowSums(pval.qlf<pcut)/nsim
+type1error[,9]<-rowSums(pval.coda<pcut)/nsim 
+type1error
+```
+
+Plot of all type I error rates for the 5 cell types: 
+
+```{r, fig.height=5, fig.width=8}
+par(mfrow=c(1,1))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error,beside=TRUE,col=ggplotColors(length(p)),
+        ylab="Proportion sig. tests",
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
+legend("topright",fill=ggplotColors(length(p)),legend=c(paste("True p=",p,sep="")), cex=1.5)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste("Type I error rate at alpha = 0.05, n=", nsamp/2,sep="")), cex.main=1.75)
+```
+
+Removing the most poorly performing methods (1-3):
+
+```{r barplotN20}
+par(mfrow=c(1,1))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error[,4:9],beside=TRUE,col=ggplotColors(length(p)),
+        ylab="Proportion sig. tests",
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,0.15), las=2)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste("Type I error rate at alpha = 0.05, n=", nsamp/2,sep="")), cex.main=1.75)
+```
+
+
+```{r}
+# save the type 1 error objects for n=20
+type1error20 <- type1error
+```
+
+# Plot results together across all sample sizes
+
+```{r barplotAll, fig.width=12, fig.height=5}
+par(mar=c(8,5,3,2))
+par(mgp=c(3, 0.5, 0))
+layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
+#layout.show(2)
+names <- c("propeller (asin)","propeller (logit)","betabin","negbin","negbinQLF","CODA")    
+barplot(cbind(type1error3[,4:9], type1error5[,4:9],type1error10[,4:9], type1error20[,4:9]),
+        beside=TRUE,col=ggplotColors(5), ylab="Proportion sig. tests",
+        cex.axis = 1.25, cex.lab=1.5, cex.names = 1.25, ylim=c(0,0.15),
+        names=rep(names,4), las=2)
+title("Type I error at alpha = 0.05", cex.main=2, adj=0)
+#legend("topright",fill=ggplotColors(5),legend=c(paste("True p=",p,sep="")), cex=1.2)
+abline(v=36.5, lty=1, lwd=2)
+abline(v=72.5, lty=1, lwd=2)
+abline(v=108.5, lty=1, lwd=2)
+abline(h=0.05, col="dark blue", lty=2, lwd=2)
+ text(20,0.14, labels = "n = 3", cex=1.5)
+ text(55,0.14, labels = "n = 5", cex=1.5)
+ text(90,0.14, labels = "n = 10", cex=1.5)
+ text(125,0.14, labels = "n = 20", cex=1.5)
+ text(0,0.055, labels = "0.05", cex=1.25, col="dark blue")
+ 
+par(mar=c(0,0,0,0))
+plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
+legend("center",fill=ggplotColors(5),legend=c(paste("True p=",p,sep="")), cex=2)
+```
+
+```{r}
+pdf(file="./output/fig2d.pdf", width=12, height=5)
+par(mar=c(8,5,3,2))
+par(mgp=c(3, 0.5, 0))
+layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
+#layout.show(2)
+names <- c("propeller (asin)","propeller (logit)","betabin","negbin","negbinQLF","CODA")    
+barplot(cbind(type1error3[,4:9], type1error5[,4:9],type1error10[,4:9], type1error20[,4:9]),
+        beside=TRUE,col=ggplotColors(5), ylab="Proportion sig. tests",
+        cex.axis = 1.25, cex.lab=1.5, cex.names = 1.25, ylim=c(0,0.15),
+        names=rep(names,4), las=2)
+title("Type I error at alpha = 0.05", cex.main=2, adj=0)
+#legend("topright",fill=ggplotColors(5),legend=c(paste("True p=",p,sep="")), cex=1.2)
+abline(v=36.5, lty=1, lwd=2)
+abline(v=72.5, lty=1, lwd=2)
+abline(v=108.5, lty=1, lwd=2)
+abline(h=0.05, col="dark blue", lty=2, lwd=2)
+ text(20,0.14, labels = "n = 3", cex=1.5)
+ text(55,0.14, labels = "n = 5", cex=1.5)
+ text(90,0.14, labels = "n = 10", cex=1.5)
+ text(125,0.14, labels = "n = 20", cex=1.5)
+ text(0,0.055, labels = "0.05", cex=1.25, col="dark blue")
+ 
+par(mar=c(0,0,0,0))
+plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
+legend("center",fill=ggplotColors(5),legend=c(paste("True p=",p,sep="")), cex=2)
+dev.off()
+```
+
+```{r}
+pdf(file="./output/legend-fig2d.pdf", height = 4, width = 4)
+par(mfrow=c(1,1))
+par(mar=c(0,0,0,0))
+plot.new()
+legend("center",fill=ggplotColors(5),legend=c(paste("True p=",p,sep="")), cex=2)
+dev.off()
+```
+
+
+# Mean-variance relationship from simulated counts
+
+This is the mean variance relationship from one simulated dataset, n=5.
+
+```{r}
+counts <- SimulateCellCounts(props=p,nsamp=10,depth=depth,a=a,b=b)
+tot.cells <- colSums(counts)
+est.props <- t(t(counts)/tot.cells)
+```
+
+
+```{r, fig.width=10, fig.height=5}
+par(mfrow=c(1,3))
+par(mar=c(5,5,3,2))
+barplot(est.props, col=ggplotColors(5), names=paste("S",1:10,sep=""),
+        cex.names = 1.25, cex.axis = 1.5, cex.lab = 1.5, cex.main=2,
+        ylab = "Proportion", xlab="Sample", 
+        main = "Cell type proportions")
+plotCellTypeMeanVar(counts)
+plotCellTypePropsMeanVar(counts)
+```
+
+```{r}
+pdf(file="./output/example_simdata.pdf", width=13, height=5)
+par(mfrow=c(1,3))
+par(mar=c(5,5,3,2))
+barplot(est.props, col=ggplotColors(5), names=paste("S",1:10,sep=""),
+        cex.names = 1.15, cex.axis = 1.5, cex.lab = 1.5, cex.main=2,
+        ylab = "Proportion", xlab="Sample", 
+        main = "a) Cell type proportions")
+plotCellTypeMeanVar(counts)
+plotCellTypePropsMeanVar(counts)
+dev.off()
+```
+
+
+
+```{r, echo=FALSE, eval=FALSE}
+# Figure 2
+pdf(file="./output/Fig2-orig.pdf", width =13, height =13)
+layout(matrix(c(1,1,2,2,3,3,4,4,4,5,5,5,6,6,6,7,7,7), 3, 6, byrow = TRUE))
+par(mar=c(5,5,3,2))
+barplot(est.props, col=ggplotColors(5), names=paste("S",1:10,sep=""),
+        cex.names = 1.15, cex.axis = 1.5, cex.lab = 1.5, cex.main=2,
+        ylab = "Proportion", xlab="Sample", 
+        main = "a) Cell type proportions")
+plotCellTypeMeanVar(counts)
+plotCellTypePropsMeanVar(counts)
+
+names <- c("propeller (asin)","propeller (logit)","betabin","negbin","negbinQLF")
+
+barplot(type1error3[,4:8],beside=TRUE,col=ggplotColors(length(b)),
+        ylab="Proportion sig. tests", names=names,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.25, ylim=c(0,0.15))
+legend(9,0.15,fill=ggplotColors(length(b)),legend=c(paste("True p=",p,sep="")), cex=1.2)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste("d) Type I error at alpha = 0.05, n=", 3,sep="")), cex.main=1.75)
+
+barplot(type1error5[,4:8],beside=TRUE,col=ggplotColors(length(b)),
+        ylab="Proportion sig. tests", names=names,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.25, ylim=c(0,0.15))
+#legend("top",fill=ggplotColors(length(b)),legend=c(paste("True p=",p,sep="")), cex=1.5)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste("e) Type I error at alpha = 0.05, n=", 5,sep="")), cex.main=1.75)
+
+barplot(type1error10[,4:8],beside=TRUE,col=ggplotColors(length(b)),
+        ylab="Proportion sig. tests", names=names,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.25, ylim=c(0,0.15))
+#legend("top",fill=ggplotColors(length(b)),legend=c(paste("True p=",p,sep="")), cex=1.5)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste("f) Type I error at alpha = 0.05, n=", 10,sep="")), cex.main=1.75)
+
+barplot(type1error20[,4:8],beside=TRUE,col=ggplotColors(length(b)),
+        ylab="Proportion sig. tests", names=names,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.25, ylim=c(0,0.15))
+#legend("top",fill=ggplotColors(length(b)),legend=c(paste("True p=",p,sep="")), cex=1.5)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste("g) Type I error at alpha = 0.05, n=", 20,sep="")), cex.main=1.75)
+dev.off()
+```
+
+# P-value histograms
+
+```{r}
+# P-values across all cell types and simulations
+par(mfrow=c(3,3))
+hist(pval.coda)
+hist(pval.asin)
+hist(pval.logit)
+
+hist(pval.chsq)
+hist(pval.lb)
+hist(pval.pois)
+
+hist(pval.bb)
+hist(pval.nb)
+hist(pval.qlf)
+```
+
+```{r}
+# P-values for each cell type across simulations
+par(mfrow=c(3,3))
+for(k in 1:5){
+  hist(pval.coda[k,], main=p[k]) 
+  hist(pval.asin[k,])
+  hist(pval.logit[k,])
+
+  hist(pval.chsq[k,])
+  hist(pval.lb[k,])
+  hist(pval.pois[k,])
+
+  hist(pval.bb[k,])
+  hist(pval.nb[k,])
+  hist(pval.qlf[k,])
+}
+```
+
+```{r}
+save(type1error3, type1error5, type1error10, type1error20, 
+     file="./output/typeIerrorResults.Rda")
+```
+
+
