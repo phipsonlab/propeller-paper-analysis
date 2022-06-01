@@ -19,8 +19,8 @@ cell type proportions in single cell data. bioRxiv.
 
 * Simulation studies 
   + [Null simulations](nullsims.html)
-  + [Simulations with true differences]()
-  + [Extreme case: 2 vs 20 cell types]()
+  + [Simulations with true differences](SimTrueDiff.html)
+  + [Extreme case: 2 vs 20 cell types](Sims2vs20CT.html)
   + [Extreme case: varying numbers of cells]()
 
 * Analysis of real datasets

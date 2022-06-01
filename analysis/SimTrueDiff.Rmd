@@ -1,0 +1,911 @@
+---
+title: "Simulations with true cell type proportion differences"
+author: "Belinda Phipson"
+date: "01/06/2022"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    message = FALSE,
+    warning = FALSE
+)
+```
+
+# Load the libraries
+
+```{r}
+library(speckle)
+library(limma)
+library(edgeR)
+library(pheatmap)
+```
+
+Source the simulation code:
+```{r}
+source("./code/SimCodeTrueDiff.R")
+source("./code/auroc.R")
+```
+
+# Hierarchical model for simulating cell type proportions
+
+I am simulating cell type proportions in a hierarchical manner. 
+
+* The total number of cells, $n_j$, for each sample $j$, are drawn from a negative binomial
+distribution with mean 5000 and dispersion 20. 
+* The true cell type proportions for 7 cell types are estimated from a human heart dataset
+* The sample proportion $p_{ij}$ for cell type $i$ and sample $j$ is assumed to be drawn 
+from a Beta distribution with parameters $\alpha$ and $\beta$. 
+* The count for cell type $i$ and sample $j$ is then drawn from a binomial
+distribution with probability $p_{ij}$ and size $n_j$.
+
+The Beta-Binomial model allows for biological variability to be simulated between samples.
+The paramaters of the Beta distribution, $\alpha$ and $\beta$, determine how variable the
+$p_{ij}$ will be. Larger values of $\alpha$ and $\beta$ result in a more precise 
+distribution centred around the true proportions, while smaller values result in a more diffuse prior. 
+The parameters for the Beta distribution were estimated from the cell type counts observed
+in the human heart dataset using the function estimateBetaParamsFromCounts in the
+speckle package.
+
+# Two group simulation set up
+
+I will generate cell type counts for 7 cell types, assuming two experimental
+groups with a sample size of n=(3,5,10,20) in each group. I will calculate 
+p-values from the following models:
+
+* propeller (arcsin sqrt transformation)
+* propeller (logit transformation)
+* chi-square test of differences in proportions
+* beta-binomial model using alternative parameterisation in edgeR
+* logistic binomial regression (beta-binomial with dispersion=0)
+* negative binomial regression (LRT and QLF in edgeR)
+* Poisson regression (negative binomial with dispersion=0)
+* CODA model
+
+One thousand simulation datasets will be generated. 
+
+First I set up the simulation parameters and set up the objects to capture the
+output.
+
+
+```{r}
+# Sim parameters
+set.seed(10)
+nsim <- 1000
+depth <- 5000
+
+# True cell type proportions from human heart dataset
+heart.info <- read.csv(file="./data/cellinfo.csv", row.names = 1)
+heart.counts <- table(heart.info$Celltype, heart.info$Sample)
+heart.counts <- heart.counts[-4,]
+trueprops <- rowSums(heart.counts)/sum(rowSums(heart.counts))
+
+```
+
+```{r}
+betaparams <- estimateBetaParamsFromCounts(heart.counts)
+
+# Parameters for beta distribution
+a <- betaparams$alpha
+b <- betaparams$beta
+
+# Decide on what output to keep
+pval.chsq <- pval.bb <- pval.lb <- pval.nb <- pval.qlf <- pval.pois <- pval.logit <-  pval.asin <- 
+  pval.coda <- matrix(NA,nrow=length(trueprops),ncol=nsim)
+```
+
+Set up true proportions for the two groups:
+```{r}
+# Set up true props for the two groups
+grp1.trueprops <- grp2.trueprops <- trueprops
+grp2.trueprops[1] <- grp1.trueprops[1]/2
+grp2.trueprops[4] <- grp2.trueprops[4]*2
+grp2.trueprops[7] <- grp1.trueprops[7]*3
+
+grp2.trueprops[1] <- grp2.trueprops[1] + (1-sum(grp2.trueprops))/2
+grp2.trueprops[4] <- grp2.trueprops[4] + (1-sum(grp2.trueprops))
+ 
+sum(grp1.trueprops)
+sum(grp2.trueprops)
+da.fac <- grp2.trueprops/grp1.trueprops
+```
+
+```{r}
+o <- order(trueprops)
+par(mar=c(9,5,2,2))
+barplot(t(cbind(grp1.trueprops[o],grp2.trueprops[o])), beside=TRUE, col=c(2,4), 
+        las=2, ylab="True cell type proportion")
+legend("topleft", fill=c(2,4),legend=c("Group 1","Group 2"))
+title("True cell type proportions for Group 1 and 2")
+```
+
+```{r}
+# Get hyperparameters for alpha and beta
+# Note group 1 and group 2 have different b parameters to accommodate true
+# differences in cell type proportions
+a <- a
+b.grp1 <- a*(1-grp1.trueprops)/grp1.trueprops
+b.grp2 <- a*(1-grp2.trueprops)/grp2.trueprops
+```
+
+Next we simulate the cell type counts and run the various statistical models
+for testing cell type proportion differences between the two groups. We expect 
+to see significant differences in cell type proportions in three cell types, 
+and no significant differences in the remaining four cell types between group 1 
+and group 2. We expect differences in the Smooth muscle cells (most rare), 
+Fibroblasts (second most abundant) and Cardiomyocytes (most abundant).
+
+## Sample size of 3 in each group 
+
+```{r}
+nsamp <- 6
+
+for(i in 1:nsim){
+    #Simulate cell type counts
+    counts <- SimulateCellCountsTrueDiff(props=trueprops,nsamp=nsamp,depth=depth,a=a,
+                                         b.grp1=b.grp1,b.grp2=b.grp2)
+
+    tot.cells <- colSums(counts)
+    # propeller
+    est.props <- t(t(counts)/tot.cells)
+    
+    #asin transform
+    trans.prop <- asin(sqrt(est.props))
+    
+    #logit transform
+    nc <- normCounts(counts)
+    est.props.logit <- t(t(nc+0.5)/(colSums(nc+0.5)))
+    logit.prop <- log(est.props.logit/(1-est.props.logit))
+
+    grp <- rep(c(0,1), each=nsamp/2)
+    des <- model.matrix(~grp)
+  
+    # asinsqrt transform
+    fit <- lmFit(trans.prop, des)
+    fit <- eBayes(fit, robust=TRUE)
+
+    pval.asin[,i] <- fit$p.value[,2]
+    
+    # logit transform
+    fit.logit <- lmFit(logit.prop, des)
+    fit.logit <- eBayes(fit.logit, robust=TRUE)
+
+    pval.logit[,i] <- fit.logit$p.value[,2]
+
+    # Chi-square test for differences in proportions
+    n <- tapply(tot.cells, grp, sum)
+    for(h in 1:nrow(counts)){
+        pval.chsq[h,i] <- prop.test(tapply(counts[h,],grp,sum),n)$p.value
+    }
+
+    # Beta binomial implemented in edgeR (methylation workflow)
+    meth.counts <- counts
+    unmeth.counts <- t(tot.cells - t(counts))
+    new.counts <- cbind(meth.counts,unmeth.counts)
+    sam.info <- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c("me","un"), each=nsamp))
+
+    design.samples <- model.matrix(~0+factor(sam.info$Sample))
+    colnames(design.samples) <- paste("S",1:nsamp,sep="")
+    design.group <- model.matrix(~0+factor(sam.info$Group))   
+    colnames(design.group) <- c("A","B")
+    design.bb <- cbind(design.samples, (sam.info$Meth=="me") * design.group)
+    lib.size = rep(tot.cells,2)
+
+    y <- DGEList(new.counts)
+    y$samples$lib.size <- lib.size
+    y <- estimateDisp(y, design.bb, trend="none")
+    fit.bb <- glmFit(y, design.bb)
+    contr <- makeContrasts(Grp=B-A, levels=design.bb)
+    lrt <- glmLRT(fit.bb, contrast=contr)
+    pval.bb[,i] <- lrt$table$PValue
+
+    # Logistic binomial regression
+    fit.lb <- glmFit(y, design.bb, dispersion = 0)
+    lrt.lb <- glmLRT(fit.lb, contrast=contr)
+    pval.lb[,i] <- lrt.lb$table$PValue
+
+    # Negative binomial
+    y.nb <- DGEList(counts)
+    y.nb <- estimateDisp(y.nb, des, trend="none")
+    fit.nb <- glmFit(y.nb, des)
+    lrt.nb <- glmLRT(fit.nb, coef=2)
+    pval.nb[,i] <- lrt.nb$table$PValue
+    
+    # Negative binomial QLF test
+    fit.qlf <- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
+    res.qlf <- glmQLFTest(fit.qlf, coef=2)
+    pval.qlf[,i] <- res.qlf$table$PValue
+
+    # Poisson
+    fit.poi <- glmFit(y.nb, des, dispersion = 0)
+    lrt.poi <- glmLRT(fit.poi, coef=2)
+    pval.pois[,i] <- lrt.poi$table$PValue
+    
+    # CODA
+    # Replace zero counts with 0.5 so that the geometric mean always works
+    if(any(counts==0)) counts[counts==0] <- 0.5
+    geomean <- apply(counts,2, function(x) exp(mean(log(x))))
+    geomean.mat <- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
+    clr <- counts/geomean.mat
+    logratio <- log(clr)
+    
+    fit.coda <- lmFit(logratio, des)
+    fit.coda <- eBayes(fit.coda, robust=TRUE)
+
+    pval.coda[,i] <- fit.coda$p.value[,2]
+
+}
+
+```
+
+
+We can look at the number of significant tests at certain p-value cut-offs:
+```{r}
+pcut <- 0.05
+de <- da.fac != 1
+sig.disc <- matrix(NA,nrow=length(trueprops),ncol=9)
+rownames(sig.disc) <- names(trueprops)
+colnames(sig.disc) <- c("chisq","logbin","pois","asin", "logit","betabin","negbin","nbQLF","CODA")
+
+sig.disc[,1]<-rowSums(pval.chsq<pcut)/nsim 
+sig.disc[,2]<-rowSums(pval.lb<pcut)/nsim
+sig.disc[,3]<-rowSums(pval.pois<pcut)/nsim 
+sig.disc[,4]<-rowSums(pval.asin<pcut)/nsim 
+sig.disc[,5]<-rowSums(pval.logit<pcut)/nsim 
+sig.disc[,6]<-rowSums(pval.bb<pcut)/nsim
+sig.disc[,7]<-rowSums(pval.nb<pcut)/nsim 
+sig.disc[,8]<-rowSums(pval.qlf<pcut)/nsim
+sig.disc[,9]<-rowSums(pval.coda<pcut)/nsim 
+o <- order(trueprops)
+sig.disc[o,]
+```
+
+
+```{r}
+layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
+par(mar=c(8,5,3,2))
+par(mgp=c(3, 0.5, 0))
+o <- order(trueprops)
+names <- c("propeller (asin)","propeller (logit)","betabin","negbin","negbinQLF","CODA")
+barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(b)),
+        ylab="Proportion sig. tests", names=names,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
+title(paste("Significant tests, n=",nsamp/2,sep=""), cex.main=1.5)
+abline(h=pcut,lty=2,lwd=2)
+par(mar=c(0,0,0,0))
+plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
+legend("center", legend=paste("True p =",round(trueprops,3)[o]), fill=ggplotColors(length(b)), cex=1.5)
+
+
+```
+
+
+```{r}
+o <- order(trueprops)
+mysig <- sig.disc[o,4:9]
+colnames(mysig) <- names
+pheatmap(mysig, scale="none", cluster_rows = FALSE, cluster_cols = FALSE,
+         labels_row = c(expression(paste(pi, " = 0.008*", sep="")),
+                        expression(paste(pi, " = 0.016", sep="")),
+                        expression(paste(pi, " = 0.064", sep="")),
+                        expression(paste(pi, " = 0.076", sep="")),
+                        expression(paste(pi, " = 0.102", sep="")),
+                        expression(paste(pi, " = 0.183*", sep="")),
+                        expression(paste(pi, " = 0.551*", sep=""))),
+         main=paste("Significant tests, n=",nsamp/2,sep=""))
+
+```
+
+
+```{r}
+auc.asin <- auc.logit <- auc.bb <- auc.nb <- auc.qlf <- auc.coda <- rep(NA,nsim)
+for(i in 1:nsim){
+  auc.asin[i] <- auroc(score=1-pval.asin[,i],bool=de)
+  auc.logit[i] <- auroc(score=1-pval.logit[,i],bool=de)
+  auc.bb[i] <- auroc(score=1-pval.bb[,i],bool=de)
+  auc.nb[i] <- auroc(score=1-pval.nb[,i],bool=de)
+  auc.qlf[i] <- auroc(score=1-pval.qlf[,i],bool=de)
+  auc.coda[i] <- auroc(score=1-pval.coda[,i],bool=de)
+}
+
+mean(auc.asin)
+mean(auc.logit)
+mean(auc.bb)
+mean(auc.nb)
+mean(auc.qlf)
+mean(auc.coda)
+```
+
+```{r}
+par(mfrow=c(1,1))
+par(mar=c(9,5,3,2))
+barplot(c(mean(auc.asin),mean(auc.logit),mean(auc.bb),mean(auc.nb),mean(auc.qlf),mean(auc.coda)), ylim=c(0,1), ylab= "AUC", cex.axis=1.5, cex.lab=1.5, names=names, las=2, cex.names = 1.5)
+title(paste("AUC: sample size n=",nsamp/2,sep=""),cex.main=1.5)
+```
+
+```{r}
+sig.disc3 <- sig.disc
+```
+
+## Sample size of 5 in each group 
+
+```{r}
+nsamp <- 10
+
+for(i in 1:nsim){
+    #Simulate cell type counts
+    counts <- SimulateCellCountsTrueDiff(props=trueprops,nsamp=nsamp,depth=depth,a=a,
+                                         b.grp1=b.grp1,b.grp2=b.grp2)
+
+    tot.cells <- colSums(counts)
+    # propeller
+    est.props <- t(t(counts)/tot.cells)
+    
+    #asin transform
+    trans.prop <- asin(sqrt(est.props))
+    
+    #logit transform
+    nc <- normCounts(counts)
+    est.props.logit <- t(t(nc+0.5)/(colSums(nc+0.5)))
+    logit.prop <- log(est.props.logit/(1-est.props.logit))
+
+    grp <- rep(c(0,1), each=nsamp/2)
+    des <- model.matrix(~grp)
+  
+    # asinsqrt transform
+    fit <- lmFit(trans.prop, des)
+    fit <- eBayes(fit, robust=TRUE)
+
+    pval.asin[,i] <- fit$p.value[,2]
+    
+    # logit transform
+    fit.logit <- lmFit(logit.prop, des)
+    fit.logit <- eBayes(fit.logit, robust=TRUE)
+
+    pval.logit[,i] <- fit.logit$p.value[,2]
+
+    # Chi-square test for differences in proportions
+    n <- tapply(tot.cells, grp, sum)
+    for(h in 1:nrow(counts)){
+        pval.chsq[h,i] <- prop.test(tapply(counts[h,],grp,sum),n)$p.value
+    }
+
+    # Beta binomial implemented in edgeR (methylation workflow)
+    meth.counts <- counts
+    unmeth.counts <- t(tot.cells - t(counts))
+    new.counts <- cbind(meth.counts,unmeth.counts)
+    sam.info <- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c("me","un"), each=nsamp))
+
+    design.samples <- model.matrix(~0+factor(sam.info$Sample))
+    colnames(design.samples) <- paste("S",1:nsamp,sep="")
+    design.group <- model.matrix(~0+factor(sam.info$Group))   
+    colnames(design.group) <- c("A","B")
+    design.bb <- cbind(design.samples, (sam.info$Meth=="me") * design.group)
+    lib.size = rep(tot.cells,2)
+
+    y <- DGEList(new.counts)
+    y$samples$lib.size <- lib.size
+    y <- estimateDisp(y, design.bb, trend="none")
+    fit.bb <- glmFit(y, design.bb)
+    contr <- makeContrasts(Grp=B-A, levels=design.bb)
+    lrt <- glmLRT(fit.bb, contrast=contr)
+    pval.bb[,i] <- lrt$table$PValue
+
+    # Logistic binomial regression
+    fit.lb <- glmFit(y, design.bb, dispersion = 0)
+    lrt.lb <- glmLRT(fit.lb, contrast=contr)
+    pval.lb[,i] <- lrt.lb$table$PValue
+
+    # Negative binomial
+    y.nb <- DGEList(counts)
+    y.nb <- estimateDisp(y.nb, des, trend="none")
+    fit.nb <- glmFit(y.nb, des)
+    lrt.nb <- glmLRT(fit.nb, coef=2)
+    pval.nb[,i] <- lrt.nb$table$PValue
+    
+    # Negative binomial QLF test
+    fit.qlf <- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
+    res.qlf <- glmQLFTest(fit.qlf, coef=2)
+    pval.qlf[,i] <- res.qlf$table$PValue
+
+    # Poisson
+    fit.poi <- glmFit(y.nb, des, dispersion = 0)
+    lrt.poi <- glmLRT(fit.poi, coef=2)
+    pval.pois[,i] <- lrt.poi$table$PValue
+    
+    # CODA
+    # Replace zero counts with 0.5 so that the geometric mean always works
+    if(any(counts==0)) counts[counts==0] <- 0.5
+    geomean <- apply(counts,2, function(x) exp(mean(log(x))))
+    geomean.mat <- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
+    clr <- counts/geomean.mat
+    logratio <- log(clr)
+    
+    fit.coda <- lmFit(logratio, des)
+    fit.coda <- eBayes(fit.coda, robust=TRUE)
+
+    pval.coda[,i] <- fit.coda$p.value[,2]
+
+}
+
+```
+
+
+We can look at the number of significant tests at certain p-value cut-offs:
+```{r}
+pcut <- 0.05
+de <- da.fac != 1
+sig.disc <- matrix(NA,nrow=length(trueprops),ncol=9)
+rownames(sig.disc) <- names(trueprops)
+colnames(sig.disc) <- c("chisq","logbin","pois","asin", "logit","betabin","negbin","nbQLF","CODA")
+
+sig.disc[,1]<-rowSums(pval.chsq<pcut)/nsim 
+sig.disc[,2]<-rowSums(pval.lb<pcut)/nsim
+sig.disc[,3]<-rowSums(pval.pois<pcut)/nsim 
+sig.disc[,4]<-rowSums(pval.asin<pcut)/nsim 
+sig.disc[,5]<-rowSums(pval.logit<pcut)/nsim 
+sig.disc[,6]<-rowSums(pval.bb<pcut)/nsim
+sig.disc[,7]<-rowSums(pval.nb<pcut)/nsim 
+sig.disc[,8]<-rowSums(pval.qlf<pcut)/nsim
+sig.disc[,9]<-rowSums(pval.coda<pcut)/nsim 
+o <- order(trueprops)
+sig.disc[o,]
+```
+
+
+```{r}
+layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
+par(mar=c(8,5,3,2))
+par(mgp=c(3, 0.5, 0))
+o <- order(trueprops)
+names <- c("propeller (asin)","propeller (logit)","betabin","negbin","negbinQLF","CODA")
+barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(b)),
+        ylab="Proportion sig. tests", names=names,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
+title(paste("Significant tests, n=",nsamp/2,sep=""), cex.main=1.5)
+abline(h=pcut,lty=2,lwd=2)
+par(mar=c(0,0,0,0))
+plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
+legend("center", legend=paste("True p =",round(trueprops,3)[o]), fill=ggplotColors(length(b)), cex=1.5)
+
+
+```
+
+
+```{r}
+o <- order(trueprops)
+mysig <- sig.disc[o,4:9]
+colnames(mysig) <- names
+pheatmap(mysig, scale="none", cluster_rows = FALSE, cluster_cols = FALSE,
+         labels_row = c(expression(paste(pi, " = 0.008*", sep="")),
+                        expression(paste(pi, " = 0.016", sep="")),
+                        expression(paste(pi, " = 0.064", sep="")),
+                        expression(paste(pi, " = 0.076", sep="")),
+                        expression(paste(pi, " = 0.102", sep="")),
+                        expression(paste(pi, " = 0.183*", sep="")),
+                        expression(paste(pi, " = 0.551*", sep=""))),
+         main=paste("Significant tests, n=",nsamp/2,sep=""))
+
+```
+
+
+```{r}
+auc.asin <- auc.logit <- auc.bb <- auc.nb <- auc.qlf <- auc.coda <- rep(NA,nsim)
+for(i in 1:nsim){
+  auc.asin[i] <- auroc(score=1-pval.asin[,i],bool=de)
+  auc.logit[i] <- auroc(score=1-pval.logit[,i],bool=de)
+  auc.bb[i] <- auroc(score=1-pval.bb[,i],bool=de)
+  auc.nb[i] <- auroc(score=1-pval.nb[,i],bool=de)
+  auc.qlf[i] <- auroc(score=1-pval.qlf[,i],bool=de)
+  auc.coda[i] <- auroc(score=1-pval.coda[,i],bool=de)
+}
+
+mean(auc.asin)
+mean(auc.logit)
+mean(auc.bb)
+mean(auc.nb)
+mean(auc.qlf)
+mean(auc.coda)
+```
+
+```{r}
+par(mfrow=c(1,1))
+par(mar=c(9,5,3,2))
+barplot(c(mean(auc.asin),mean(auc.logit),mean(auc.bb),mean(auc.nb),mean(auc.qlf),mean(auc.coda)), ylim=c(0,1), ylab= "AUC", cex.axis=1.5, cex.lab=1.5, names=names, las=2, cex.names = 1.5)
+title(paste("AUC: sample size n=",nsamp/2,sep=""),cex.main=1.5)
+```
+
+```{r}
+sig.disc5 <- sig.disc
+```
+
+
+## Sample size of 10 in each group 
+
+```{r}
+nsamp <- 20
+
+for(i in 1:nsim){
+    #Simulate cell type counts
+    counts <- SimulateCellCountsTrueDiff(props=trueprops,nsamp=nsamp,depth=depth,a=a,
+                                         b.grp1=b.grp1,b.grp2=b.grp2)
+
+    tot.cells <- colSums(counts)
+    # propeller
+    est.props <- t(t(counts)/tot.cells)
+    
+    #asin transform
+    trans.prop <- asin(sqrt(est.props))
+    
+    #logit transform
+    nc <- normCounts(counts)
+    est.props.logit <- t(t(nc+0.5)/(colSums(nc+0.5)))
+    logit.prop <- log(est.props.logit/(1-est.props.logit))
+
+    grp <- rep(c(0,1), each=nsamp/2)
+    des <- model.matrix(~grp)
+  
+    # asinsqrt transform
+    fit <- lmFit(trans.prop, des)
+    fit <- eBayes(fit, robust=TRUE)
+
+    pval.asin[,i] <- fit$p.value[,2]
+    
+    # logit transform
+    fit.logit <- lmFit(logit.prop, des)
+    fit.logit <- eBayes(fit.logit, robust=TRUE)
+
+    pval.logit[,i] <- fit.logit$p.value[,2]
+
+    # Chi-square test for differences in proportions
+    n <- tapply(tot.cells, grp, sum)
+    for(h in 1:nrow(counts)){
+        pval.chsq[h,i] <- prop.test(tapply(counts[h,],grp,sum),n)$p.value
+    }
+
+    # Beta binomial implemented in edgeR (methylation workflow)
+    meth.counts <- counts
+    unmeth.counts <- t(tot.cells - t(counts))
+    new.counts <- cbind(meth.counts,unmeth.counts)
+    sam.info <- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c("me","un"), each=nsamp))
+
+    design.samples <- model.matrix(~0+factor(sam.info$Sample))
+    colnames(design.samples) <- paste("S",1:nsamp,sep="")
+    design.group <- model.matrix(~0+factor(sam.info$Group))   
+    colnames(design.group) <- c("A","B")
+    design.bb <- cbind(design.samples, (sam.info$Meth=="me") * design.group)
+    lib.size = rep(tot.cells,2)
+
+    y <- DGEList(new.counts)
+    y$samples$lib.size <- lib.size
+    y <- estimateDisp(y, design.bb, trend="none")
+    fit.bb <- glmFit(y, design.bb)
+    contr <- makeContrasts(Grp=B-A, levels=design.bb)
+    lrt <- glmLRT(fit.bb, contrast=contr)
+    pval.bb[,i] <- lrt$table$PValue
+
+    # Logistic binomial regression
+    fit.lb <- glmFit(y, design.bb, dispersion = 0)
+    lrt.lb <- glmLRT(fit.lb, contrast=contr)
+    pval.lb[,i] <- lrt.lb$table$PValue
+
+    # Negative binomial
+    y.nb <- DGEList(counts)
+    y.nb <- estimateDisp(y.nb, des, trend="none")
+    fit.nb <- glmFit(y.nb, des)
+    lrt.nb <- glmLRT(fit.nb, coef=2)
+    pval.nb[,i] <- lrt.nb$table$PValue
+    
+    # Negative binomial QLF test
+    fit.qlf <- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
+    res.qlf <- glmQLFTest(fit.qlf, coef=2)
+    pval.qlf[,i] <- res.qlf$table$PValue
+
+    # Poisson
+    fit.poi <- glmFit(y.nb, des, dispersion = 0)
+    lrt.poi <- glmLRT(fit.poi, coef=2)
+    pval.pois[,i] <- lrt.poi$table$PValue
+    
+    # CODA
+    # Replace zero counts with 0.5 so that the geometric mean always works
+    if(any(counts==0)) counts[counts==0] <- 0.5
+    geomean <- apply(counts,2, function(x) exp(mean(log(x))))
+    geomean.mat <- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
+    clr <- counts/geomean.mat
+    logratio <- log(clr)
+    
+    fit.coda <- lmFit(logratio, des)
+    fit.coda <- eBayes(fit.coda, robust=TRUE)
+
+    pval.coda[,i] <- fit.coda$p.value[,2]
+
+}
+
+```
+
+
+We can look at the number of significant tests at certain p-value cut-offs:
+```{r}
+pcut <- 0.05
+de <- da.fac != 1
+sig.disc <- matrix(NA,nrow=length(trueprops),ncol=9)
+rownames(sig.disc) <- names(trueprops)
+colnames(sig.disc) <- c("chisq","logbin","pois","asin", "logit","betabin","negbin","nbQLF","CODA")
+
+sig.disc[,1]<-rowSums(pval.chsq<pcut)/nsim 
+sig.disc[,2]<-rowSums(pval.lb<pcut)/nsim
+sig.disc[,3]<-rowSums(pval.pois<pcut)/nsim 
+sig.disc[,4]<-rowSums(pval.asin<pcut)/nsim 
+sig.disc[,5]<-rowSums(pval.logit<pcut)/nsim 
+sig.disc[,6]<-rowSums(pval.bb<pcut)/nsim
+sig.disc[,7]<-rowSums(pval.nb<pcut)/nsim 
+sig.disc[,8]<-rowSums(pval.qlf<pcut)/nsim
+sig.disc[,9]<-rowSums(pval.coda<pcut)/nsim 
+o <- order(trueprops)
+sig.disc[o,]
+```
+
+
+```{r}
+layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
+par(mar=c(8,5,3,2))
+par(mgp=c(3, 0.5, 0))
+o <- order(trueprops)
+names <- c("propeller (asin)","propeller (logit)","betabin","negbin","negbinQLF","CODA")
+barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(b)),
+        ylab="Proportion sig. tests", names=names,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
+title(paste("Significant tests, n=",nsamp/2,sep=""), cex.main=1.5)
+abline(h=pcut,lty=2,lwd=2)
+par(mar=c(0,0,0,0))
+plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
+legend("center", legend=paste("True p =",round(trueprops,3)[o]), fill=ggplotColors(length(b)), cex=1.5)
+
+
+```
+
+
+```{r}
+o <- order(trueprops)
+mysig <- sig.disc[o,4:9]
+colnames(mysig) <- names
+pheatmap(mysig, scale="none", cluster_rows = FALSE, cluster_cols = FALSE,
+         labels_row = c(expression(paste(pi, " = 0.008*", sep="")),
+                        expression(paste(pi, " = 0.016", sep="")),
+                        expression(paste(pi, " = 0.064", sep="")),
+                        expression(paste(pi, " = 0.076", sep="")),
+                        expression(paste(pi, " = 0.102", sep="")),
+                        expression(paste(pi, " = 0.183*", sep="")),
+                        expression(paste(pi, " = 0.551*", sep=""))),
+         main=paste("Significant tests, n=",nsamp/2,sep=""))
+
+```
+
+
+```{r}
+auc.asin <- auc.logit <- auc.bb <- auc.nb <- auc.qlf <- auc.coda <- rep(NA,nsim)
+for(i in 1:nsim){
+  auc.asin[i] <- auroc(score=1-pval.asin[,i],bool=de)
+  auc.logit[i] <- auroc(score=1-pval.logit[,i],bool=de)
+  auc.bb[i] <- auroc(score=1-pval.bb[,i],bool=de)
+  auc.nb[i] <- auroc(score=1-pval.nb[,i],bool=de)
+  auc.qlf[i] <- auroc(score=1-pval.qlf[,i],bool=de)
+  auc.coda[i] <- auroc(score=1-pval.coda[,i],bool=de)
+}
+
+mean(auc.asin)
+mean(auc.logit)
+mean(auc.bb)
+mean(auc.nb)
+mean(auc.qlf)
+mean(auc.coda)
+```
+
+```{r}
+par(mfrow=c(1,1))
+par(mar=c(9,5,3,2))
+barplot(c(mean(auc.asin),mean(auc.logit),mean(auc.bb),mean(auc.nb),mean(auc.qlf),mean(auc.coda)), ylim=c(0,1), ylab= "AUC", cex.axis=1.5, cex.lab=1.5, names=names, las=2, cex.names = 1.5)
+title(paste("AUC: sample size n=",nsamp/2,sep=""),cex.main=1.5)
+```
+
+```{r}
+sig.disc10 <- sig.disc
+```
+
+## Sample size of 20 in each group 
+
+```{r}
+nsamp <- 40
+
+for(i in 1:nsim){
+    #Simulate cell type counts
+    counts <- SimulateCellCountsTrueDiff(props=trueprops,nsamp=nsamp,depth=depth,a=a,
+                                         b.grp1=b.grp1,b.grp2=b.grp2)
+
+    tot.cells <- colSums(counts)
+    # propeller
+    est.props <- t(t(counts)/tot.cells)
+    
+    #asin transform
+    trans.prop <- asin(sqrt(est.props))
+    
+    #logit transform
+    nc <- normCounts(counts)
+    est.props.logit <- t(t(nc+0.5)/(colSums(nc+0.5)))
+    logit.prop <- log(est.props.logit/(1-est.props.logit))
+
+    grp <- rep(c(0,1), each=nsamp/2)
+    des <- model.matrix(~grp)
+  
+    # asinsqrt transform
+    fit <- lmFit(trans.prop, des)
+    fit <- eBayes(fit, robust=TRUE)
+
+    pval.asin[,i] <- fit$p.value[,2]
+    
+    # logit transform
+    fit.logit <- lmFit(logit.prop, des)
+    fit.logit <- eBayes(fit.logit, robust=TRUE)
+
+    pval.logit[,i] <- fit.logit$p.value[,2]
+
+    # Chi-square test for differences in proportions
+    n <- tapply(tot.cells, grp, sum)
+    for(h in 1:nrow(counts)){
+        pval.chsq[h,i] <- prop.test(tapply(counts[h,],grp,sum),n)$p.value
+    }
+
+    # Beta binomial implemented in edgeR (methylation workflow)
+    meth.counts <- counts
+    unmeth.counts <- t(tot.cells - t(counts))
+    new.counts <- cbind(meth.counts,unmeth.counts)
+    sam.info <- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c("me","un"), each=nsamp))
+
+    design.samples <- model.matrix(~0+factor(sam.info$Sample))
+    colnames(design.samples) <- paste("S",1:nsamp,sep="")
+    design.group <- model.matrix(~0+factor(sam.info$Group))   
+    colnames(design.group) <- c("A","B")
+    design.bb <- cbind(design.samples, (sam.info$Meth=="me") * design.group)
+    lib.size = rep(tot.cells,2)
+
+    y <- DGEList(new.counts)
+    y$samples$lib.size <- lib.size
+    y <- estimateDisp(y, design.bb, trend="none")
+    fit.bb <- glmFit(y, design.bb)
+    contr <- makeContrasts(Grp=B-A, levels=design.bb)
+    lrt <- glmLRT(fit.bb, contrast=contr)
+    pval.bb[,i] <- lrt$table$PValue
+
+    # Logistic binomial regression
+    fit.lb <- glmFit(y, design.bb, dispersion = 0)
+    lrt.lb <- glmLRT(fit.lb, contrast=contr)
+    pval.lb[,i] <- lrt.lb$table$PValue
+
+    # Negative binomial
+    y.nb <- DGEList(counts)
+    y.nb <- estimateDisp(y.nb, des, trend="none")
+    fit.nb <- glmFit(y.nb, des)
+    lrt.nb <- glmLRT(fit.nb, coef=2)
+    pval.nb[,i] <- lrt.nb$table$PValue
+    
+    # Negative binomial QLF test
+    fit.qlf <- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
+    res.qlf <- glmQLFTest(fit.qlf, coef=2)
+    pval.qlf[,i] <- res.qlf$table$PValue
+
+    # Poisson
+    fit.poi <- glmFit(y.nb, des, dispersion = 0)
+    lrt.poi <- glmLRT(fit.poi, coef=2)
+    pval.pois[,i] <- lrt.poi$table$PValue
+    
+    # CODA
+    # Replace zero counts with 0.5 so that the geometric mean always works
+    if(any(counts==0)) counts[counts==0] <- 0.5
+    geomean <- apply(counts,2, function(x) exp(mean(log(x))))
+    geomean.mat <- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
+    clr <- counts/geomean.mat
+    logratio <- log(clr)
+    
+    fit.coda <- lmFit(logratio, des)
+    fit.coda <- eBayes(fit.coda, robust=TRUE)
+
+    pval.coda[,i] <- fit.coda$p.value[,2]
+
+}
+
+```
+
+
+We can look at the number of significant tests at certain p-value cut-offs:
+```{r}
+pcut <- 0.05
+de <- da.fac != 1
+sig.disc <- matrix(NA,nrow=length(trueprops),ncol=9)
+rownames(sig.disc) <- names(trueprops)
+colnames(sig.disc) <- c("chisq","logbin","pois","asin", "logit","betabin","negbin","nbQLF","CODA")
+
+sig.disc[,1]<-rowSums(pval.chsq<pcut)/nsim 
+sig.disc[,2]<-rowSums(pval.lb<pcut)/nsim
+sig.disc[,3]<-rowSums(pval.pois<pcut)/nsim 
+sig.disc[,4]<-rowSums(pval.asin<pcut)/nsim 
+sig.disc[,5]<-rowSums(pval.logit<pcut)/nsim 
+sig.disc[,6]<-rowSums(pval.bb<pcut)/nsim
+sig.disc[,7]<-rowSums(pval.nb<pcut)/nsim 
+sig.disc[,8]<-rowSums(pval.qlf<pcut)/nsim
+sig.disc[,9]<-rowSums(pval.coda<pcut)/nsim 
+o <- order(trueprops)
+sig.disc[o,]
+```
+
+
+```{r}
+layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
+par(mar=c(8,5,3,2))
+par(mgp=c(3, 0.5, 0))
+o <- order(trueprops)
+names <- c("propeller (asin)","propeller (logit)","betabin","negbin","negbinQLF","CODA")
+barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(b)),
+        ylab="Proportion sig. tests", names=names,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
+title(paste("Significant tests, n=",nsamp/2,sep=""), cex.main=1.5)
+abline(h=pcut,lty=2,lwd=2)
+par(mar=c(0,0,0,0))
+plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
+legend("center", legend=paste("True p =",round(trueprops,3)[o]), fill=ggplotColors(length(b)), cex=1.5)
+
+
+```
+
+
+```{r}
+o <- order(trueprops)
+mysig <- sig.disc[o,4:9]
+colnames(mysig) <- names
+pheatmap(mysig, scale="none", cluster_rows = FALSE, cluster_cols = FALSE,
+         labels_row = c(expression(paste(pi, " = 0.008*", sep="")),
+                        expression(paste(pi, " = 0.016", sep="")),
+                        expression(paste(pi, " = 0.064", sep="")),
+                        expression(paste(pi, " = 0.076", sep="")),
+                        expression(paste(pi, " = 0.102", sep="")),
+                        expression(paste(pi, " = 0.183*", sep="")),
+                        expression(paste(pi, " = 0.551*", sep=""))),
+         main=paste("Significant tests, n=",nsamp/2,sep=""))
+
+```
+
+
+
+```{r}
+sig.disc20 <- sig.disc
+```
+
+
+```{r}
+auc.asin <- auc.logit <- auc.bb <- auc.nb <- auc.qlf <- auc.coda <- rep(NA,nsim)
+for(i in 1:nsim){
+  auc.asin[i] <- auroc(score=1-pval.asin[,i],bool=de)
+  auc.logit[i] <- auroc(score=1-pval.logit[,i],bool=de)
+  auc.bb[i] <- auroc(score=1-pval.bb[,i],bool=de)
+  auc.nb[i] <- auroc(score=1-pval.nb[,i],bool=de)
+  auc.qlf[i] <- auroc(score=1-pval.qlf[,i],bool=de)
+  auc.coda[i] <- auroc(score=1-pval.coda[,i],bool=de)
+}
+
+mean(auc.asin)
+mean(auc.logit)
+mean(auc.bb)
+mean(auc.nb)
+mean(auc.qlf)
+mean(auc.coda)
+```
+
+```{r}
+par(mfrow=c(1,1))
+par(mar=c(9,5,3,2))
+barplot(c(mean(auc.asin),mean(auc.logit),mean(auc.bb),mean(auc.nb),mean(auc.qlf),mean(auc.coda)), ylim=c(0,1), ylab= "AUC", cex.axis=1.5, cex.lab=1.5, names=names, las=2, cex.names = 1.5)
+title(paste("AUC: sample size n=",nsamp/2,sep=""),cex.main=1.5)
+```
+
