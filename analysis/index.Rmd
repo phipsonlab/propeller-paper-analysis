@@ -15,14 +15,18 @@ Citation:
 Phipson, B, et al., Oshlack, A (2021). propeller: testing for differences in 
 cell type proportions in single cell data. bioRxiv. 
 
-* [Data exploration in healthy human PBMCs](pbmcJP.html)
+# Data exploration
 
-* Simulation studies 
-  + [Null simulations](nullsims.html)
-  + [Simulations with true differences](SimTrueDiff.html)
-  + [Extreme case: 2 vs 20 cell types](Sims2vs20CT.html)
+* [Healthy human PBMCs](pbmcJP.html)
+
+# Simulation studies 
+
+  * [Null simulations](nullsims.html)
+  * [Simulations with true differences](SimTrueDiff.html)
+  * [Extreme case: 2 vs 20 cell types](Sims2vs20CT.html)
   
-  
+# Application to real single cell datasets  
+
 * [Analysis of real datasets](RealDataAnalysis.html)
   
 
