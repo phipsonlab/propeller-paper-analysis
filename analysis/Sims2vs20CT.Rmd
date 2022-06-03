@@ -713,7 +713,7 @@ text(38,0.06,label="*", cex=2)
 text(47,0.1,label="*", cex=2)
 text(53,0.18,label="*", cex=2)
 text(59,0.31,label="*", cex=2)
-legend("topleft",legend="* = true difference",cex=1.5)
+legend("topleft",legend="* = true diff")
 ```
 
 ```{r}
