@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Belinda Phipson" />
+
+<meta name="date" content="2022-06-03" />
+
+<title>Application to real single cell RNA-seq datasets</title>
+
+<script src="site_libs/header-attrs-2.14/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/main/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">propeller-paper-analysis</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/phipsonlab/propeller-paper-analysis">
+    <span class="fab fa-github"></span>
+     
+    Source code
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Application to real single cell RNA-seq
+datasets</h1>
+<h4 class="author">Belinda Phipson</h4>
+<h4 class="date">06/03/2022</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span>
+workflowr <span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2022-06-03
+</p>
+<p>
+<strong>Checks:</strong> <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7
+<span class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span> 0
+</p>
+<p>
+<strong>Knit directory:</strong> <code>propeller-paper-analysis/</code>
+<span class="glyphicon glyphicon-question-sign" aria-hidden="true"
+title="This is the local directory in which the code in this file was executed.">
+</span>
+</p>
+<p>
+This reproducible <a href="https://rmarkdown.rstudio.com">R Markdown</a>
+analysis was created with <a
+  href="https://github.com/workflowr/workflowr">workflowr</a> (version
+1.7.0). The <em>Checks</em> tab describes the reproducibility checks
+that were applied when the results were created. The <em>Past
+versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date
+</a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguptodate"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great! Since the R Markdown file has been committed to the Git
+repository, you know the exact version of the code that produced these
+results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the
+global environment can affect the analysis in your R Markdown file in
+unknown ways. For reproduciblity it’s best to always run the code in an
+empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20220531code">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Seed:</strong>
+<code>set.seed(20220531)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20220531code"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20220531)</code> was run prior to running
+the code in the R Markdown file. Setting a seed ensures that any results
+that rely on randomness, e.g. subsampling or permutations, are
+reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Session information:</strong>
+recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package
+versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be
+confident that you successfully produced the results during this
+run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr
+project makes it easier to run your code on other machines.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistreecf6f450596772a8a0899b8542cc100899faa8f09targetblankcf6f450a">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Repository version:</strong>
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/cf6f450596772a8a0899b8542cc100899faa8f09" target="_blank">cf6f450</a>
+</a>
+</p>
+</div>
+<div
+id="strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistreecf6f450596772a8a0899b8542cc100899faa8f09targetblankcf6f450a"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development
+and connecting the code version to the results is critical for
+reproducibility.
+</p>
+<p>
+The results in this page were generated with repository version
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/cf6f450596772a8a0899b8542cc100899faa8f09" target="_blank">cf6f450</a>.
+See the <em>Past versions</em> tab to see a history of the changes made
+to the R Markdown and HTML files.
+</p>
+<p>
+Note that you need to be careful to ensure that all relevant files for
+the analysis have been committed to Git prior to generating the results
+(you can use <code>wflow_publish</code> or
+<code>wflow_git_commit</code>). workflowr only checks the R Markdown
+file, but you know if there are other scripts or data files that it
+depends on. Below is the status of the Git repository when the results
+were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+    Ignored:    data/cold_warm_fresh_cellinfo.txt
+    Ignored:    data/covid.cell.annotation.meta.txt
+    Ignored:    data/heartFYA.Rds
+    Ignored:    data/pool_1.rds
+
+Untracked files:
+    Untracked:  code/SimCode.R
+    Untracked:  code/SimCodeTrueDiff.R
+    Untracked:  code/auroc.R
+    Untracked:  data/CTpropsTransposed.txt
+    Untracked:  data/CelltypeLevels.csv
+    Untracked:  data/TypeIErrTables.Rdata
+    Untracked:  data/appnote1cdata.rdata
+    Untracked:  data/cellinfo.csv
+    Untracked:  data/nullsimsVaryN_results.Rdata
+    Untracked:  data/sampleinfo.csv
+    Untracked:  output/Fig1ab.pdf
+    Untracked:  output/Fig1cde.pdf
+    Untracked:  output/example_simdata.pdf
+    Untracked:  output/fig2d.pdf
+    Untracked:  output/legend-fig2d.pdf
+    Untracked:  output/typeIerrorResults.Rda
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not
+included in this status report because it is ok for generated content to
+have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+
+<p>
+These are the previous versions of the repository in which changes were
+made to the R Markdown (<code>analysis/RealDataAnalysis.Rmd</code>) and
+HTML (<code>docs/RealDataAnalysis.html</code>) files. If you’ve
+configured a remote Git repository (see <code>?wflow_git_remote</code>),
+click on the hyperlinks in the table below to view the files as they
+were in that past version.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/blob/cf6f450596772a8a0899b8542cc100899faa8f09/analysis/RealDataAnalysis.Rmd" target="_blank">cf6f450</a>
+</td>
+<td>
+bphipson
+</td>
+<td>
+2022-06-03
+</td>
+<td>
+add real data analysis
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>We analysed three different publicly available single cell datasets
+to highlight the different types of models that can be fitted within the
+propeller framework.</p>
+<ul>
+<li>Young and old female and male PBMCs
+<ul>
+<li>Huang, Zhaohao, Binyao Chen, Xiuxing Liu, He Li, Lihui Xie, Yuehan
+Gao, Runping Duan, et al. 2021. “Effects of Sex and Aging on the Immune
+Cell Landscape as Assessed by Single-Cell Transcriptomic Analysis.”
+Proceedings of the National Academy of Sciences of the United States of
+America 118 (33). <a href="https://doi.org/10.1073/pnas.2023216118"
+class="uri">https://doi.org/10.1073/pnas.2023216118</a>.</li>
+</ul></li>
+<li>Healthy human heart biopsies across development
+<ul>
+<li>Sim, Choon Boon, Belinda Phipson, Mark Ziemann, Haloom Rafehi,
+Richard J. Mills, Kevin I. Watt, Kwaku D. Abu-Bonsrah, et al. 2021.
+“Sex-Specific Control of Human Heart Maturation by the Progesterone
+Receptor.” Circulation 143 (16): 1614–28.</li>
+</ul></li>
+<li>Bronchoalveolar lavage fluid in a COVID19 dataset
+<ul>
+<li>Liao, Mingfeng, Yang Liu, Jing Yuan, Yanling Wen, Gang Xu, Juanjuan
+Zhao, Lin Cheng, et al. 2020. “Single-Cell Landscape of Bronchoalveolar
+Immune Cells in Patients with COVID-19.” Nature Medicine 26 (6):
+842–44.</li>
+</ul></li>
+</ul>
+</div>
+<div id="load-libraries" class="section level1">
+<h1>Load libraries</h1>
+<pre class="r"><code>library(speckle)
+library(limma)
+library(edgeR)
+library(pheatmap)
+library(gt)</code></pre>
+</div>
+<div id="young-and-old-female-and-male-pbmcs" class="section level1">
+<h1>Young and old female and male PBMCs</h1>
+<pre class="r"><code>sexCT &lt;- read.delim(&quot;./data/CTpropsTransposed.txt&quot;, row.names = 1)
+sexprops &lt;- sexCT/100
+sexcounts &lt;- sexprops*174684/20
+sampleinfo &lt;- read.csv(&quot;./data/sampleinfo.csv&quot;, nrows = 20)
+celltypes &lt;- read.csv(&quot;./data/CelltypeLevels.csv&quot;)
+group.immune &lt;- paste(sampleinfo$Sex, sampleinfo$Age, sep=&quot;.&quot;)</code></pre>
+<pre class="r"><code>gt(data.frame(table(sampleinfo$Sex, sampleinfo$Age)), rownames_to_stub = TRUE, caption=&quot;Sample info&quot;)</code></pre>
+<div id="aamalzggfc" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#aamalzggfc .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#aamalzggfc .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#aamalzggfc .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#aamalzggfc .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#aamalzggfc .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#aamalzggfc .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#aamalzggfc .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#aamalzggfc .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#aamalzggfc .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#aamalzggfc .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#aamalzggfc .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#aamalzggfc .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#aamalzggfc .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#aamalzggfc .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#aamalzggfc .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#aamalzggfc .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#aamalzggfc .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#aamalzggfc .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#aamalzggfc .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#aamalzggfc .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#aamalzggfc .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#aamalzggfc .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#aamalzggfc .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#aamalzggfc .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#aamalzggfc .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#aamalzggfc .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#aamalzggfc .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#aamalzggfc .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#aamalzggfc .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#aamalzggfc .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#aamalzggfc .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#aamalzggfc .gt_left {
+  text-align: left;
+}
+
+#aamalzggfc .gt_center {
+  text-align: center;
+}
+
+#aamalzggfc .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#aamalzggfc .gt_font_normal {
+  font-weight: normal;
+}
+
+#aamalzggfc .gt_font_bold {
+  font-weight: bold;
+}
+
+#aamalzggfc .gt_font_italic {
+  font-style: italic;
+}
+
+#aamalzggfc .gt_super {
+  font-size: 65%;
+}
+
+#aamalzggfc .gt_two_val_uncert {
+  display: inline-block;
+  line-height: 1em;
+  text-align: right;
+  font-size: 60%;
+  vertical-align: -0.25em;
+  margin-left: 0.1em;
+}
+
+#aamalzggfc .gt_footnote_marks {
+  font-style: italic;
+  font-weight: normal;
+  font-size: 75%;
+  vertical-align: 0.4em;
+}
+
+#aamalzggfc .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#aamalzggfc .gt_slash_mark {
+  font-size: 0.7em;
+  line-height: 0.7em;
+  vertical-align: 0.15em;
+}
+
+#aamalzggfc .gt_fraction_numerator {
+  font-size: 0.6em;
+  line-height: 0.6em;
+  vertical-align: 0.45em;
+}
+
+#aamalzggfc .gt_fraction_denominator {
+  font-size: 0.6em;
+  line-height: 0.6em;
+  vertical-align: -0.05em;
+}
+</style>
+<table class="gt_table">
+  <caption>Sample info</caption>
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1"></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">Var1</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">Var2</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Freq</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td class="gt_row gt_right gt_stub">1</td>
+<td class="gt_row gt_center">female</td>
+<td class="gt_row gt_center">old</td>
+<td class="gt_row gt_right">5</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">2</td>
+<td class="gt_row gt_center">male</td>
+<td class="gt_row gt_center">old</td>
+<td class="gt_row gt_right">5</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">3</td>
+<td class="gt_row gt_center">female</td>
+<td class="gt_row gt_center">young</td>
+<td class="gt_row gt_right">5</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">4</td>
+<td class="gt_row gt_center">male</td>
+<td class="gt_row gt_center">young</td>
+<td class="gt_row gt_right">5</td></tr>
+  </tbody>
+  
+  
+</table>
+</div>
+<pre class="r"><code>c2.props.logit &lt;- t(t(sexcounts+0.5)/(colSums(sexcounts+0.5)))
+c2.logit.prop &lt;- log(c2.props.logit/(1-c2.props.logit))</code></pre>
+<pre class="r"><code>designAS &lt;- model.matrix(~sampleinfo$Age + sampleinfo$Sex)
+fit.logit.c2 &lt;- lmFit(c2.logit.prop, designAS)
+fit.logit.c2 &lt;- eBayes(fit.logit.c2, robust=TRUE)
+summary(decideTests(fit.logit.c2))</code></pre>
+<pre><code>       (Intercept) sampleinfo$Ageyoung sampleinfo$Sexmale
+Down            24                   1                  0
+NotSig           0                  22                 24
+Up               0                   1                  0</code></pre>
+<pre class="r"><code>topTable(fit.logit.c2, coef=2)</code></pre>
+<pre><code>               logFC   AveExpr         t      P.Value   adj.P.Val          B
+CD8.Naive  1.6232449 -3.247755  4.565316 0.0001655915 0.003974195  0.8674723
+CD16      -0.7143307 -3.725612 -3.538451 0.0019313526 0.023176231 -1.4795286
+T-mito    -0.4606184 -5.570899 -2.705649 0.0130970606 0.104776485 -3.2711944
+INTER     -0.3904241 -3.963488 -2.342644 0.0288651941 0.136903877 -3.9878182
+CD4-CD8-   0.9610466 -4.129579  2.268932 0.0338557770 0.136903877 -4.1280803
+TREG      -0.2846572 -3.922781 -2.261672 0.0342259694 0.136903877 -4.1397512
+CD14      -0.2617785 -1.996191 -1.750426 0.0943497196 0.323484753 -5.0169518
+ABC       -0.4831755 -5.933410 -1.530597 0.1406904913 0.419930732 -5.3435560
+CD4.Naive  0.3295994 -2.095783  1.465576 0.1574740245 0.419930732 -5.4334259
+MBC        0.2914029 -3.264982  1.338849 0.1948341805 0.420972299 -5.5993772</code></pre>
+<pre class="r"><code>topTable(fit.logit.c2, coef=3)</code></pre>
+<pre><code>              logFC   AveExpr         t     P.Value adj.P.Val         B
+PC       -0.7424097 -5.443065 -3.166925 0.004618248 0.1108380 -1.977736
+pre-DC    0.6745026 -8.220112  2.511013 0.020226075 0.2427129 -3.242963
+CDC2      0.2612660 -4.373746  1.632579 0.117165640 0.6525306 -4.675749
+NK2       0.3706612 -2.972199  1.511624 0.145428553 0.6525306 -4.839341
+CD4-CD8-  0.6397062 -4.129579  1.510280 0.145769120 0.6525306 -4.841101
+T-mito    0.2393400 -5.570899  1.405871 0.174095994 0.6525306 -4.973952
+NK3       0.4437137 -2.747021  1.133550 0.269669984 0.6525306 -5.282921
+NK1       0.2312700 -4.549216  1.116493 0.276735756 0.6525306 -5.300368
+CD8.CTL  -0.3477298 -2.453654 -1.113149 0.278136717 0.6525306 -5.303761
+CDC1      0.3131922 -7.389070  1.090551 0.287740106 0.6525306 -5.326455</code></pre>
+<pre class="r"><code>par(mfrow=c(1,2))
+stripchart(as.numeric(sexprops[&quot;CD8.Naive&quot;,])~group.immune,
+           vertical=TRUE, pch=c(8,16), method=&quot;jitter&quot;,
+           col = c(ggplotColors(20)[20],&quot;hotpink&quot;,4, &quot;darkblue&quot;),cex=2,
+           ylab=&quot;Proportions&quot;, cex.axis=1.25, cex.lab=1.5,
+           group.names=c(&quot;F.Old&quot;,&quot;F.Young&quot;,&quot;M.Old&quot;,&quot;M.Young&quot;))
+title(&quot;CD8.Naive: Young Vs Old&quot;, cex.main=1.5, adj=0)
+text(3.2,0.18, labels = &quot;Adj.Pval = 0.004&quot;)
+
+stripchart(as.numeric(sexprops[&quot;CD16&quot;,])~group.immune,
+           vertical=TRUE, pch=c(8,16), method=&quot;jitter&quot;,
+           col = c(ggplotColors(20)[20],&quot;hotpink&quot;,4, &quot;darkblue&quot;),cex=2,
+           ylab=&quot;Proportions&quot;, cex.axis=1.25, cex.lab=1.5,
+           group.names=c(&quot;F.Old&quot;,&quot;F.Young&quot;,&quot;M.Old&quot;,&quot;M.Young&quot;))
+title(&quot;CD16: Young Vs Old&quot;, cex.main=1.5, adj=0)
+text(2.2,0.049, labels = &quot;Adj.Pval = 0.023&quot;)</code></pre>
+<p><img src="figure/RealDataAnalysis.Rmd/unnamed-chunk-6-1.png" width="1056" style="display: block; margin: auto;" /></p>
+</div>
+<div id="heart-development-analysis" class="section level1">
+<h1>Heart development analysis</h1>
+<pre class="r"><code>heart.info &lt;- read.csv(file=&quot;./data/cellinfo.csv&quot;, row.names = 1)
+heart.counts &lt;- table(heart.info$Celltype, heart.info$Sample)
+trueprops &lt;- rowSums(heart.counts)/sum(rowSums(heart.counts))
+
+heart.info$Group &lt;- NA
+heart.info$Group[grep(&quot;f&quot;,heart.info$Sample)] &lt;- &quot;fetal&quot;
+heart.info$Group[grep(&quot;y&quot;,heart.info$Sample)] &lt;- &quot;young&quot;
+heart.info$Group[grep(&quot;a&quot;,heart.info$Sample)] &lt;- &quot;adult&quot;
+
+sample &lt;- factor(heart.info$Sample, levels= paste(rep(c(&quot;f&quot;,&quot;y&quot;,&quot;a&quot;), each=3),c(1:3),sep=&quot;&quot;))
+group &lt;- factor(heart.info$Group, levels=c(&quot;fetal&quot;,&quot;young&quot;,&quot;adult&quot;))</code></pre>
+<pre class="r"><code>grp &lt;- factor(rep(c(&quot;fetal&quot;,&quot;young&quot;,&quot;adult&quot;),each=3), levels=c(&quot;fetal&quot;,&quot;young&quot;,&quot;adult&quot;))
+sex &lt;- factor(c(&quot;m&quot;,&quot;m&quot;,&quot;f&quot;,&quot;m&quot;,&quot;f&quot;,&quot;m&quot;,&quot;f&quot;,&quot;m&quot;,&quot;m&quot;))</code></pre>
+<pre class="r"><code>prop.logit &lt;- getTransformedProps(clusters = heart.info$Celltype, sample=sample,
+                                  transform = &quot;logit&quot;)
+dose &lt;- rep(c(1,2,3), each=3) 
+
+des.dose &lt;- model.matrix(~dose +sex)
+des.dose</code></pre>
+<pre><code>  (Intercept) dose sexm
+1           1    1    1
+2           1    1    1
+3           1    1    0
+4           1    2    1
+5           1    2    0
+6           1    2    1
+7           1    3    0
+8           1    3    1
+9           1    3    1
+attr(,&quot;assign&quot;)
+[1] 0 1 2
+attr(,&quot;contrasts&quot;)
+attr(,&quot;contrasts&quot;)$sex
+[1] &quot;contr.treatment&quot;</code></pre>
+<pre class="r"><code>fit &lt;- lmFit(prop.logit$TransformedProps,des.dose)
+fit &lt;- eBayes(fit, robust=TRUE)
+topTable(fit,coef=2)</code></pre>
+<pre><code>                          logFC    AveExpr          t      P.Value   adj.P.Val
+Immune cells         1.01359669 -2.4222033  4.2685426 0.0007551546 0.004980697
+Erythroid           -1.62960543 -7.8002460 -4.0140721 0.0012451742 0.004980697
+Cardiomyocytes      -0.91607837 -0.1936611 -3.4462160 0.0038586975 0.010289860
+Fibroblast           0.62700537 -1.3756904  2.5326823 0.0236986525 0.047397305
+Epicardial cells     0.29219063 -2.6566961  1.2026143 0.2487822518 0.398051603
+Smooth muscle cells  0.18767427 -4.9125588  0.6717760 0.5125008180 0.603572791
+Endothelial cells    0.13688475 -2.1652913  0.6467132 0.5281261918 0.603572791
+Neurons             -0.05626966 -4.1954452 -0.2315895 0.8201585898 0.820158590
+                             B
+Immune cells        -0.3850285
+Erythroid           -0.8666233
+Cardiomyocytes      -1.9515138
+Fibroblast          -3.6607326
+Epicardial cells    -5.6855671
+Smooth muscle cells -6.1705968
+Endothelial cells   -6.1872807
+Neurons             -6.3739773</code></pre>
+<pre class="r"><code>fit.plot &lt;- lmFit(prop.logit$Proportions,des.dose)
+fit.plot &lt;- eBayes(fit.plot, robust=TRUE)</code></pre>
+<pre class="r"><code>par(mfrow=c(1,3))
+stripchart(as.numeric(prop.logit$Proportions[&quot;Immune cells&quot;,])~grp,
+           vertical=TRUE, pch=16, method=&quot;jitter&quot;,
+           col = ggplotColors(4),cex=2, 
+           ylab=&quot;Proportions&quot;,cex.axis=1.25, cex.lab=1.5)
+title(&quot;Immune development&quot;, cex.main=1.5, adj=0)
+abline(a=fit.plot$coefficients[&quot;Immune cells&quot;,1], b=fit.plot$coefficients[&quot;Immune cells&quot;,2], lty=2, lwd=2)
+
+
+stripchart(as.numeric(prop.logit$Proportions[&quot;Cardiomyocytes&quot;,])~grp,
+           vertical=TRUE, pch=16, method=&quot;jitter&quot;,
+           col = ggplotColors(4),cex=2, 
+           ylab=&quot;Proportions&quot;,cex.axis=1.25, cex.lab=1.5)
+title(&quot;Cardiomyocyte development&quot;, cex.main=1.5, adj=0)
+abline(a=fit.plot$coefficients[&quot;Cardiomyocytes&quot;,1], b=fit.plot$coefficients[&quot;Cardiomyocytes&quot;,2], lty=2, lwd=2)
+text(2.6,0.77, labels = &quot;Adj.Pval = 0.01&quot;)
+
+stripchart(as.numeric(prop.logit$Proportions[&quot;Fibroblast&quot;,])~grp,
+           vertical=TRUE, pch=16, method=&quot;jitter&quot;,
+           col = ggplotColors(4),cex=2, 
+           ylab=&quot;Proportions&quot;,cex.axis=1.25, cex.lab=1.5)
+title(&quot;Fibroblast development&quot;, cex.main=1.5, adj=0)
+abline(a=fit.plot$coefficients[&quot;Fibroblast&quot;,1], b=fit.plot$coefficients[&quot;Fibroblast&quot;,2], lty=2, lwd=2)</code></pre>
+<p><img src="figure/RealDataAnalysis.Rmd/unnamed-chunk-10-1.png" width="1152" style="display: block; margin: auto;" /></p>
+</div>
+<div id="covid-data" class="section level1">
+<h1>COVID data</h1>
+<pre class="r"><code>covid &lt;- read.delim(&quot;./data/covid.cell.annotation.meta.txt&quot;)</code></pre>
+<pre class="r"><code>output &lt;- propeller(clusters=covid$celltype, sample=covid$sample_new, group=covid$group, transform=&quot;logit&quot;)
+output</code></pre>
+<pre><code>            BaselineProp  PropMean.HC  PropMean.M  PropMean.S Fstatistic
+Neutrophil   0.024417668 0.0000000000 0.001204431 0.055593846 34.5347175
+Plasma       0.015817544 0.0002244276 0.002149909 0.050912723  8.7181367
+pDC          0.002309574 0.0011342772 0.008209773 0.001065692  5.7852728
+NK           0.016425326 0.0088943293 0.052465923 0.017978750  5.3912409
+T            0.117241275 0.0945944806 0.325029563 0.137097435  3.1551241
+mDC          0.014860286 0.0237761816 0.030831149 0.008875553  2.4842289
+B            0.003342805 0.0035032662 0.012989518 0.004005391  2.3945864
+Epithelial   0.053652014 0.1302459194 0.051903406 0.118455372  1.8134669
+Macrophages  0.750869889 0.7352897831 0.512995844 0.604316237  1.6207397
+Mast         0.001063620 0.0023373349 0.002220485 0.001699001  0.6920735
+                 P.Value          FDR
+Neutrophil  3.546468e-07 3.546468e-06
+Plasma      2.056673e-03 1.028336e-02
+pDC         1.052218e-02 3.493472e-02
+NK          1.397389e-02 3.493472e-02
+T           6.468749e-02 1.293750e-01
+mDC         1.090338e-01 1.673738e-01
+B           1.171617e-01 1.673738e-01
+Epithelial  1.901866e-01 2.377332e-01
+Macrophages 2.239111e-01 2.487901e-01
+Mast        5.127128e-01 5.127128e-01</code></pre>
+<pre class="r"><code>props.covid &lt;- getTransformedProps(clusters=covid$celltype, sample=covid$sample_new,
+                                   transform=&quot;logit&quot;)</code></pre>
+<pre class="r"><code>par(mfrow=c(1,1))
+grp.covid &lt;- rep(c(&quot;Control&quot;,&quot;Moderate&quot;,&quot;Severe&quot;), c(4, 3, 6))
+stripchart(as.numeric(props.covid$Proportions[&quot;Neutrophil&quot;,])~grp.covid,
+           vertical=TRUE, pch=16, method=&quot;jitter&quot;,
+           col = c(4,&quot;purple&quot;,2),cex=2, 
+           ylab=&quot;Proportions&quot;,cex.axis=1.25, cex.lab=1.5)
+title(&quot;Neutrophils in severe covid&quot;, cex.main=1.5, adj=0)
+text(1.5,0.195, labels = &quot;Adj.Pval = 3.5e-06&quot;)</code></pre>
+<p><img src="figure/RealDataAnalysis.Rmd/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>All significant cell types</p>
+<pre class="r"><code>par(mfrow=c(2,2))
+stripchart(as.numeric(props.covid$Proportions[&quot;Neutrophil&quot;,])~grp.covid,
+           vertical=TRUE, pch=16, method=&quot;jitter&quot;,
+           col = c(4,&quot;purple&quot;,2),cex=2, 
+           ylab=&quot;Proportions&quot;,cex.axis=1.25, cex.lab=1.5)
+title(&quot;Neutrophils in covid&quot;, cex.main=1.5, adj=0)
+
+stripchart(as.numeric(props.covid$Proportions[&quot;Plasma&quot;,])~grp.covid,
+           vertical=TRUE, pch=16, method=&quot;jitter&quot;,
+           col = c(4,&quot;purple&quot;,2),cex=2, 
+           ylab=&quot;Proportions&quot;,cex.axis=1.25, cex.lab=1.5)
+title(&quot;Plasma in covid&quot;, cex.main=1.5, adj=0)
+
+stripchart(as.numeric(props.covid$Proportions[&quot;pDC&quot;,])~grp.covid,
+           vertical=TRUE, pch=16, method=&quot;jitter&quot;,
+           col = c(4,&quot;purple&quot;,2),cex=2, 
+           ylab=&quot;Proportions&quot;,cex.axis=1.25, cex.lab=1.5)
+title(&quot;pDC in covid&quot;, cex.main=1.5, adj=0)
+
+stripchart(as.numeric(props.covid$Proportions[&quot;NK&quot;,])~grp.covid,
+           vertical=TRUE, pch=16, method=&quot;jitter&quot;,
+           col = c(4,&quot;purple&quot;,2),cex=2, 
+           ylab=&quot;Proportions&quot;,cex.axis=1.25, cex.lab=1.5)
+title(&quot;NK in covid&quot;, cex.main=1.5, adj=0)</code></pre>
+<p><img src="figure/RealDataAnalysis.Rmd/unnamed-chunk-15-1.png" width="960" style="display: block; margin: auto;" /></p>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 4.2.0 (2022-04-22 ucrt)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows 10 x64 (build 22000)
+
+Matrix products: default
+
+locale:
+[1] LC_COLLATE=English_United States.utf8 
+[2] LC_CTYPE=English_United States.utf8   
+[3] LC_MONETARY=English_United States.utf8
+[4] LC_NUMERIC=C                          
+[5] LC_TIME=English_United States.utf8    
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] gt_0.6.0        pheatmap_1.0.12 edgeR_3.38.1    limma_3.52.1   
+[5] speckle_0.99.0  workflowr_1.7.0
+
+loaded via a namespace (and not attached):
+  [1] backports_1.4.1             plyr_1.8.7                 
+  [3] igraph_1.3.1                lazyeval_0.2.2             
+  [5] sp_1.4-7                    splines_4.2.0              
+  [7] BiocParallel_1.30.2         listenv_0.8.0              
+  [9] scattermore_0.8             GenomeInfoDb_1.32.2        
+ [11] ggplot2_3.3.6               digest_0.6.29              
+ [13] htmltools_0.5.2             fansi_1.0.3                
+ [15] checkmate_2.1.0             magrittr_2.0.3             
+ [17] memoise_2.0.1               tensor_1.5                 
+ [19] cluster_2.1.3               ROCR_1.0-11                
+ [21] globals_0.15.0              Biostrings_2.64.0          
+ [23] matrixStats_0.62.0          spatstat.sparse_2.1-1      
+ [25] colorspace_2.0-3            blob_1.2.3                 
+ [27] ggrepel_0.9.1               xfun_0.31                  
+ [29] dplyr_1.0.9                 callr_3.7.0                
+ [31] crayon_1.5.1                RCurl_1.98-1.6             
+ [33] jsonlite_1.8.0              org.Mm.eg.db_3.15.0        
+ [35] progressr_0.10.0            spatstat.data_2.2-0        
+ [37] survival_3.3-1              zoo_1.8-10                 
+ [39] glue_1.6.2                  polyclip_1.10-0            
+ [41] gtable_0.3.0                zlibbioc_1.42.0            
+ [43] XVector_0.36.0              leiden_0.4.2               
+ [45] DelayedArray_0.22.0         SingleCellExperiment_1.18.0
+ [47] future.apply_1.9.0          BiocGenerics_0.42.0        
+ [49] abind_1.4-5                 scales_1.2.0               
+ [51] DBI_1.1.2                   spatstat.random_2.2-0      
+ [53] miniUI_0.1.1.1              Rcpp_1.0.8.3               
+ [55] viridisLite_0.4.0           xtable_1.8-4               
+ [57] reticulate_1.25             spatstat.core_2.4-4        
+ [59] bit_4.0.4                   stats4_4.2.0               
+ [61] htmlwidgets_1.5.4           httr_1.4.3                 
+ [63] RColorBrewer_1.1-3          ellipsis_0.3.2             
+ [65] Seurat_4.1.1                ica_1.0-2                  
+ [67] scuttle_1.6.2               pkgconfig_2.0.3            
+ [69] uwot_0.1.11                 sass_0.4.1                 
+ [71] deldir_1.0-6                locfit_1.5-9.5             
+ [73] utf8_1.2.2                  tidyselect_1.1.2           
+ [75] rlang_1.0.2                 reshape2_1.4.4             
+ [77] later_1.3.0                 AnnotationDbi_1.58.0       
+ [79] munsell_0.5.0               tools_4.2.0                
+ [81] cachem_1.0.6                cli_3.3.0                  
+ [83] generics_0.1.2              RSQLite_2.2.14             
+ [85] ggridges_0.5.3              evaluate_0.15              
+ [87] stringr_1.4.0               fastmap_1.1.0              
+ [89] yaml_2.3.5                  goftest_1.2-3              
+ [91] org.Hs.eg.db_3.15.0         processx_3.5.3             
+ [93] knitr_1.39                  bit64_4.0.5                
+ [95] fs_1.5.2                    fitdistrplus_1.1-8         
+ [97] purrr_0.3.4                 RANN_2.6.1                 
+ [99] KEGGREST_1.36.0             sparseMatrixStats_1.8.0    
+[101] pbapply_1.5-0               future_1.26.1              
+[103] nlme_3.1-157                whisker_0.4                
+[105] mime_0.12                   compiler_4.2.0             
+[107] rstudioapi_0.13             plotly_4.10.0              
+[109] png_0.1-7                   spatstat.utils_2.3-1       
+[111] statmod_1.4.36              tibble_3.1.7               
+[113] bslib_0.3.1                 stringi_1.7.6              
+[115] highr_0.9                   ps_1.7.0                   
+[117] rgeos_0.5-9                 lattice_0.20-45            
+[119] Matrix_1.4-1                vctrs_0.4.1                
+[121] pillar_1.7.0                lifecycle_1.0.1            
+[123] spatstat.geom_2.4-0         lmtest_0.9-40              
+[125] jquerylib_0.1.4             RcppAnnoy_0.0.19           
+[127] data.table_1.14.2           cowplot_1.1.1              
+[129] bitops_1.0-7                irlba_2.3.5                
+[131] GenomicRanges_1.48.0        httpuv_1.6.5               
+[133] patchwork_1.1.1             R6_2.5.1                   
+[135] promises_1.2.0.1            KernSmooth_2.23-20         
+[137] gridExtra_2.3               IRanges_2.30.0             
+[139] parallelly_1.31.1           codetools_0.2-18           
+[141] MASS_7.3-57                 assertthat_0.2.1           
+[143] SummarizedExperiment_1.26.1 rprojroot_2.0.3            
+[145] SeuratObject_4.1.0          sctransform_0.3.3          
+[147] S4Vectors_0.34.0            GenomeInfoDbData_1.2.8     
+[149] mgcv_1.8-40                 parallel_4.2.0             
+[151] beachmat_2.12.0             rpart_4.1.16               
+[153] grid_4.2.0                  tidyr_1.2.0                
+[155] DelayedMatrixStats_1.18.0   rmarkdown_2.14             
+[157] MatrixGenerics_1.8.0        Rtsne_0.16                 
+[159] git2r_0.30.1                getPass_0.2-2              
+[161] Biobase_2.56.0              shiny_1.7.1                </code></pre>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+https://docs.mathjax.org/en/latest/web/configuration.html. This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
