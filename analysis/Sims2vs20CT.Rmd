@@ -1,5 +1,5 @@
 ---
-title: "Simulations with true cell type proportion differences"
+title: "Extreme case: Simulations when number of cell types is 2 vs 20"
 author: "Belinda Phipson"
 date: "01/06/2022"
 output: html_document
@@ -27,35 +27,26 @@ library(gt)
 
 Source the simulation code:
 ```{r}
+source("./code/SimCode.R")
 source("./code/SimCodeTrueDiff.R")
 source("./code/auroc.R")
 ```
 
-# Hierarchical model for simulating cell type proportions
+# Introduction
 
-I am simulating cell type proportions in a hierarchical manner. 
+For these simulations we are looking to see whether the different methods
+perform differently when the number of cell types is vastly different. Here we
+examine the extreme case of 2 cell types versus 20 cell types, with and without
+true differences simulated.
 
-* The total number of cells, $n_j$, for each sample $j$, are drawn from a negative binomial
-distribution with mean 5000 and dispersion 20. 
-* The true cell type proportions for 7 cell types are estimated from a human heart dataset
-* The sample proportion $p_{ij}$ for cell type $i$ and sample $j$ is assumed to be drawn 
-from a Beta distribution with parameters $\alpha$ and $\beta$. 
-* The count for cell type $i$ and sample $j$ is then drawn from a binomial
-distribution with probability $p_{ij}$ and size $n_j$.
+# Null simulations with sample size n = 5
 
-The Beta-Binomial model allows for biological variability to be simulated between samples.
-The paramaters of the Beta distribution, $\alpha$ and $\beta$, determine how variable the
-$p_{ij}$ will be. Larger values of $\alpha$ and $\beta$ result in a more precise 
-distribution centred around the true proportions, while smaller values result in a more diffuse prior. 
-The parameters for the Beta distribution were estimated from the cell type counts observed
-in the human heart dataset using the function estimateBetaParamsFromCounts in the
-speckle package.
+We will consider the scenario when the number of samples per group is 5, as this
+is a reasonable number of samples for current datasets, and also where differences
+between methods can be seen (as opposed to n=20 where all methods perform well).
 
-# Two group simulation set up
-
-I will generate cell type counts for 7 cell types, assuming two experimental
-groups with a sample size of n=(3,5,10,20) in each group. I will calculate 
-p-values from the following models:
+We again simulate cell type counts under a Beta-Binomial hierarchical model, and 
+compare the following models:
 
 * propeller (arcsin sqrt transformation)
 * propeller (logit transformation)
@@ -66,11 +57,16 @@ p-values from the following models:
 * Poisson regression (negative binomial with dispersion=0)
 * CODA model
 
-One thousand simulation datasets will be generated. 
+One thousand simulation datasets are generated for each scenario:
+* Two cell types, no differences
+* Two cell types, true differences
+* Twenty cell types, no differences
+* Twenty cell types, true differences
 
-First I set up the simulation parameters and set up the objects to capture the
-output.
+## Two cell types, two groups, n=5, no differences
 
+Here I assume that the two cell types have true proportions 0.2 and 0.8, with n=5 
+samples in each group.
 
 ```{r}
 # Sim parameters
@@ -78,78 +74,27 @@ set.seed(10)
 nsim <- 1000
 depth <- 5000
 
-# True cell type proportions from human heart dataset
-heart.info <- read.csv(file="./data/cellinfo.csv", row.names = 1)
-heart.counts <- table(heart.info$Celltype, heart.info$Sample)
-heart.counts <- heart.counts[-4,]
-trueprops <- rowSums(heart.counts)/sum(rowSums(heart.counts))
-
-```
-
-```{r}
-betaparams <- estimateBetaParamsFromCounts(heart.counts)
+# True cell type proportions
+p <- c(0.2, 0.8)
 
 # Parameters for beta distribution
-a <- betaparams$alpha
-b <- betaparams$beta
+a <- 10
+b <- a*(1-p)/p
 
 # Decide on what output to keep
 pval.chsq <- pval.bb <- pval.lb <- pval.nb <- pval.qlf <- pval.pois <- pval.logit <-  pval.asin <- 
-  pval.coda <- matrix(NA,nrow=length(trueprops),ncol=nsim)
+  pval.coda <- matrix(NA,nrow=length(p),ncol=nsim)
 ```
 
-Set up true proportions for the two groups:
-```{r}
-# Set up true props for the two groups
-grp1.trueprops <- grp2.trueprops <- trueprops
-grp2.trueprops[1] <- grp1.trueprops[1]/2
-grp2.trueprops[4] <- grp2.trueprops[4]*2
-grp2.trueprops[7] <- grp1.trueprops[7]*3
-
-grp2.trueprops[1] <- grp2.trueprops[1] + (1-sum(grp2.trueprops))/2
-grp2.trueprops[4] <- grp2.trueprops[4] + (1-sum(grp2.trueprops))
- 
-sum(grp1.trueprops)
-sum(grp2.trueprops)
-da.fac <- grp2.trueprops/grp1.trueprops
-```
 
 ```{r}
-o <- order(trueprops)
-par(mar=c(9,5,2,2))
-barplot(t(cbind(grp1.trueprops[o],grp2.trueprops[o])), beside=TRUE, col=c(2,4), 
-        las=2, ylab="True cell type proportion")
-legend("topleft", fill=c(2,4),legend=c("Group 1","Group 2"))
-title("True cell type proportions for Group 1 and 2")
-```
-
-```{r}
-# Get hyperparameters for alpha and beta
-# Note group 1 and group 2 have different b parameters to accommodate true
-# differences in cell type proportions
-a <- a
-b.grp1 <- a*(1-grp1.trueprops)/grp1.trueprops
-b.grp2 <- a*(1-grp2.trueprops)/grp2.trueprops
-```
-
-Next we simulate the cell type counts and run the various statistical models
-for testing cell type proportion differences between the two groups. We expect 
-to see significant differences in cell type proportions in three cell types, 
-and no significant differences in the remaining four cell types between group 1 
-and group 2. We expect differences in the Smooth muscle cells (most rare), 
-Fibroblasts (second most abundant) and Cardiomyocytes (most abundant).
-
-## Sample size of 3 in each group 
-
-```{r}
-nsamp <- 6
-
+nsamp <- 10
 for(i in 1:nsim){
     #Simulate cell type counts
-    counts <- SimulateCellCountsTrueDiff(props=trueprops,nsamp=nsamp,depth=depth,a=a,
-                                         b.grp1=b.grp1,b.grp2=b.grp2)
+    counts <- SimulateCellCounts(props=p,nsamp=nsamp,depth=depth,a=a,b=b)
 
     tot.cells <- colSums(counts)
+
     # propeller
     est.props <- t(t(counts)/tot.cells)
     
@@ -166,19 +111,20 @@ for(i in 1:nsim){
   
     # asinsqrt transform
     fit <- lmFit(trans.prop, des)
-    fit <- eBayes(fit, robust=TRUE)
+    #  For two cell types, set robust = FALSE 
+    fit <- eBayes(fit, robust=FALSE)
 
     pval.asin[,i] <- fit$p.value[,2]
     
     # logit transform
     fit.logit <- lmFit(logit.prop, des)
-    fit.logit <- eBayes(fit.logit, robust=TRUE)
+    fit.logit <- eBayes(fit.logit, robust=FALSE)
 
     pval.logit[,i] <- fit.logit$p.value[,2]
 
     # Chi-square test for differences in proportions
     n <- tapply(tot.cells, grp, sum)
-    for(h in 1:nrow(counts)){
+    for(h in 1:length(p)){
         pval.chsq[h,i] <- prop.test(tapply(counts[h,],grp,sum),n)$p.value
     }
 
@@ -216,7 +162,7 @@ for(i in 1:nsim){
     pval.nb[,i] <- lrt.nb$table$PValue
     
     # Negative binomial QLF test
-    fit.qlf <- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
+    fit.qlf <- glmQLFit(y.nb, des, robust=FALSE, abundance.trend = FALSE)
     res.qlf <- glmQLFTest(fit.qlf, coef=2)
     pval.qlf[,i] <- res.qlf$table$PValue
 
@@ -234,108 +180,336 @@ for(i in 1:nsim){
     logratio <- log(clr)
     
     fit.coda <- lmFit(logratio, des)
-    fit.coda <- eBayes(fit.coda, robust=TRUE)
+    fit.coda <- eBayes(fit.coda, robust=FALSE)
 
     pval.coda[,i] <- fit.coda$p.value[,2]
 
 }
-
 ```
 
-
-We can look at the number of significant tests at certain p-value cut-offs:
 ```{r}
 pcut <- 0.05
-de <- da.fac != 1
-sig.disc <- matrix(NA,nrow=length(trueprops),ncol=9)
-rownames(sig.disc) <- names(trueprops)
-colnames(sig.disc) <- c("chisq","logbin","pois","asin", "logit","betabin","negbin","nbQLF","CODA")
+type1error <- matrix(NA,nrow=length(p),ncol=9)
+rownames(type1error) <- rownames(counts)
+colnames(type1error) <- c("chisq","logbin","pois","asin", "logit","betabin","negbin","nbQLF","CODA")
 
-sig.disc[,1]<-rowSums(pval.chsq<pcut)/nsim 
-sig.disc[,2]<-rowSums(pval.lb<pcut)/nsim
-sig.disc[,3]<-rowSums(pval.pois<pcut)/nsim 
-sig.disc[,4]<-rowSums(pval.asin<pcut)/nsim 
-sig.disc[,5]<-rowSums(pval.logit<pcut)/nsim 
-sig.disc[,6]<-rowSums(pval.bb<pcut)/nsim
-sig.disc[,7]<-rowSums(pval.nb<pcut)/nsim 
-sig.disc[,8]<-rowSums(pval.qlf<pcut)/nsim
-sig.disc[,9]<-rowSums(pval.coda<pcut)/nsim 
-o <- order(trueprops)
-
+type1error[,1]<-rowSums(pval.chsq<pcut)/nsim 
+type1error[,2]<-rowSums(pval.lb<pcut)/nsim
+type1error[,3]<-rowSums(pval.pois<pcut)/nsim 
+type1error[,4]<-rowSums(pval.asin<pcut)/nsim 
+type1error[,5]<-rowSums(pval.logit<pcut)/nsim 
+type1error[,6]<-rowSums(pval.bb<pcut)/nsim
+type1error[,7]<-rowSums(pval.nb<pcut)/nsim 
+type1error[,8]<-rowSums(pval.qlf<pcut)/nsim
+type1error[,9]<-rowSums(pval.coda<pcut)/nsim 
 ```
 
 ```{r}
-gt(data.frame(sig.disc[o,]),rownames_to_stub = TRUE, caption="Proportion of significant tests: n=3")
+gt(data.frame(type1error),rownames_to_stub = TRUE, caption="Type I error: 2 cell types")
 ```
 
+Plot of all type I error rates for the 5 cell types: 
 
-```{r}
-layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
-par(mar=c(8,5,3,2))
-par(mgp=c(3, 0.5, 0))
-o <- order(trueprops)
-names <- c("propeller (asin)","propeller (logit)","betabin","negbin","negbinQLF","CODA")
-barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(b)),
-        ylab="Proportion sig. tests", names=names,
+```{r, fig.height=5, fig.width=8}
+par(mfrow=c(1,1))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error,beside=TRUE,col=ggplotColors(length(p)),
+        ylab="Proportion sig. tests",
         cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
-title(paste("Significant tests, n=",nsamp/2,sep=""), cex.main=1.5)
+legend("topright",fill=ggplotColors(length(p)),legend=c(paste("True p=",p,sep="")), cex=1.5)
 abline(h=pcut,lty=2,lwd=2)
-par(mar=c(0,0,0,0))
-plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
-legend("center", legend=paste("True p =",round(trueprops,3)[o]), fill=ggplotColors(length(b)), cex=1.5)
+title(c(paste("Type I error rate at alpha = 0.05, n=", nsamp/2,sep="")), cex.main=1.75)
+```
 
+Removing the most poorly performing methods (1-3):
 
+```{r}
+par(mfrow=c(1,1))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error[,4:9],beside=TRUE,col=ggplotColors(length(p)),
+        ylab="Proportion sig. tests",
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,0.15), las=2)
+#legend("top",fill=ggplotColors(length(b)),legend=c(paste("True p=",p,sep="")), cex=1.5)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste("Type I error rate at alpha = 0.05, n=", nsamp/2,sep="")), cex.main=1.75)
+```
+
+```{r}
+type1error2CT <- type1error
 ```
 
 
-```{r}
-o <- order(trueprops)
-mysig <- sig.disc[o,4:9]
-colnames(mysig) <- names
-pheatmap(mysig, scale="none", cluster_rows = FALSE, cluster_cols = FALSE,
-         labels_row = c(expression(paste(pi, " = 0.008*", sep="")),
-                        expression(paste(pi, " = 0.016", sep="")),
-                        expression(paste(pi, " = 0.064", sep="")),
-                        expression(paste(pi, " = 0.076", sep="")),
-                        expression(paste(pi, " = 0.102", sep="")),
-                        expression(paste(pi, " = 0.183*", sep="")),
-                        expression(paste(pi, " = 0.551*", sep=""))),
-         main=paste("Significant tests, n=",nsamp/2,sep=""))
+## Twenty cell types, two groups, n=5, no differences
 
-```
-
+I'm going to use real data to get cell type proportions for 20 cell types.
+The true cell type proportions are based on the human PBMC single cell data.
+In this dataset, there are 27 refined cell types. I removed the 7 most rare 
+populations to get 20 cell types. This won't have too much effect on the cell 
+type proportion estimates.
 
 ```{r}
-auc.asin <- auc.logit <- auc.bb <- auc.nb <- auc.qlf <- auc.coda <- rep(NA,nsim)
-for(i in 1:nsim){
-  auc.asin[i] <- auroc(score=1-pval.asin[,i],bool=de)
-  auc.logit[i] <- auroc(score=1-pval.logit[,i],bool=de)
-  auc.bb[i] <- auroc(score=1-pval.bb[,i],bool=de)
-  auc.nb[i] <- auroc(score=1-pval.nb[,i],bool=de)
-  auc.qlf[i] <- auroc(score=1-pval.qlf[,i],bool=de)
-  auc.coda[i] <- auroc(score=1-pval.coda[,i],bool=de)
-}
+# Get cell type proportions from PBMC human data
+# There are 27 refined cell types
+pbmc <- readRDS("./data/pool_1.rds")
+table(pbmc$predicted.celltype.l2)
+length(table(pbmc$predicted.celltype.l2))
+ 
+names(sort(table(pbmc$predicted.celltype.l2)/ncol(pbmc)))
+# Filter out 7 most rare cell types
+filter.keep <- names(sort(table(pbmc$predicted.celltype.l2)/ncol(pbmc)))[8:27]
+filter.keep
 
-mean(auc.asin)
-mean(auc.logit)
-mean(auc.bb)
-mean(auc.nb)
-mean(auc.qlf)
-mean(auc.coda)
+keep_celltypes <- pbmc$predicted.celltype.l2[pbmc$predicted.celltype.l2 %in% filter.keep]
+table(keep_celltypes)
+
+p <- sort(table(keep_celltypes)/length(keep_celltypes))
+
+keep.sample <- pbmc$individual[pbmc$predicted.celltype.l2 %in% filter.keep]
+pbmc.counts <- table(keep_celltypes,keep.sample)
+o <- order(rowSums(pbmc.counts)/sum(pbmc.counts))
+o.pbmc.counts <- pbmc.counts[o,]
+
+table(names(p)==rownames(o.pbmc.counts))
 ```
 
 ```{r}
 par(mfrow=c(1,1))
-par(mar=c(9,5,3,2))
-barplot(c(mean(auc.asin),mean(auc.logit),mean(auc.bb),mean(auc.nb),mean(auc.qlf),mean(auc.coda)), ylim=c(0,1), ylab= "AUC", cex.axis=1.5, cex.lab=1.5, names=names, las=2, cex.names = 1.5)
-title(paste("AUC: sample size n=",nsamp/2,sep=""),cex.main=1.5)
+par(mar=c(8,5,2,2))
+barplot(p,las=2, ylab="True proportion")
+title("True proportions for 20 cell types from PBMC data", adj=0)
+
+```
+
+Set up remaining simulation parameters:
+
+```{r}
+# Sim parameters
+nsim <- 1000
+depth <- 5000
+
+# Estimate parameters for beta distribution from real data
+betaparams <- estimateBetaParamsFromCounts(o.pbmc.counts)
+a <- abs(betaparams$alpha)
+b <- abs(betaparams$beta)
+
+# Decide on what output to keep
+pval.chsq <- pval.bb <- pval.lb <- pval.nb <- pval.qlf <- pval.pois <- pval.logit <-  pval.asin <- pval.coda <- matrix(NA,nrow=length(p),ncol=nsim)
+```
+
+
+```{r}
+nsamp <- 10
+for(i in 1:nsim){
+    #Simulate cell type counts
+    counts <- SimulateCellCounts(props=p,nsamp=nsamp,depth=depth,a=a,b=b)
+
+    tot.cells <- colSums(counts)
+
+    # propeller
+    est.props <- t(t(counts)/tot.cells)
+    
+    #asin transform
+    trans.prop <- asin(sqrt(est.props))
+    
+    #logit transform
+    nc <- normCounts(counts)
+    est.props.logit <- t(t(nc+0.5)/(colSums(nc+0.5)))
+    logit.prop <- log(est.props.logit/(1-est.props.logit))
+
+    grp <- rep(c(0,1), each=nsamp/2)
+    des <- model.matrix(~grp)
+  
+    # asinsqrt transform
+    fit <- lmFit(trans.prop, des)
+    #  For two cell types, set robust = FALSE 
+    fit <- eBayes(fit, robust=FALSE)
+
+    pval.asin[,i] <- fit$p.value[,2]
+    
+    # logit transform
+    fit.logit <- lmFit(logit.prop, des)
+    fit.logit <- eBayes(fit.logit, robust=FALSE)
+
+    pval.logit[,i] <- fit.logit$p.value[,2]
+
+    # Chi-square test for differences in proportions
+    n <- tapply(tot.cells, grp, sum)
+    for(h in 1:length(p)){
+        pval.chsq[h,i] <- prop.test(tapply(counts[h,],grp,sum),n)$p.value
+    }
+
+    # Beta binomial implemented in edgeR (methylation workflow)
+    meth.counts <- counts
+    unmeth.counts <- t(tot.cells - t(counts))
+    new.counts <- cbind(meth.counts,unmeth.counts)
+    sam.info <- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c("me","un"), each=nsamp))
+
+    design.samples <- model.matrix(~0+factor(sam.info$Sample))
+    colnames(design.samples) <- paste("S",1:nsamp,sep="")
+    design.group <- model.matrix(~0+factor(sam.info$Group))   
+    colnames(design.group) <- c("A","B")
+    design.bb <- cbind(design.samples, (sam.info$Meth=="me") * design.group)
+    lib.size = rep(tot.cells,2)
+
+    y <- DGEList(new.counts)
+    y$samples$lib.size <- lib.size
+    y <- estimateDisp(y, design.bb, trend="none")
+    fit.bb <- glmFit(y, design.bb)
+    contr <- makeContrasts(Grp=B-A, levels=design.bb)
+    lrt <- glmLRT(fit.bb, contrast=contr)
+    pval.bb[,i] <- lrt$table$PValue
+
+    # Logistic binomial regression
+    fit.lb <- glmFit(y, design.bb, dispersion = 0)
+    lrt.lb <- glmLRT(fit.lb, contrast=contr)
+    pval.lb[,i] <- lrt.lb$table$PValue
+
+    # Negative binomial
+    y.nb <- DGEList(counts)
+    y.nb <- estimateDisp(y.nb, des, trend="none")
+    fit.nb <- glmFit(y.nb, des)
+    lrt.nb <- glmLRT(fit.nb, coef=2)
+    pval.nb[,i] <- lrt.nb$table$PValue
+    
+    # Negative binomial QLF test
+    fit.qlf <- glmQLFit(y.nb, des, robust=FALSE, abundance.trend = FALSE)
+    res.qlf <- glmQLFTest(fit.qlf, coef=2)
+    pval.qlf[,i] <- res.qlf$table$PValue
+
+    # Poisson
+    fit.poi <- glmFit(y.nb, des, dispersion = 0)
+    lrt.poi <- glmLRT(fit.poi, coef=2)
+    pval.pois[,i] <- lrt.poi$table$PValue
+    
+    # CODA
+    # Replace zero counts with 0.5 so that the geometric mean always works
+    if(any(counts==0)) counts[counts==0] <- 0.5
+    geomean <- apply(counts,2, function(x) exp(mean(log(x))))
+    geomean.mat <- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
+    clr <- counts/geomean.mat
+    logratio <- log(clr)
+    
+    fit.coda <- lmFit(logratio, des)
+    fit.coda <- eBayes(fit.coda, robust=FALSE)
+
+    pval.coda[,i] <- fit.coda$p.value[,2]
+
+}
 ```
 
 ```{r}
-sig.disc3 <- sig.disc
+pcut <- 0.05
+type1error <- matrix(NA,nrow=length(p),ncol=9)
+rownames(type1error) <- rownames(counts)
+colnames(type1error) <- c("chisq","logbin","pois","asin", "logit","betabin","negbin","nbQLF","CODA")
+
+type1error[,1]<-rowSums(pval.chsq<pcut)/nsim 
+type1error[,2]<-rowSums(pval.lb<pcut)/nsim
+type1error[,3]<-rowSums(pval.pois<pcut)/nsim 
+type1error[,4]<-rowSums(pval.asin<pcut)/nsim 
+type1error[,5]<-rowSums(pval.logit<pcut)/nsim 
+type1error[,6]<-rowSums(pval.bb<pcut)/nsim
+type1error[,7]<-rowSums(pval.nb<pcut)/nsim 
+type1error[,8]<-rowSums(pval.qlf<pcut)/nsim
+type1error[,9]<-rowSums(pval.coda<pcut)/nsim 
 ```
 
-## Sample size of 5 in each group 
+```{r}
+gt(data.frame(type1error), rownames_to_stub = TRUE,caption="Type I error: 20 cell types")
+```
+
+Plot of all type I error rates for the 5 cell types: 
+
+```{r, fig.height=5, fig.width=8}
+layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error,beside=TRUE,col=ggplotColors(length(p)),
+        ylab="Proportion sig. tests",
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste("Type I error rate at alpha = 0.05, n=", nsamp/2,sep="")), cex.main=1.75,adj=0)
+
+par(mar=c(0,0,0,0))
+plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
+legend("center",fill=ggplotColors(length(p)),legend=c(paste("True p=",round(p,4),sep="")), cex=1.5)
+```
+
+Removing the most poorly performing methods (1-3):
+
+```{r}
+layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error[,4:9],beside=TRUE,col=ggplotColors(length(p)),
+        ylab="Proportion sig. tests",
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,0.18), las=2)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste("Type I error rate at alpha = 0.05, n=", nsamp/2,sep="")), cex.main=1.75,adj=0)
+
+par(mar=c(0,0,0,0))
+plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
+legend("center",fill=ggplotColors(length(p)),legend=c(paste("True p=",round(p,4),sep="")), cex=1.5)
+```
+
+```{r}
+type1error20CT <- type1error
+```
+
+# Simulations with true differences and sample size n = 5
+
+## Two cell types, two groups, n=5, true differences
+
+The two cell types case is fairly special. If one cell type changes then 
+naturally the second cell type also changes.
+
+```{r}
+# Sim parameters
+nsim <- 1000
+depth <- 5000
+
+grp1.trueprops <- c(0.4,0.6)
+grp2.trueprops <- c(0.2,0.8)
+
+trueprops <- (grp1.trueprops+grp2.trueprops)/length(grp1.trueprops)
+
+da.fac <- grp2.trueprops/grp1.trueprops
+names(grp1.trueprops) <-names(grp1.trueprops) <- c("C0","C1")
+
+da.fac
+```
+
+```{r}
+# Decide on what output to keep
+pval.chsq <- pval.bb <- pval.lb <- pval.nb <- pval.qlf <- pval.pois <- pval.logit <-  pval.asin <- pval.coda <- matrix(NA,nrow=length(grp1.trueprops),ncol=nsim)
+```
+
+
+```{r}
+par(mar=c(5,5,2,2))
+par(mfrow=c(1,1))
+barplot(t(cbind(grp1.trueprops,grp2.trueprops)), beside=TRUE, col=c(2,4), 
+        ylab="True cell type proportion")
+legend("topleft", fill=c(2,4),legend=c("Group 1","Group 2"))
+title("True cell type proportions for Group 1 and 2",adj=0)
+```
+
+```{r}
+# Get hyperparameters for alpha and beta
+# Note group 1 and group 2 have different b parameters to accommodate true
+# differences in cell type proportions
+a <- c(10,10)
+b.grp1 <- a*(1-grp1.trueprops)/grp1.trueprops
+b.grp2 <- a*(1-grp2.trueprops)/grp2.trueprops
+```
+
+
+Next we simulate the cell type counts and run the various statistical models
+for testing cell type proportion differences between the two groups. We expect 
+to see significant differences in both cell types however cell type C0 has a larger
+fold change (2) compared to cell type C1, which only increases by 33\%.
 
 ```{r}
 nsamp <- 10
@@ -362,13 +536,13 @@ for(i in 1:nsim){
   
     # asinsqrt transform
     fit <- lmFit(trans.prop, des)
-    fit <- eBayes(fit, robust=TRUE)
+    fit <- eBayes(fit, robust=FALSE)
 
     pval.asin[,i] <- fit$p.value[,2]
     
     # logit transform
     fit.logit <- lmFit(logit.prop, des)
-    fit.logit <- eBayes(fit.logit, robust=TRUE)
+    fit.logit <- eBayes(fit.logit, robust=FALSE)
 
     pval.logit[,i] <- fit.logit$p.value[,2]
 
@@ -412,7 +586,7 @@ for(i in 1:nsim){
     pval.nb[,i] <- lrt.nb$table$PValue
     
     # Negative binomial QLF test
-    fit.qlf <- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
+    fit.qlf <- glmQLFit(y.nb, des, robust=FALSE, abundance.trend = FALSE)
     res.qlf <- glmQLFTest(fit.qlf, coef=2)
     pval.qlf[,i] <- res.qlf$table$PValue
 
@@ -430,7 +604,7 @@ for(i in 1:nsim){
     logratio <- log(clr)
     
     fit.coda <- lmFit(logratio, des)
-    fit.coda <- eBayes(fit.coda, robust=TRUE)
+    fit.coda <- eBayes(fit.coda, robust=FALSE)
 
     pval.coda[,i] <- fit.coda$p.value[,2]
 
@@ -444,7 +618,7 @@ We can look at the number of significant tests at certain p-value cut-offs:
 pcut <- 0.05
 de <- da.fac != 1
 sig.disc <- matrix(NA,nrow=length(trueprops),ncol=9)
-rownames(sig.disc) <- names(trueprops)
+rownames(sig.disc) <- c("C0","C1")
 colnames(sig.disc) <- c("chisq","logbin","pois","asin", "logit","betabin","negbin","nbQLF","CODA")
 
 sig.disc[,1]<-rowSums(pval.chsq<pcut)/nsim 
@@ -456,89 +630,115 @@ sig.disc[,6]<-rowSums(pval.bb<pcut)/nsim
 sig.disc[,7]<-rowSums(pval.nb<pcut)/nsim 
 sig.disc[,8]<-rowSums(pval.qlf<pcut)/nsim
 sig.disc[,9]<-rowSums(pval.coda<pcut)/nsim 
-o <- order(trueprops)
 ```
 
 ```{r}
-gt(data.frame(sig.disc[o,]),rownames_to_stub = TRUE, caption="Proportion of significant tests: n=5")
+gt(data.frame(sig.disc),rownames_to_stub = TRUE,caption="Proportion of significant tests: 2 cell types")
 ```
 
 
 ```{r}
 layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
-par(mar=c(8,5,3,2))
+par(mar=c(9,5,3,2))
 par(mgp=c(3, 0.5, 0))
 o <- order(trueprops)
 names <- c("propeller (asin)","propeller (logit)","betabin","negbin","negbinQLF","CODA")
-barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(b)),
+barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(b.grp1)),
         ylab="Proportion sig. tests", names=names,
         cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
-title(paste("Significant tests, n=",nsamp/2,sep=""), cex.main=1.5)
+title(paste("Significant tests, n=",nsamp/2,sep=""), cex.main=1.5,adj=0)
 abline(h=pcut,lty=2,lwd=2)
 par(mar=c(0,0,0,0))
 plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
-legend("center", legend=paste("True p =",round(trueprops,3)[o]), fill=ggplotColors(length(b)), cex=1.5)
-
-
+legend("center", legend=paste("True p =",round(trueprops,3)[o]), fill=ggplotColors(length(b.grp1)), cex=1.5)
 ```
 
 
-```{r}
-o <- order(trueprops)
-mysig <- sig.disc[o,4:9]
-colnames(mysig) <- names
-pheatmap(mysig, scale="none", cluster_rows = FALSE, cluster_cols = FALSE,
-         labels_row = c(expression(paste(pi, " = 0.008*", sep="")),
-                        expression(paste(pi, " = 0.016", sep="")),
-                        expression(paste(pi, " = 0.064", sep="")),
-                        expression(paste(pi, " = 0.076", sep="")),
-                        expression(paste(pi, " = 0.102", sep="")),
-                        expression(paste(pi, " = 0.183*", sep="")),
-                        expression(paste(pi, " = 0.551*", sep=""))),
-         main=paste("Significant tests, n=",nsamp/2,sep=""))
 
-```
-
+## Twenty cell types, two groups, n=5, true differences
 
 ```{r}
-auc.asin <- auc.logit <- auc.bb <- auc.nb <- auc.qlf <- auc.coda <- rep(NA,nsim)
-for(i in 1:nsim){
-  auc.asin[i] <- auroc(score=1-pval.asin[,i],bool=de)
-  auc.logit[i] <- auroc(score=1-pval.logit[,i],bool=de)
-  auc.bb[i] <- auroc(score=1-pval.bb[,i],bool=de)
-  auc.nb[i] <- auroc(score=1-pval.nb[,i],bool=de)
-  auc.qlf[i] <- auroc(score=1-pval.qlf[,i],bool=de)
-  auc.coda[i] <- auroc(score=1-pval.coda[,i],bool=de)
-}
-
-mean(auc.asin)
-mean(auc.logit)
-mean(auc.bb)
-mean(auc.nb)
-mean(auc.qlf)
-mean(auc.coda)
+trueprops <- sort(table(keep_celltypes)/length(keep_celltypes))
 ```
 
 ```{r}
-par(mfrow=c(1,1))
-par(mar=c(9,5,3,2))
-barplot(c(mean(auc.asin),mean(auc.logit),mean(auc.bb),mean(auc.nb),mean(auc.qlf),mean(auc.coda)), ylim=c(0,1), ylab= "AUC", cex.axis=1.5, cex.lab=1.5, names=names, las=2, cex.names = 1.5)
-title(paste("AUC: sample size n=",nsamp/2,sep=""),cex.main=1.5)
+# Sim parameters
+nsim <- 1000
+depth <- 5000
+
+# Estimate parameters for beta distribution from real data
+betaparams <- estimateBetaParamsFromCounts(o.pbmc.counts)
+a <- abs(betaparams$alpha)
+b <- abs(betaparams$beta)
+
+# Decide on what output to keep
+pval.chsq <- pval.bb <- pval.lb <- pval.nb <- pval.qlf <- pval.pois <- pval.logit <-  pval.asin <- pval.coda <- matrix(NA,nrow=length(p),ncol=nsim)
+```
+
+Set up true proportions for the two groups:
+
+```{r}
+barplot(trueprops,las=2)
+# Randomly sample eight cell types to change between two groups
+diffct <- c("cDC2","NK Proliferating","MAIT","B memory","CD14 Mono","B naive",
+            "NK","CD4 Naive")
+da.fac <- rep(1,length(trueprops))
+names(da.fac) <- names(trueprops)
+da.fac[diffct] <- rep(c(1/3,1.5),4)
+
+grp1.trueprops <- grp2.trueprops <- trueprops
+grp2.trueprops <- grp1.trueprops*da.fac
+
+sum(grp2.trueprops)
+
+# Adjust proportions in group2 to add to 1
+grp2.trueprops["CD4 Naive"] <- grp2.trueprops["CD4 Naive"] - (sum(grp2.trueprops)-1)
+
+sum(grp1.trueprops)
+sum(grp2.trueprops)
 ```
 
 ```{r}
-sig.disc5 <- sig.disc
+par(mar=c(9,5,2,2))
+barplot(t(cbind(grp1.trueprops,grp2.trueprops)), beside=TRUE, col=c(2,4), 
+        las=2, ylab="True cell type proportion",ylim=c(0,0.32))
+legend("top", fill=c(2,4),legend=c("Group 1","Group 2"))
+title("True cell type proportions for Group 1 and 2",adj=0)
+text(2,0.02,label="*", cex=2)
+text(11,0.02,label="*", cex=2)
+text(17,0.03,label="*", cex=2)
+text(26,0.05,label="*", cex=2)
+text(38,0.06,label="*", cex=2)
+text(38,0.06,label="*", cex=2)
+text(47,0.1,label="*", cex=2)
+text(53,0.18,label="*", cex=2)
+text(59,0.31,label="*", cex=2)
+legend("topleft",legend="* = true difference",cex=1.5)
 ```
 
+```{r}
+# Get hyperparameters for alpha and beta
+# Note group 1 and group 2 have different b parameters to accommodate true
+# differences in cell type proportions
+a <- 10
+b.grp1 <- a*(1-grp1.trueprops)/grp1.trueprops
+b.grp2 <- a*(1-grp2.trueprops)/grp2.trueprops
+```
 
-## Sample size of 10 in each group 
+Next we simulate the cell type counts and run the various statistical models
+for testing cell type proportion differences between the two groups. We expect 
+to see significant differences in cell type proportions in 8/20 cell types, 
+and no significant differences in the remaining cell types between group 1 
+and group 2. 
+
+## Sample size of 5 in each group 
 
 ```{r}
-nsamp <- 20
+nsamp <- 10
 
 for(i in 1:nsim){
     #Simulate cell type counts
-    counts <- SimulateCellCountsTrueDiff(props=trueprops,nsamp=nsamp,depth=depth,a=a,
+    counts <- SimulateCellCountsTrueDiff(props=trueprops,nsamp=nsamp,depth=depth,a=rep(a,length(trueprops)),
                                          b.grp1=b.grp1,b.grp2=b.grp2)
 
     tot.cells <- colSums(counts)
@@ -634,8 +834,8 @@ for(i in 1:nsim){
 
 ```
 
-
 We can look at the number of significant tests at certain p-value cut-offs:
+
 ```{r}
 pcut <- 0.05
 de <- da.fac != 1
@@ -652,46 +852,78 @@ sig.disc[,6]<-rowSums(pval.bb<pcut)/nsim
 sig.disc[,7]<-rowSums(pval.nb<pcut)/nsim 
 sig.disc[,8]<-rowSums(pval.qlf<pcut)/nsim
 sig.disc[,9]<-rowSums(pval.coda<pcut)/nsim 
-o <- order(trueprops)
 ```
 
 ```{r}
-gt(data.frame(sig.disc[o,]),rownames_to_stub = TRUE, caption="Proportion of significant tests: n=10")
+o <- order(trueprops)
+gt(data.frame(sig.disc[o,]),rownames_to_stub = TRUE,caption="Proportion of significant tests: 20 cell types")
 ```
+
+```{r}
+foldchange <- grp2.trueprops/grp1.trueprops
+o <- order(abs(log(foldchange)))
+pheatmap(sig.disc[o,4:9], scale="none", cluster_rows = FALSE, cluster_cols = FALSE, main = "Proportion of significant tests, ordered by fold-change")
+```
+
+
+Within a simulation we can calculate the numbers of true positives etc.
+```{r}
+tp <- fp <- sig <- tn <- matrix(NA,nrow=9,ncol=nsim)
+rownames(tp) <- c("chisq","logbin","pois","asin", "logit","betabin","negbin","nbQLF","CODA")
+
+tp[1,]<-colSums(pval.chsq[de,]<pcut) 
+tp[2,]<-colSums(pval.lb[de,]<pcut)
+tp[3,]<-colSums(pval.pois[de,]<pcut) 
+tp[4,]<-colSums(pval.asin[de,]<pcut) 
+tp[5,]<-colSums(pval.logit[de,]<pcut) 
+tp[6,]<-colSums(pval.bb[de,]<pcut)
+tp[7,]<-colSums(pval.nb[de,]<pcut)
+tp[8,]<-colSums(pval.qlf[de,]<pcut)
+tp[9,]<-colSums(pval.coda[de,]<pcut) 
+
+sig[1,]<-colSums(pval.chsq<pcut) 
+sig[2,]<-colSums(pval.lb<pcut)
+sig[3,]<-colSums(pval.pois<pcut) 
+sig[4,]<-colSums(pval.asin<pcut) 
+sig[5,]<-colSums(pval.logit<pcut) 
+sig[6,]<-colSums(pval.bb<pcut)
+sig[7,]<-colSums(pval.nb<pcut)
+sig[8,]<-colSums(pval.qlf<pcut)
+sig[9,]<-colSums(pval.coda<pcut) 
+
+recall <- tp/8
+precision <- tp/sig
+f1 <- 2*(recall*precision)/(recall + precision)  
+
+rowMeans(recall)
+rowMeans(precision)
+rowMeans(f1)
+```
+
+```{r}
+res <- data.frame(Recall = rowMeans(recall), Precision = rowMeans(precision),
+                  F1score = rowMeans(f1))
+rownames(res) <- rownames(recall)
+gt(res,rownames_to_stub=TRUE,caption="True differences in 8/20 cell types")
+```
+
 
 
 ```{r}
 layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
-par(mar=c(8,5,3,2))
+par(mar=c(9,5,3,2))
 par(mgp=c(3, 0.5, 0))
 o <- order(trueprops)
 names <- c("propeller (asin)","propeller (logit)","betabin","negbin","negbinQLF","CODA")
-barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(b)),
+barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(trueprops)),
         ylab="Proportion sig. tests", names=names,
         cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
 title(paste("Significant tests, n=",nsamp/2,sep=""), cex.main=1.5)
 abline(h=pcut,lty=2,lwd=2)
 par(mar=c(0,0,0,0))
 plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
-legend("center", legend=paste("True p =",round(trueprops,3)[o]), fill=ggplotColors(length(b)), cex=1.5)
+legend("center", legend=paste("True p =",round(trueprops,3)[o]), fill=ggplotColors(length(trueprops)), cex=1.5)
 
-
-```
-
-
-```{r}
-o <- order(trueprops)
-mysig <- sig.disc[o,4:9]
-colnames(mysig) <- names
-pheatmap(mysig, scale="none", cluster_rows = FALSE, cluster_cols = FALSE,
-         labels_row = c(expression(paste(pi, " = 0.008*", sep="")),
-                        expression(paste(pi, " = 0.016", sep="")),
-                        expression(paste(pi, " = 0.064", sep="")),
-                        expression(paste(pi, " = 0.076", sep="")),
-                        expression(paste(pi, " = 0.102", sep="")),
-                        expression(paste(pi, " = 0.183*", sep="")),
-                        expression(paste(pi, " = 0.551*", sep=""))),
-         main=paste("Significant tests, n=",nsamp/2,sep=""))
 
 ```
 
@@ -719,207 +951,68 @@ mean(auc.coda)
 par(mfrow=c(1,1))
 par(mar=c(9,5,3,2))
 barplot(c(mean(auc.asin),mean(auc.logit),mean(auc.bb),mean(auc.nb),mean(auc.qlf),mean(auc.coda)), ylim=c(0,1), ylab= "AUC", cex.axis=1.5, cex.lab=1.5, names=names, las=2, cex.names = 1.5)
-title(paste("AUC: sample size n=",nsamp/2,sep=""),cex.main=1.5)
+title(paste("AUC: sample size n=",nsamp/2,sep=""),cex.main=1.5,adj=0)
 ```
 
-```{r}
-sig.disc10 <- sig.disc
-```
-
-## Sample size of 20 in each group 
+true positive vs false positive rate
 
 ```{r}
-nsamp <- 40
-
+tp.rate.asin <- fp.rate.asin <- tp.rate.logit <- fp.rate.logit <-
+  tp.rate.bb <- fp.rate.bb <-  tp.rate.nb <- fp.rate.nb <- 
+  tp.rate.qlf <- fp.rate.qlf <- tp.rate.coda <- fp.rate.coda  <- matrix(NA,nrow=20,ncol=nsim)
 for(i in 1:nsim){
-    #Simulate cell type counts
-    counts <- SimulateCellCountsTrueDiff(props=trueprops,nsamp=nsamp,depth=depth,a=a,
-                                         b.grp1=b.grp1,b.grp2=b.grp2)
-
-    tot.cells <- colSums(counts)
-    # propeller
-    est.props <- t(t(counts)/tot.cells)
-    
-    #asin transform
-    trans.prop <- asin(sqrt(est.props))
-    
-    #logit transform
-    nc <- normCounts(counts)
-    est.props.logit <- t(t(nc+0.5)/(colSums(nc+0.5)))
-    logit.prop <- log(est.props.logit/(1-est.props.logit))
-
-    grp <- rep(c(0,1), each=nsamp/2)
-    des <- model.matrix(~grp)
+  o <- order(pval.asin[,i])
+  tp.rate.asin[,i] <- cumsum(de[o]) 
+  fp.rate.asin[,i] <- cumsum(1-de[o])
   
-    # asinsqrt transform
-    fit <- lmFit(trans.prop, des)
-    fit <- eBayes(fit, robust=TRUE)
-
-    pval.asin[,i] <- fit$p.value[,2]
-    
-    # logit transform
-    fit.logit <- lmFit(logit.prop, des)
-    fit.logit <- eBayes(fit.logit, robust=TRUE)
-
-    pval.logit[,i] <- fit.logit$p.value[,2]
-
-    # Chi-square test for differences in proportions
-    n <- tapply(tot.cells, grp, sum)
-    for(h in 1:nrow(counts)){
-        pval.chsq[h,i] <- prop.test(tapply(counts[h,],grp,sum),n)$p.value
-    }
-
-    # Beta binomial implemented in edgeR (methylation workflow)
-    meth.counts <- counts
-    unmeth.counts <- t(tot.cells - t(counts))
-    new.counts <- cbind(meth.counts,unmeth.counts)
-    sam.info <- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c("me","un"), each=nsamp))
-
-    design.samples <- model.matrix(~0+factor(sam.info$Sample))
-    colnames(design.samples) <- paste("S",1:nsamp,sep="")
-    design.group <- model.matrix(~0+factor(sam.info$Group))   
-    colnames(design.group) <- c("A","B")
-    design.bb <- cbind(design.samples, (sam.info$Meth=="me") * design.group)
-    lib.size = rep(tot.cells,2)
-
-    y <- DGEList(new.counts)
-    y$samples$lib.size <- lib.size
-    y <- estimateDisp(y, design.bb, trend="none")
-    fit.bb <- glmFit(y, design.bb)
-    contr <- makeContrasts(Grp=B-A, levels=design.bb)
-    lrt <- glmLRT(fit.bb, contrast=contr)
-    pval.bb[,i] <- lrt$table$PValue
-
-    # Logistic binomial regression
-    fit.lb <- glmFit(y, design.bb, dispersion = 0)
-    lrt.lb <- glmLRT(fit.lb, contrast=contr)
-    pval.lb[,i] <- lrt.lb$table$PValue
-
-    # Negative binomial
-    y.nb <- DGEList(counts)
-    y.nb <- estimateDisp(y.nb, des, trend="none")
-    fit.nb <- glmFit(y.nb, des)
-    lrt.nb <- glmLRT(fit.nb, coef=2)
-    pval.nb[,i] <- lrt.nb$table$PValue
-    
-    # Negative binomial QLF test
-    fit.qlf <- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
-    res.qlf <- glmQLFTest(fit.qlf, coef=2)
-    pval.qlf[,i] <- res.qlf$table$PValue
-
-    # Poisson
-    fit.poi <- glmFit(y.nb, des, dispersion = 0)
-    lrt.poi <- glmLRT(fit.poi, coef=2)
-    pval.pois[,i] <- lrt.poi$table$PValue
-    
-    # CODA
-    # Replace zero counts with 0.5 so that the geometric mean always works
-    if(any(counts==0)) counts[counts==0] <- 0.5
-    geomean <- apply(counts,2, function(x) exp(mean(log(x))))
-    geomean.mat <- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
-    clr <- counts/geomean.mat
-    logratio <- log(clr)
-    
-    fit.coda <- lmFit(logratio, des)
-    fit.coda <- eBayes(fit.coda, robust=TRUE)
-
-    pval.coda[,i] <- fit.coda$p.value[,2]
-
+  o <- order(pval.logit[,i])
+  tp.rate.logit[,i] <- cumsum(de[o]) 
+  fp.rate.logit[,i] <- cumsum(1-de[o])
+  
+  o <- order(pval.bb[,i])
+  tp.rate.bb[,i] <- cumsum(de[o]) 
+  fp.rate.bb[,i] <- cumsum(1-de[o])
+  
+  o <- order(pval.nb[,i])
+  tp.rate.nb[,i] <- cumsum(de[o]) 
+  fp.rate.nb[,i] <- cumsum(1-de[o])
+  
+  o <- order(pval.qlf[,i])
+  tp.rate.qlf[,i] <- cumsum(de[o]) 
+  fp.rate.qlf[,i] <- cumsum(1-de[o])
+  
+  o <- order(pval.coda[,i])
+  tp.rate.coda[,i] <- cumsum(de[o]) 
+  fp.rate.coda[,i] <- cumsum(1-de[o])
 }
-
-```
-
-
-We can look at the number of significant tests at certain p-value cut-offs:
-```{r}
-pcut <- 0.05
-de <- da.fac != 1
-sig.disc <- matrix(NA,nrow=length(trueprops),ncol=9)
-rownames(sig.disc) <- names(trueprops)
-colnames(sig.disc) <- c("chisq","logbin","pois","asin", "logit","betabin","negbin","nbQLF","CODA")
-
-sig.disc[,1]<-rowSums(pval.chsq<pcut)/nsim 
-sig.disc[,2]<-rowSums(pval.lb<pcut)/nsim
-sig.disc[,3]<-rowSums(pval.pois<pcut)/nsim 
-sig.disc[,4]<-rowSums(pval.asin<pcut)/nsim 
-sig.disc[,5]<-rowSums(pval.logit<pcut)/nsim 
-sig.disc[,6]<-rowSums(pval.bb<pcut)/nsim
-sig.disc[,7]<-rowSums(pval.nb<pcut)/nsim 
-sig.disc[,8]<-rowSums(pval.qlf<pcut)/nsim
-sig.disc[,9]<-rowSums(pval.coda<pcut)/nsim 
-o <- order(trueprops)
 ```
 
 ```{r}
-gt(data.frame(sig.disc[o,]),rownames_to_stub = TRUE, caption="Proportion of significant tests: n=20")
-```
+mycols <- c(1,2,4,3,"orange",8)
+plot(rowMeans(fp.rate.asin)/12,rowMeans(tp.rate.asin)/8,col=mycols[1], type="l",lwd=2,
+     ylab="True positive rate", xlab="False positive rate")
+lines(rowMeans(fp.rate.bb)/12,rowMeans(tp.rate.bb)/8,lwd=2,col=mycols[3])
+lines(rowMeans(fp.rate.nb)/12,rowMeans(tp.rate.nb)/8,lwd=2,col=mycols[4])
+lines(rowMeans(fp.rate.qlf)/12,rowMeans(tp.rate.nb)/8,lwd=2,col=mycols[5])
+lines(rowMeans(fp.rate.coda)/12,rowMeans(tp.rate.nb)/8,lwd=2,col=mycols[6])
+lines(rowMeans(fp.rate.logit)/12,rowMeans(tp.rate.logit)/8,lwd=2,col=mycols[2])
 
-
-```{r}
-layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
-par(mar=c(8,5,3,2))
-par(mgp=c(3, 0.5, 0))
-o <- order(trueprops)
-names <- c("propeller (asin)","propeller (logit)","betabin","negbin","negbinQLF","CODA")
-barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(b)),
-        ylab="Proportion sig. tests", names=names,
-        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
-title(paste("Significant tests, n=",nsamp/2,sep=""), cex.main=1.5)
-abline(h=pcut,lty=2,lwd=2)
-par(mar=c(0,0,0,0))
-plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
-legend("center", legend=paste("True p =",round(trueprops,3)[o]), fill=ggplotColors(length(b)), cex=1.5)
-
-
-```
-
-
-```{r}
-o <- order(trueprops)
-mysig <- sig.disc[o,4:9]
-colnames(mysig) <- names
-pheatmap(mysig, scale="none", cluster_rows = FALSE, cluster_cols = FALSE,
-         labels_row = c(expression(paste(pi, " = 0.008*", sep="")),
-                        expression(paste(pi, " = 0.016", sep="")),
-                        expression(paste(pi, " = 0.064", sep="")),
-                        expression(paste(pi, " = 0.076", sep="")),
-                        expression(paste(pi, " = 0.102", sep="")),
-                        expression(paste(pi, " = 0.183*", sep="")),
-                        expression(paste(pi, " = 0.551*", sep=""))),
-         main=paste("Significant tests, n=",nsamp/2,sep=""))
-
-```
-
-
-
-```{r}
-sig.disc20 <- sig.disc
-```
-
-
-```{r}
-auc.asin <- auc.logit <- auc.bb <- auc.nb <- auc.qlf <- auc.coda <- rep(NA,nsim)
-for(i in 1:nsim){
-  auc.asin[i] <- auroc(score=1-pval.asin[,i],bool=de)
-  auc.logit[i] <- auroc(score=1-pval.logit[,i],bool=de)
-  auc.bb[i] <- auroc(score=1-pval.bb[,i],bool=de)
-  auc.nb[i] <- auroc(score=1-pval.nb[,i],bool=de)
-  auc.qlf[i] <- auroc(score=1-pval.qlf[,i],bool=de)
-  auc.coda[i] <- auroc(score=1-pval.coda[,i],bool=de)
-}
-
-mean(auc.asin)
-mean(auc.logit)
-mean(auc.bb)
-mean(auc.nb)
-mean(auc.qlf)
-mean(auc.coda)
+legend("bottomright",legend=names,fill=mycols)
+title("ROC", adj=0)
 ```
 
 ```{r}
-par(mfrow=c(1,1))
-par(mar=c(9,5,3,2))
-barplot(c(mean(auc.asin),mean(auc.logit),mean(auc.bb),mean(auc.nb),mean(auc.qlf),mean(auc.coda)), ylim=c(0,1), ylab= "AUC", cex.axis=1.5, cex.lab=1.5, names=names, las=2, cex.names = 1.5)
-title(paste("AUC: sample size n=",nsamp/2,sep=""),cex.main=1.5)
+plot(rowMeans(fp.rate.asin)/12,rowMeans(tp.rate.asin)/8,col=mycols[1], type="l",lwd=2,
+     ylab="True positive rate", xlab="False positive rate", xlim=c(0,0.2))
+lines(rowMeans(fp.rate.bb)/12,rowMeans(tp.rate.bb)/8,lwd=2,col=mycols[3])
+lines(rowMeans(fp.rate.nb)/12,rowMeans(tp.rate.nb)/8,lwd=2,col=mycols[4])
+lines(rowMeans(fp.rate.qlf)/12,rowMeans(tp.rate.nb)/8,lwd=2,col=mycols[5])
+lines(rowMeans(fp.rate.coda)/12,rowMeans(tp.rate.nb)/8,lwd=2,col=mycols[6])
+lines(rowMeans(fp.rate.logit)/12,rowMeans(tp.rate.logit)/8,lwd=2,col=mycols[2])
+
+legend("bottomright",legend=names,fill=mycols)
+title("ROC- zoomed in", adj=0)
 ```
+
+
 
