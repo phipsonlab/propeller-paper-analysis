@@ -13,7 +13,7 @@
 
 <meta name="date" content="2022-01-06" />
 
-<title>Simulations with true cell type proportion differences</title>
+<title>Extreme case: Simulations when number of cell types is 2 vs 20</title>
 
 <script src="site_libs/header-attrs-2.14/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -362,8 +362,8 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Simulations with true cell type proportion
-differences</h1>
+<h1 class="title toc-ignore">Extreme case: Simulations when number of
+cell types is 2 vs 20</h1>
 <h4 class="author">Belinda Phipson</h4>
 <h4 class="date">01/06/2022</h4>
 
@@ -598,8 +598,8 @@ have uncommitted changes.
 
 <p>
 These are the previous versions of the repository in which changes were
-made to the R Markdown (<code>analysis/SimTrueDiff.Rmd</code>) and HTML
-(<code>docs/SimTrueDiff.html</code>) files. If you’ve configured a
+made to the R Markdown (<code>analysis/Sims2vs20CT.Rmd</code>) and HTML
+(<code>docs/Sims2vs20CT.html</code>) files. If you’ve configured a
 remote Git repository (see <code>?wflow_git_remote</code>), click on the
 hyperlinks in the table below to view the files as they were in that
 past version.
@@ -631,7 +631,7 @@ Message
 Rmd
 </td>
 <td>
-<a href="https://github.com/phipsonlab/propeller-paper-analysis/blob/b239441ff07c603cec9799e8a31c9984972e1997/analysis/SimTrueDiff.Rmd" target="_blank">b239441</a>
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/blob/b239441ff07c603cec9799e8a31c9984972e1997/analysis/Sims2vs20CT.Rmd" target="_blank">b239441</a>
 </td>
 <td>
 bphipson
@@ -641,40 +641,6 @@ bphipson
 </td>
 <td>
 update simulations
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/phipsonlab/propeller-paper-analysis/2313cc7515b2f8b11963825f61e1c1d0fee32b9d/docs/SimTrueDiff.html" target="_blank">2313cc7</a>
-</td>
-<td>
-bphipson
-</td>
-<td>
-2022-06-01
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/phipsonlab/propeller-paper-analysis/blob/7ec7a76e370fed19ee662c9a0e89705f2a1ed826/analysis/SimTrueDiff.Rmd" target="_blank">7ec7a76</a>
-</td>
-<td>
-bphipson
-</td>
-<td>
-2022-06-01
-</td>
-<td>
-Add null simulation results and true difference simulation results
 </td>
 </tr>
 </tbody>
@@ -692,48 +658,25 @@ library(edgeR)
 library(pheatmap)
 library(gt)</code></pre>
 <p>Source the simulation code:</p>
-<pre class="r"><code>source(&quot;./code/SimCodeTrueDiff.R&quot;)
+<pre class="r"><code>source(&quot;./code/SimCode.R&quot;)
+source(&quot;./code/SimCodeTrueDiff.R&quot;)
 source(&quot;./code/auroc.R&quot;)</code></pre>
 </div>
-<div id="hierarchical-model-for-simulating-cell-type-proportions"
-class="section level1">
-<h1>Hierarchical model for simulating cell type proportions</h1>
-<p>I am simulating cell type proportions in a hierarchical manner.</p>
-<ul>
-<li>The total number of cells, <span class="math inline">\(n_j\)</span>,
-for each sample <span class="math inline">\(j\)</span>, are drawn from a
-negative binomial distribution with mean 5000 and dispersion 20.</li>
-<li>The true cell type proportions for 7 cell types are estimated from a
-human heart dataset</li>
-<li>The sample proportion <span class="math inline">\(p_{ij}\)</span>
-for cell type <span class="math inline">\(i\)</span> and sample <span
-class="math inline">\(j\)</span> is assumed to be drawn from a Beta
-distribution with parameters <span class="math inline">\(\alpha\)</span>
-and <span class="math inline">\(\beta\)</span>.</li>
-<li>The count for cell type <span class="math inline">\(i\)</span> and
-sample <span class="math inline">\(j\)</span> is then drawn from a
-binomial distribution with probability <span
-class="math inline">\(p_{ij}\)</span> and size <span
-class="math inline">\(n_j\)</span>.</li>
-</ul>
-<p>The Beta-Binomial model allows for biological variability to be
-simulated between samples. The paramaters of the Beta distribution,
-<span class="math inline">\(\alpha\)</span> and <span
-class="math inline">\(\beta\)</span>, determine how variable the <span
-class="math inline">\(p_{ij}\)</span> will be. Larger values of <span
-class="math inline">\(\alpha\)</span> and <span
-class="math inline">\(\beta\)</span> result in a more precise
-distribution centred around the true proportions, while smaller values
-result in a more diffuse prior. The parameters for the Beta distribution
-were estimated from the cell type counts observed in the human heart
-dataset using the function estimateBetaParamsFromCounts in the speckle
-package.</p>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>For these simulations we are looking to see whether the different
+methods perform differently when the number of cell types is vastly
+different. Here we examine the extreme case of 2 cell types versus 20
+cell types, with and without true differences simulated.</p>
 </div>
-<div id="two-group-simulation-set-up" class="section level1">
-<h1>Two group simulation set up</h1>
-<p>I will generate cell type counts for 7 cell types, assuming two
-experimental groups with a sample size of n=(3,5,10,20) in each group. I
-will calculate p-values from the following models:</p>
+<div id="null-simulations-with-sample-size-n-5" class="section level1">
+<h1>Null simulations with sample size n = 5</h1>
+<p>We will consider the scenario when the number of samples per group is
+5, as this is a reasonable number of samples for current datasets, and
+also where differences between methods can be seen (as opposed to n=20
+where all methods perform well).</p>
+<p>We again simulate cell type counts under a Beta-Binomial hierarchical
+model, and compare the following models:</p>
 <ul>
 <li>propeller (arcsin sqrt transformation)</li>
 <li>propeller (logit transformation)</li>
@@ -744,73 +687,37 @@ will calculate p-values from the following models:</p>
 <li>Poisson regression (negative binomial with dispersion=0)</li>
 <li>CODA model</li>
 </ul>
-<p>One thousand simulation datasets will be generated.</p>
-<p>First I set up the simulation parameters and set up the objects to
-capture the output.</p>
+<p>One thousand simulation datasets are generated for each scenario: *
+Two cell types, no differences * Two cell types, true differences *
+Twenty cell types, no differences * Twenty cell types, true
+differences</p>
+<div id="two-cell-types-two-groups-n5-no-differences"
+class="section level2">
+<h2>Two cell types, two groups, n=5, no differences</h2>
+<p>Here I assume that the two cell types have true proportions 0.2 and
+0.8, with n=5 samples in each group.</p>
 <pre class="r"><code># Sim parameters
 set.seed(10)
 nsim &lt;- 1000
 depth &lt;- 5000
 
-# True cell type proportions from human heart dataset
-heart.info &lt;- read.csv(file=&quot;./data/cellinfo.csv&quot;, row.names = 1)
-heart.counts &lt;- table(heart.info$Celltype, heart.info$Sample)
-heart.counts &lt;- heart.counts[-4,]
-trueprops &lt;- rowSums(heart.counts)/sum(rowSums(heart.counts))</code></pre>
-<pre class="r"><code>betaparams &lt;- estimateBetaParamsFromCounts(heart.counts)
+# True cell type proportions
+p &lt;- c(0.2, 0.8)
 
 # Parameters for beta distribution
-a &lt;- betaparams$alpha
-b &lt;- betaparams$beta
+a &lt;- 10
+b &lt;- a*(1-p)/p
 
 # Decide on what output to keep
 pval.chsq &lt;- pval.bb &lt;- pval.lb &lt;- pval.nb &lt;- pval.qlf &lt;- pval.pois &lt;- pval.logit &lt;-  pval.asin &lt;- 
-  pval.coda &lt;- matrix(NA,nrow=length(trueprops),ncol=nsim)</code></pre>
-<p>Set up true proportions for the two groups:</p>
-<pre class="r"><code># Set up true props for the two groups
-grp1.trueprops &lt;- grp2.trueprops &lt;- trueprops
-grp2.trueprops[1] &lt;- grp1.trueprops[1]/2
-grp2.trueprops[4] &lt;- grp2.trueprops[4]*2
-grp2.trueprops[7] &lt;- grp1.trueprops[7]*3
-
-grp2.trueprops[1] &lt;- grp2.trueprops[1] + (1-sum(grp2.trueprops))/2
-grp2.trueprops[4] &lt;- grp2.trueprops[4] + (1-sum(grp2.trueprops))
- 
-sum(grp1.trueprops)</code></pre>
-<pre><code>[1] 1</code></pre>
-<pre class="r"><code>sum(grp2.trueprops)</code></pre>
-<pre><code>[1] 1</code></pre>
-<pre class="r"><code>da.fac &lt;- grp2.trueprops/grp1.trueprops</code></pre>
-<pre class="r"><code>o &lt;- order(trueprops)
-par(mar=c(9,5,2,2))
-barplot(t(cbind(grp1.trueprops[o],grp2.trueprops[o])), beside=TRUE, col=c(2,4), 
-        las=2, ylab=&quot;True cell type proportion&quot;)
-legend(&quot;topleft&quot;, fill=c(2,4),legend=c(&quot;Group 1&quot;,&quot;Group 2&quot;))
-title(&quot;True cell type proportions for Group 1 and 2&quot;)</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code># Get hyperparameters for alpha and beta
-# Note group 1 and group 2 have different b parameters to accommodate true
-# differences in cell type proportions
-a &lt;- a
-b.grp1 &lt;- a*(1-grp1.trueprops)/grp1.trueprops
-b.grp2 &lt;- a*(1-grp2.trueprops)/grp2.trueprops</code></pre>
-<p>Next we simulate the cell type counts and run the various statistical
-models for testing cell type proportion differences between the two
-groups. We expect to see significant differences in cell type
-proportions in three cell types, and no significant differences in the
-remaining four cell types between group 1 and group 2. We expect
-differences in the Smooth muscle cells (most rare), Fibroblasts (second
-most abundant) and Cardiomyocytes (most abundant).</p>
-<div id="sample-size-of-3-in-each-group" class="section level2">
-<h2>Sample size of 3 in each group</h2>
-<pre class="r"><code>nsamp &lt;- 6
-
+  pval.coda &lt;- matrix(NA,nrow=length(p),ncol=nsim)</code></pre>
+<pre class="r"><code>nsamp &lt;- 10
 for(i in 1:nsim){
     #Simulate cell type counts
-    counts &lt;- SimulateCellCountsTrueDiff(props=trueprops,nsamp=nsamp,depth=depth,a=a,
-                                         b.grp1=b.grp1,b.grp2=b.grp2)
+    counts &lt;- SimulateCellCounts(props=p,nsamp=nsamp,depth=depth,a=a,b=b)
 
     tot.cells &lt;- colSums(counts)
+
     # propeller
     est.props &lt;- t(t(counts)/tot.cells)
     
@@ -827,19 +734,20 @@ for(i in 1:nsim){
   
     # asinsqrt transform
     fit &lt;- lmFit(trans.prop, des)
-    fit &lt;- eBayes(fit, robust=TRUE)
+    #  For two cell types, set robust = FALSE 
+    fit &lt;- eBayes(fit, robust=FALSE)
 
     pval.asin[,i] &lt;- fit$p.value[,2]
     
     # logit transform
     fit.logit &lt;- lmFit(logit.prop, des)
-    fit.logit &lt;- eBayes(fit.logit, robust=TRUE)
+    fit.logit &lt;- eBayes(fit.logit, robust=FALSE)
 
     pval.logit[,i] &lt;- fit.logit$p.value[,2]
 
     # Chi-square test for differences in proportions
     n &lt;- tapply(tot.cells, grp, sum)
-    for(h in 1:nrow(counts)){
+    for(h in 1:length(p)){
         pval.chsq[h,i] &lt;- prop.test(tapply(counts[h,],grp,sum),n)$p.value
     }
 
@@ -877,7 +785,7 @@ for(i in 1:nsim){
     pval.nb[,i] &lt;- lrt.nb$table$PValue
     
     # Negative binomial QLF test
-    fit.qlf &lt;- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
+    fit.qlf &lt;- glmQLFit(y.nb, des, robust=FALSE, abundance.trend = FALSE)
     res.qlf &lt;- glmQLFTest(fit.qlf, coef=2)
     pval.qlf[,i] &lt;- res.qlf$table$PValue
 
@@ -895,36 +803,32 @@ for(i in 1:nsim){
     logratio &lt;- log(clr)
     
     fit.coda &lt;- lmFit(logratio, des)
-    fit.coda &lt;- eBayes(fit.coda, robust=TRUE)
+    fit.coda &lt;- eBayes(fit.coda, robust=FALSE)
 
     pval.coda[,i] &lt;- fit.coda$p.value[,2]
 
 }</code></pre>
-<p>We can look at the number of significant tests at certain p-value
-cut-offs:</p>
 <pre class="r"><code>pcut &lt;- 0.05
-de &lt;- da.fac != 1
-sig.disc &lt;- matrix(NA,nrow=length(trueprops),ncol=9)
-rownames(sig.disc) &lt;- names(trueprops)
-colnames(sig.disc) &lt;- c(&quot;chisq&quot;,&quot;logbin&quot;,&quot;pois&quot;,&quot;asin&quot;, &quot;logit&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;nbQLF&quot;,&quot;CODA&quot;)
+type1error &lt;- matrix(NA,nrow=length(p),ncol=9)
+rownames(type1error) &lt;- rownames(counts)
+colnames(type1error) &lt;- c(&quot;chisq&quot;,&quot;logbin&quot;,&quot;pois&quot;,&quot;asin&quot;, &quot;logit&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;nbQLF&quot;,&quot;CODA&quot;)
 
-sig.disc[,1]&lt;-rowSums(pval.chsq&lt;pcut)/nsim 
-sig.disc[,2]&lt;-rowSums(pval.lb&lt;pcut)/nsim
-sig.disc[,3]&lt;-rowSums(pval.pois&lt;pcut)/nsim 
-sig.disc[,4]&lt;-rowSums(pval.asin&lt;pcut)/nsim 
-sig.disc[,5]&lt;-rowSums(pval.logit&lt;pcut)/nsim 
-sig.disc[,6]&lt;-rowSums(pval.bb&lt;pcut)/nsim
-sig.disc[,7]&lt;-rowSums(pval.nb&lt;pcut)/nsim 
-sig.disc[,8]&lt;-rowSums(pval.qlf&lt;pcut)/nsim
-sig.disc[,9]&lt;-rowSums(pval.coda&lt;pcut)/nsim 
-o &lt;- order(trueprops)</code></pre>
-<pre class="r"><code>gt(data.frame(sig.disc[o,]),rownames_to_stub = TRUE, caption=&quot;Proportion of significant tests: n=3&quot;)</code></pre>
-<div id="ljajkotlld" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+type1error[,1]&lt;-rowSums(pval.chsq&lt;pcut)/nsim 
+type1error[,2]&lt;-rowSums(pval.lb&lt;pcut)/nsim
+type1error[,3]&lt;-rowSums(pval.pois&lt;pcut)/nsim 
+type1error[,4]&lt;-rowSums(pval.asin&lt;pcut)/nsim 
+type1error[,5]&lt;-rowSums(pval.logit&lt;pcut)/nsim 
+type1error[,6]&lt;-rowSums(pval.bb&lt;pcut)/nsim
+type1error[,7]&lt;-rowSums(pval.nb&lt;pcut)/nsim 
+type1error[,8]&lt;-rowSums(pval.qlf&lt;pcut)/nsim
+type1error[,9]&lt;-rowSums(pval.coda&lt;pcut)/nsim </code></pre>
+<pre class="r"><code>gt(data.frame(type1error),rownames_to_stub = TRUE, caption=&quot;Type I error: 2 cell types&quot;)</code></pre>
+<div id="icbrrklgrr" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-#ljajkotlld .gt_table {
+#icbrrklgrr .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -949,7 +853,7 @@ o &lt;- order(trueprops)</code></pre>
   border-left-color: #D3D3D3;
 }
 
-#ljajkotlld .gt_heading {
+#icbrrklgrr .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -961,7 +865,7 @@ o &lt;- order(trueprops)</code></pre>
   border-right-color: #D3D3D3;
 }
 
-#ljajkotlld .gt_title {
+#icbrrklgrr .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -973,7 +877,7 @@ o &lt;- order(trueprops)</code></pre>
   border-bottom-width: 0;
 }
 
-#ljajkotlld .gt_subtitle {
+#icbrrklgrr .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -985,13 +889,13 @@ o &lt;- order(trueprops)</code></pre>
   border-top-width: 0;
 }
 
-#ljajkotlld .gt_bottom_border {
+#icbrrklgrr .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#ljajkotlld .gt_col_headings {
+#icbrrklgrr .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1006,7 +910,7 @@ o &lt;- order(trueprops)</code></pre>
   border-right-color: #D3D3D3;
 }
 
-#ljajkotlld .gt_col_heading {
+#icbrrklgrr .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1026,7 +930,7 @@ o &lt;- order(trueprops)</code></pre>
   overflow-x: hidden;
 }
 
-#ljajkotlld .gt_column_spanner_outer {
+#icbrrklgrr .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1038,15 +942,15 @@ o &lt;- order(trueprops)</code></pre>
   padding-right: 4px;
 }
 
-#ljajkotlld .gt_column_spanner_outer:first-child {
+#icbrrklgrr .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#ljajkotlld .gt_column_spanner_outer:last-child {
+#icbrrklgrr .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#ljajkotlld .gt_column_spanner {
+#icbrrklgrr .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -1058,7 +962,7 @@ o &lt;- order(trueprops)</code></pre>
   width: 100%;
 }
 
-#ljajkotlld .gt_group_heading {
+#icbrrklgrr .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1083,7 +987,7 @@ o &lt;- order(trueprops)</code></pre>
   vertical-align: middle;
 }
 
-#ljajkotlld .gt_empty_group_heading {
+#icbrrklgrr .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1098,15 +1002,15 @@ o &lt;- order(trueprops)</code></pre>
   vertical-align: middle;
 }
 
-#ljajkotlld .gt_from_md > :first-child {
+#icbrrklgrr .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#ljajkotlld .gt_from_md > :last-child {
+#icbrrklgrr .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#ljajkotlld .gt_row {
+#icbrrklgrr .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1125,7 +1029,7 @@ o &lt;- order(trueprops)</code></pre>
   overflow-x: hidden;
 }
 
-#ljajkotlld .gt_stub {
+#icbrrklgrr .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1138,7 +1042,7 @@ o &lt;- order(trueprops)</code></pre>
   padding-right: 5px;
 }
 
-#ljajkotlld .gt_stub_row_group {
+#icbrrklgrr .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1152,11 +1056,11 @@ o &lt;- order(trueprops)</code></pre>
   vertical-align: top;
 }
 
-#ljajkotlld .gt_row_group_first td {
+#icbrrklgrr .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#ljajkotlld .gt_summary_row {
+#icbrrklgrr .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1166,16 +1070,16 @@ o &lt;- order(trueprops)</code></pre>
   padding-right: 5px;
 }
 
-#ljajkotlld .gt_first_summary_row {
+#icbrrklgrr .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#ljajkotlld .gt_first_summary_row.thick {
+#icbrrklgrr .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#ljajkotlld .gt_last_summary_row {
+#icbrrklgrr .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1185,7 +1089,7 @@ o &lt;- order(trueprops)</code></pre>
   border-bottom-color: #D3D3D3;
 }
 
-#ljajkotlld .gt_grand_summary_row {
+#icbrrklgrr .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1195,7 +1099,7 @@ o &lt;- order(trueprops)</code></pre>
   padding-right: 5px;
 }
 
-#ljajkotlld .gt_first_grand_summary_row {
+#icbrrklgrr .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1205,11 +1109,11 @@ o &lt;- order(trueprops)</code></pre>
   border-top-color: #D3D3D3;
 }
 
-#ljajkotlld .gt_striped {
+#icbrrklgrr .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#ljajkotlld .gt_table_body {
+#icbrrklgrr .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1218,7 +1122,7 @@ o &lt;- order(trueprops)</code></pre>
   border-bottom-color: #D3D3D3;
 }
 
-#ljajkotlld .gt_footnotes {
+#icbrrklgrr .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1232,7 +1136,7 @@ o &lt;- order(trueprops)</code></pre>
   border-right-color: #D3D3D3;
 }
 
-#ljajkotlld .gt_footnote {
+#icbrrklgrr .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-left: 4px;
@@ -1241,7 +1145,7 @@ o &lt;- order(trueprops)</code></pre>
   padding-right: 5px;
 }
 
-#ljajkotlld .gt_sourcenotes {
+#icbrrklgrr .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1255,7 +1159,7 @@ o &lt;- order(trueprops)</code></pre>
   border-right-color: #D3D3D3;
 }
 
-#ljajkotlld .gt_sourcenote {
+#icbrrklgrr .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1263,36 +1167,36 @@ o &lt;- order(trueprops)</code></pre>
   padding-right: 5px;
 }
 
-#ljajkotlld .gt_left {
+#icbrrklgrr .gt_left {
   text-align: left;
 }
 
-#ljajkotlld .gt_center {
+#icbrrklgrr .gt_center {
   text-align: center;
 }
 
-#ljajkotlld .gt_right {
+#icbrrklgrr .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#ljajkotlld .gt_font_normal {
+#icbrrklgrr .gt_font_normal {
   font-weight: normal;
 }
 
-#ljajkotlld .gt_font_bold {
+#icbrrklgrr .gt_font_bold {
   font-weight: bold;
 }
 
-#ljajkotlld .gt_font_italic {
+#icbrrklgrr .gt_font_italic {
   font-style: italic;
 }
 
-#ljajkotlld .gt_super {
+#icbrrklgrr .gt_super {
   font-size: 65%;
 }
 
-#ljajkotlld .gt_two_val_uncert {
+#icbrrklgrr .gt_two_val_uncert {
   display: inline-block;
   line-height: 1em;
   text-align: right;
@@ -1301,38 +1205,38 @@ o &lt;- order(trueprops)</code></pre>
   margin-left: 0.1em;
 }
 
-#ljajkotlld .gt_footnote_marks {
+#icbrrklgrr .gt_footnote_marks {
   font-style: italic;
   font-weight: normal;
   font-size: 75%;
   vertical-align: 0.4em;
 }
 
-#ljajkotlld .gt_asterisk {
+#icbrrklgrr .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#ljajkotlld .gt_slash_mark {
+#icbrrklgrr .gt_slash_mark {
   font-size: 0.7em;
   line-height: 0.7em;
   vertical-align: 0.15em;
 }
 
-#ljajkotlld .gt_fraction_numerator {
+#icbrrklgrr .gt_fraction_numerator {
   font-size: 0.6em;
   line-height: 0.6em;
   vertical-align: 0.45em;
 }
 
-#ljajkotlld .gt_fraction_denominator {
+#icbrrklgrr .gt_fraction_denominator {
   font-size: 0.6em;
   line-height: 0.6em;
   vertical-align: -0.05em;
 }
 </style>
 <table class="gt_table">
-  <caption>Proportion of significant tests: n=3</caption>
+  <caption>Type I error: 2 cell types</caption>
   
   <thead class="gt_col_headings">
     <tr>
@@ -1349,139 +1253,961 @@ o &lt;- order(trueprops)</code></pre>
     </tr>
   </thead>
   <tbody class="gt_table_body">
-    <tr><td class="gt_row gt_right gt_stub">Smooth muscle cells</td>
-<td class="gt_row gt_right">0.964</td>
-<td class="gt_row gt_right">0.967</td>
-<td class="gt_row gt_right">0.966</td>
-<td class="gt_row gt_right">0.210</td>
-<td class="gt_row gt_right">0.530</td>
-<td class="gt_row gt_right">0.570</td>
-<td class="gt_row gt_right">0.643</td>
-<td class="gt_row gt_right">0.580</td>
-<td class="gt_row gt_right">0.491</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Neurons</td>
-<td class="gt_row gt_right">0.736</td>
-<td class="gt_row gt_right">0.741</td>
-<td class="gt_row gt_right">0.740</td>
-<td class="gt_row gt_right">0.020</td>
-<td class="gt_row gt_right">0.079</td>
-<td class="gt_row gt_right">0.097</td>
-<td class="gt_row gt_right">0.119</td>
-<td class="gt_row gt_right">0.097</td>
-<td class="gt_row gt_right">0.097</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Epicardial cells</td>
-<td class="gt_row gt_right">0.868</td>
-<td class="gt_row gt_right">0.869</td>
-<td class="gt_row gt_right">0.866</td>
-<td class="gt_row gt_right">0.042</td>
-<td class="gt_row gt_right">0.037</td>
-<td class="gt_row gt_right">0.046</td>
-<td class="gt_row gt_right">0.064</td>
-<td class="gt_row gt_right">0.049</td>
-<td class="gt_row gt_right">0.059</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Immune cells</td>
-<td class="gt_row gt_right">0.908</td>
-<td class="gt_row gt_right">0.908</td>
-<td class="gt_row gt_right">0.905</td>
-<td class="gt_row gt_right">0.102</td>
-<td class="gt_row gt_right">0.119</td>
-<td class="gt_row gt_right">0.137</td>
-<td class="gt_row gt_right">0.139</td>
-<td class="gt_row gt_right">0.116</td>
-<td class="gt_row gt_right">0.124</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Endothelial cells</td>
-<td class="gt_row gt_right">0.805</td>
-<td class="gt_row gt_right">0.806</td>
-<td class="gt_row gt_right">0.798</td>
-<td class="gt_row gt_right">0.042</td>
-<td class="gt_row gt_right">0.016</td>
-<td class="gt_row gt_right">0.017</td>
-<td class="gt_row gt_right">0.018</td>
-<td class="gt_row gt_right">0.018</td>
-<td class="gt_row gt_right">0.023</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Fibroblast</td>
-<td class="gt_row gt_right">0.998</td>
-<td class="gt_row gt_right">0.998</td>
-<td class="gt_row gt_right">0.997</td>
-<td class="gt_row gt_right">0.643</td>
-<td class="gt_row gt_right">0.539</td>
-<td class="gt_row gt_right">0.594</td>
-<td class="gt_row gt_right">0.442</td>
-<td class="gt_row gt_right">0.407</td>
-<td class="gt_row gt_right">0.275</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Cardiomyocytes</td>
-<td class="gt_row gt_right">0.996</td>
-<td class="gt_row gt_right">0.996</td>
-<td class="gt_row gt_right">0.995</td>
-<td class="gt_row gt_right">0.581</td>
-<td class="gt_row gt_right">0.479</td>
-<td class="gt_row gt_right">0.532</td>
-<td class="gt_row gt_right">0.247</td>
-<td class="gt_row gt_right">0.223</td>
-<td class="gt_row gt_right">0.405</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">c0</td>
+<td class="gt_row gt_right">0.853</td>
+<td class="gt_row gt_right">0.854</td>
+<td class="gt_row gt_right">0.842</td>
+<td class="gt_row gt_right">0.067</td>
+<td class="gt_row gt_right">0.065</td>
+<td class="gt_row gt_right">0.08</td>
+<td class="gt_row gt_right">0.085</td>
+<td class="gt_row gt_right">0.063</td>
+<td class="gt_row gt_right">0.065</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">c1</td>
+<td class="gt_row gt_right">0.853</td>
+<td class="gt_row gt_right">0.854</td>
+<td class="gt_row gt_right">0.646</td>
+<td class="gt_row gt_right">0.067</td>
+<td class="gt_row gt_right">0.065</td>
+<td class="gt_row gt_right">0.08</td>
+<td class="gt_row gt_right">0.040</td>
+<td class="gt_row gt_right">0.050</td>
+<td class="gt_row gt_right">0.065</td></tr>
   </tbody>
   
   
 </table>
 </div>
-<pre class="r"><code>layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
-par(mar=c(8,5,3,2))
-par(mgp=c(3, 0.5, 0))
-o &lt;- order(trueprops)
-names &lt;- c(&quot;propeller (asin)&quot;,&quot;propeller (logit)&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;negbinQLF&quot;,&quot;CODA&quot;)
-barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(b)),
-        ylab=&quot;Proportion sig. tests&quot;, names=names,
+<p>Plot of all type I error rates for the 5 cell types:</p>
+<pre class="r"><code>par(mfrow=c(1,1))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error,beside=TRUE,col=ggplotColors(length(p)),
+        ylab=&quot;Proportion sig. tests&quot;,
         cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
-title(paste(&quot;Significant tests, n=&quot;,nsamp/2,sep=&quot;&quot;), cex.main=1.5)
+legend(&quot;topright&quot;,fill=ggplotColors(length(p)),legend=c(paste(&quot;True p=&quot;,p,sep=&quot;&quot;)), cex=1.5)
 abline(h=pcut,lty=2,lwd=2)
-par(mar=c(0,0,0,0))
-plot(1, type = &quot;n&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;, xaxt=&quot;n&quot;,yaxt=&quot;n&quot;, bty=&quot;n&quot;)
-legend(&quot;center&quot;, legend=paste(&quot;True p =&quot;,round(trueprops,3)[o]), fill=ggplotColors(length(b)), cex=1.5)</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>o &lt;- order(trueprops)
-mysig &lt;- sig.disc[o,4:9]
-colnames(mysig) &lt;- names
-pheatmap(mysig, scale=&quot;none&quot;, cluster_rows = FALSE, cluster_cols = FALSE,
-         labels_row = c(expression(paste(pi, &quot; = 0.008*&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.016&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.064&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.076&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.102&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.183*&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.551*&quot;, sep=&quot;&quot;))),
-         main=paste(&quot;Significant tests, n=&quot;,nsamp/2,sep=&quot;&quot;))</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>auc.asin &lt;- auc.logit &lt;- auc.bb &lt;- auc.nb &lt;- auc.qlf &lt;- auc.coda &lt;- rep(NA,nsim)
+title(c(paste(&quot;Type I error rate at alpha = 0.05, n=&quot;, nsamp/2,sep=&quot;&quot;)), cex.main=1.75)</code></pre>
+<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-7-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p>Removing the most poorly performing methods (1-3):</p>
+<pre class="r"><code>par(mfrow=c(1,1))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error[,4:9],beside=TRUE,col=ggplotColors(length(p)),
+        ylab=&quot;Proportion sig. tests&quot;,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,0.15), las=2)
+#legend(&quot;top&quot;,fill=ggplotColors(length(b)),legend=c(paste(&quot;True p=&quot;,p,sep=&quot;&quot;)), cex=1.5)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste(&quot;Type I error rate at alpha = 0.05, n=&quot;, nsamp/2,sep=&quot;&quot;)), cex.main=1.75)</code></pre>
+<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>type1error2CT &lt;- type1error</code></pre>
+</div>
+<div id="twenty-cell-types-two-groups-n5-no-differences"
+class="section level2">
+<h2>Twenty cell types, two groups, n=5, no differences</h2>
+<p>I’m going to use real data to get cell type proportions for 20 cell
+types. The true cell type proportions are based on the human PBMC single
+cell data. In this dataset, there are 27 refined cell types. I removed
+the 7 most rare populations to get 20 cell types. This won’t have too
+much effect on the cell type proportion estimates.</p>
+<pre class="r"><code># Get cell type proportions from PBMC human data
+# There are 27 refined cell types
+pbmc &lt;- readRDS(&quot;./data/pool_1.rds&quot;)
+table(pbmc$predicted.celltype.l2)</code></pre>
+<pre><code>
+            ASDC   B intermediate         B memory          B naive 
+               1              570              361              871 
+       CD14 Mono        CD16 Mono          CD4 CTL        CD4 Naive 
+             522              225              383             3552 
+         CD4 TCM          CD4 TEM        CD8 Naive          CD8 TCM 
+            3451              389              597              205 
+         CD8 TEM             cDC2              dnT            Eryth 
+            2421               20               43                5 
+             gdT             HSPC              ILC             MAIT 
+               4               18                5              189 
+              NK NK Proliferating    NK_CD56bright              pDC 
+            2582               43              134                7 
+     Plasmablast         Platelet             Treg 
+              10               27              414 </code></pre>
+<pre class="r"><code>length(table(pbmc$predicted.celltype.l2))</code></pre>
+<pre><code>[1] 27</code></pre>
+<pre class="r"><code>names(sort(table(pbmc$predicted.celltype.l2)/ncol(pbmc)))</code></pre>
+<pre><code> [1] &quot;ASDC&quot;             &quot;gdT&quot;              &quot;Eryth&quot;            &quot;ILC&quot;             
+ [5] &quot;pDC&quot;              &quot;Plasmablast&quot;      &quot;HSPC&quot;             &quot;cDC2&quot;            
+ [9] &quot;Platelet&quot;         &quot;dnT&quot;              &quot;NK Proliferating&quot; &quot;NK_CD56bright&quot;   
+[13] &quot;MAIT&quot;             &quot;CD8 TCM&quot;          &quot;CD16 Mono&quot;        &quot;B memory&quot;        
+[17] &quot;CD4 CTL&quot;          &quot;CD4 TEM&quot;          &quot;Treg&quot;             &quot;CD14 Mono&quot;       
+[21] &quot;B intermediate&quot;   &quot;CD8 Naive&quot;        &quot;B naive&quot;          &quot;CD8 TEM&quot;         
+[25] &quot;NK&quot;               &quot;CD4 TCM&quot;          &quot;CD4 Naive&quot;       </code></pre>
+<pre class="r"><code># Filter out 7 most rare cell types
+filter.keep &lt;- names(sort(table(pbmc$predicted.celltype.l2)/ncol(pbmc)))[8:27]
+filter.keep</code></pre>
+<pre><code> [1] &quot;cDC2&quot;             &quot;Platelet&quot;         &quot;dnT&quot;              &quot;NK Proliferating&quot;
+ [5] &quot;NK_CD56bright&quot;    &quot;MAIT&quot;             &quot;CD8 TCM&quot;          &quot;CD16 Mono&quot;       
+ [9] &quot;B memory&quot;         &quot;CD4 CTL&quot;          &quot;CD4 TEM&quot;          &quot;Treg&quot;            
+[13] &quot;CD14 Mono&quot;        &quot;B intermediate&quot;   &quot;CD8 Naive&quot;        &quot;B naive&quot;         
+[17] &quot;CD8 TEM&quot;          &quot;NK&quot;               &quot;CD4 TCM&quot;          &quot;CD4 Naive&quot;       </code></pre>
+<pre class="r"><code>keep_celltypes &lt;- pbmc$predicted.celltype.l2[pbmc$predicted.celltype.l2 %in% filter.keep]
+table(keep_celltypes)</code></pre>
+<pre><code>keep_celltypes
+  B intermediate         B memory          B naive        CD14 Mono 
+             570              361              871              522 
+       CD16 Mono          CD4 CTL        CD4 Naive          CD4 TCM 
+             225              383             3552             3451 
+         CD4 TEM        CD8 Naive          CD8 TCM          CD8 TEM 
+             389              597              205             2421 
+            cDC2              dnT             MAIT               NK 
+              20               43              189             2582 
+NK Proliferating    NK_CD56bright         Platelet             Treg 
+              43              134               27              414 </code></pre>
+<pre class="r"><code>p &lt;- sort(table(keep_celltypes)/length(keep_celltypes))
+
+keep.sample &lt;- pbmc$individual[pbmc$predicted.celltype.l2 %in% filter.keep]
+pbmc.counts &lt;- table(keep_celltypes,keep.sample)
+o &lt;- order(rowSums(pbmc.counts)/sum(pbmc.counts))
+o.pbmc.counts &lt;- pbmc.counts[o,]
+
+table(names(p)==rownames(o.pbmc.counts))</code></pre>
+<pre><code>
+TRUE 
+  20 </code></pre>
+<pre class="r"><code>par(mfrow=c(1,1))
+par(mar=c(8,5,2,2))
+barplot(p,las=2, ylab=&quot;True proportion&quot;)
+title(&quot;True proportions for 20 cell types from PBMC data&quot;, adj=0)</code></pre>
+<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Set up remaining simulation parameters:</p>
+<pre class="r"><code># Sim parameters
+nsim &lt;- 1000
+depth &lt;- 5000
+
+# Estimate parameters for beta distribution from real data
+betaparams &lt;- estimateBetaParamsFromCounts(o.pbmc.counts)
+a &lt;- abs(betaparams$alpha)
+b &lt;- abs(betaparams$beta)
+
+# Decide on what output to keep
+pval.chsq &lt;- pval.bb &lt;- pval.lb &lt;- pval.nb &lt;- pval.qlf &lt;- pval.pois &lt;- pval.logit &lt;-  pval.asin &lt;- pval.coda &lt;- matrix(NA,nrow=length(p),ncol=nsim)</code></pre>
+<pre class="r"><code>nsamp &lt;- 10
 for(i in 1:nsim){
-  auc.asin[i] &lt;- auroc(score=1-pval.asin[,i],bool=de)
-  auc.logit[i] &lt;- auroc(score=1-pval.logit[,i],bool=de)
-  auc.bb[i] &lt;- auroc(score=1-pval.bb[,i],bool=de)
-  auc.nb[i] &lt;- auroc(score=1-pval.nb[,i],bool=de)
-  auc.qlf[i] &lt;- auroc(score=1-pval.qlf[,i],bool=de)
-  auc.coda[i] &lt;- auroc(score=1-pval.coda[,i],bool=de)
+    #Simulate cell type counts
+    counts &lt;- SimulateCellCounts(props=p,nsamp=nsamp,depth=depth,a=a,b=b)
+
+    tot.cells &lt;- colSums(counts)
+
+    # propeller
+    est.props &lt;- t(t(counts)/tot.cells)
+    
+    #asin transform
+    trans.prop &lt;- asin(sqrt(est.props))
+    
+    #logit transform
+    nc &lt;- normCounts(counts)
+    est.props.logit &lt;- t(t(nc+0.5)/(colSums(nc+0.5)))
+    logit.prop &lt;- log(est.props.logit/(1-est.props.logit))
+
+    grp &lt;- rep(c(0,1), each=nsamp/2)
+    des &lt;- model.matrix(~grp)
+  
+    # asinsqrt transform
+    fit &lt;- lmFit(trans.prop, des)
+    #  For two cell types, set robust = FALSE 
+    fit &lt;- eBayes(fit, robust=FALSE)
+
+    pval.asin[,i] &lt;- fit$p.value[,2]
+    
+    # logit transform
+    fit.logit &lt;- lmFit(logit.prop, des)
+    fit.logit &lt;- eBayes(fit.logit, robust=FALSE)
+
+    pval.logit[,i] &lt;- fit.logit$p.value[,2]
+
+    # Chi-square test for differences in proportions
+    n &lt;- tapply(tot.cells, grp, sum)
+    for(h in 1:length(p)){
+        pval.chsq[h,i] &lt;- prop.test(tapply(counts[h,],grp,sum),n)$p.value
+    }
+
+    # Beta binomial implemented in edgeR (methylation workflow)
+    meth.counts &lt;- counts
+    unmeth.counts &lt;- t(tot.cells - t(counts))
+    new.counts &lt;- cbind(meth.counts,unmeth.counts)
+    sam.info &lt;- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c(&quot;me&quot;,&quot;un&quot;), each=nsamp))
+
+    design.samples &lt;- model.matrix(~0+factor(sam.info$Sample))
+    colnames(design.samples) &lt;- paste(&quot;S&quot;,1:nsamp,sep=&quot;&quot;)
+    design.group &lt;- model.matrix(~0+factor(sam.info$Group))   
+    colnames(design.group) &lt;- c(&quot;A&quot;,&quot;B&quot;)
+    design.bb &lt;- cbind(design.samples, (sam.info$Meth==&quot;me&quot;) * design.group)
+    lib.size = rep(tot.cells,2)
+
+    y &lt;- DGEList(new.counts)
+    y$samples$lib.size &lt;- lib.size
+    y &lt;- estimateDisp(y, design.bb, trend=&quot;none&quot;)
+    fit.bb &lt;- glmFit(y, design.bb)
+    contr &lt;- makeContrasts(Grp=B-A, levels=design.bb)
+    lrt &lt;- glmLRT(fit.bb, contrast=contr)
+    pval.bb[,i] &lt;- lrt$table$PValue
+
+    # Logistic binomial regression
+    fit.lb &lt;- glmFit(y, design.bb, dispersion = 0)
+    lrt.lb &lt;- glmLRT(fit.lb, contrast=contr)
+    pval.lb[,i] &lt;- lrt.lb$table$PValue
+
+    # Negative binomial
+    y.nb &lt;- DGEList(counts)
+    y.nb &lt;- estimateDisp(y.nb, des, trend=&quot;none&quot;)
+    fit.nb &lt;- glmFit(y.nb, des)
+    lrt.nb &lt;- glmLRT(fit.nb, coef=2)
+    pval.nb[,i] &lt;- lrt.nb$table$PValue
+    
+    # Negative binomial QLF test
+    fit.qlf &lt;- glmQLFit(y.nb, des, robust=FALSE, abundance.trend = FALSE)
+    res.qlf &lt;- glmQLFTest(fit.qlf, coef=2)
+    pval.qlf[,i] &lt;- res.qlf$table$PValue
+
+    # Poisson
+    fit.poi &lt;- glmFit(y.nb, des, dispersion = 0)
+    lrt.poi &lt;- glmLRT(fit.poi, coef=2)
+    pval.pois[,i] &lt;- lrt.poi$table$PValue
+    
+    # CODA
+    # Replace zero counts with 0.5 so that the geometric mean always works
+    if(any(counts==0)) counts[counts==0] &lt;- 0.5
+    geomean &lt;- apply(counts,2, function(x) exp(mean(log(x))))
+    geomean.mat &lt;- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
+    clr &lt;- counts/geomean.mat
+    logratio &lt;- log(clr)
+    
+    fit.coda &lt;- lmFit(logratio, des)
+    fit.coda &lt;- eBayes(fit.coda, robust=FALSE)
+
+    pval.coda[,i] &lt;- fit.coda$p.value[,2]
+
+}</code></pre>
+<pre class="r"><code>pcut &lt;- 0.05
+type1error &lt;- matrix(NA,nrow=length(p),ncol=9)
+rownames(type1error) &lt;- rownames(counts)
+colnames(type1error) &lt;- c(&quot;chisq&quot;,&quot;logbin&quot;,&quot;pois&quot;,&quot;asin&quot;, &quot;logit&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;nbQLF&quot;,&quot;CODA&quot;)
+
+type1error[,1]&lt;-rowSums(pval.chsq&lt;pcut)/nsim 
+type1error[,2]&lt;-rowSums(pval.lb&lt;pcut)/nsim
+type1error[,3]&lt;-rowSums(pval.pois&lt;pcut)/nsim 
+type1error[,4]&lt;-rowSums(pval.asin&lt;pcut)/nsim 
+type1error[,5]&lt;-rowSums(pval.logit&lt;pcut)/nsim 
+type1error[,6]&lt;-rowSums(pval.bb&lt;pcut)/nsim
+type1error[,7]&lt;-rowSums(pval.nb&lt;pcut)/nsim 
+type1error[,8]&lt;-rowSums(pval.qlf&lt;pcut)/nsim
+type1error[,9]&lt;-rowSums(pval.coda&lt;pcut)/nsim </code></pre>
+<pre class="r"><code>gt(data.frame(type1error), rownames_to_stub = TRUE,caption=&quot;Type I error: 20 cell types&quot;)</code></pre>
+<div id="aglqzlrqts" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-mean(auc.asin)</code></pre>
-<pre><code>[1] 0.8560833</code></pre>
-<pre class="r"><code>mean(auc.logit)</code></pre>
-<pre><code>[1] 0.85875</code></pre>
-<pre class="r"><code>mean(auc.bb)</code></pre>
-<pre><code>[1] 0.8645833</code></pre>
-<pre class="r"><code>mean(auc.nb)</code></pre>
-<pre><code>[1] 0.823</code></pre>
-<pre class="r"><code>mean(auc.qlf)</code></pre>
-<pre><code>[1] 0.8266667</code></pre>
-<pre class="r"><code>mean(auc.coda)</code></pre>
-<pre><code>[1] 0.7779167</code></pre>
-<pre class="r"><code>par(mfrow=c(1,1))
-par(mar=c(9,5,3,2))
-barplot(c(mean(auc.asin),mean(auc.logit),mean(auc.bb),mean(auc.nb),mean(auc.qlf),mean(auc.coda)), ylim=c(0,1), ylab= &quot;AUC&quot;, cex.axis=1.5, cex.lab=1.5, names=names, las=2, cex.names = 1.5)
-title(paste(&quot;AUC: sample size n=&quot;,nsamp/2,sep=&quot;&quot;),cex.main=1.5)</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>sig.disc3 &lt;- sig.disc</code></pre>
+#aglqzlrqts .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#aglqzlrqts .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#aglqzlrqts .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#aglqzlrqts .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#aglqzlrqts .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#aglqzlrqts .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#aglqzlrqts .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#aglqzlrqts .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#aglqzlrqts .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#aglqzlrqts .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#aglqzlrqts .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#aglqzlrqts .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#aglqzlrqts .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#aglqzlrqts .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#aglqzlrqts .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#aglqzlrqts .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#aglqzlrqts .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#aglqzlrqts .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#aglqzlrqts .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#aglqzlrqts .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#aglqzlrqts .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#aglqzlrqts .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#aglqzlrqts .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#aglqzlrqts .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#aglqzlrqts .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#aglqzlrqts .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#aglqzlrqts .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#aglqzlrqts .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#aglqzlrqts .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#aglqzlrqts .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#aglqzlrqts .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#aglqzlrqts .gt_left {
+  text-align: left;
+}
+
+#aglqzlrqts .gt_center {
+  text-align: center;
+}
+
+#aglqzlrqts .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#aglqzlrqts .gt_font_normal {
+  font-weight: normal;
+}
+
+#aglqzlrqts .gt_font_bold {
+  font-weight: bold;
+}
+
+#aglqzlrqts .gt_font_italic {
+  font-style: italic;
+}
+
+#aglqzlrqts .gt_super {
+  font-size: 65%;
+}
+
+#aglqzlrqts .gt_two_val_uncert {
+  display: inline-block;
+  line-height: 1em;
+  text-align: right;
+  font-size: 60%;
+  vertical-align: -0.25em;
+  margin-left: 0.1em;
+}
+
+#aglqzlrqts .gt_footnote_marks {
+  font-style: italic;
+  font-weight: normal;
+  font-size: 75%;
+  vertical-align: 0.4em;
+}
+
+#aglqzlrqts .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#aglqzlrqts .gt_slash_mark {
+  font-size: 0.7em;
+  line-height: 0.7em;
+  vertical-align: 0.15em;
+}
+
+#aglqzlrqts .gt_fraction_numerator {
+  font-size: 0.6em;
+  line-height: 0.6em;
+  vertical-align: 0.45em;
+}
+
+#aglqzlrqts .gt_fraction_denominator {
+  font-size: 0.6em;
+  line-height: 0.6em;
+  vertical-align: -0.05em;
+}
+</style>
+<table class="gt_table">
+  <caption>Type I error: 20 cell types</caption>
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1"></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">chisq</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">logbin</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">pois</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">asin</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">logit</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">betabin</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">negbin</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">nbQLF</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">CODA</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td class="gt_row gt_right gt_stub">c0</td>
+<td class="gt_row gt_right">0.240</td>
+<td class="gt_row gt_right">0.283</td>
+<td class="gt_row gt_right">0.283</td>
+<td class="gt_row gt_right">0.004</td>
+<td class="gt_row gt_right">0.049</td>
+<td class="gt_row gt_right">0.032</td>
+<td class="gt_row gt_right">0.042</td>
+<td class="gt_row gt_right">0.048</td>
+<td class="gt_row gt_right">0.052</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">c1</td>
+<td class="gt_row gt_right">0.269</td>
+<td class="gt_row gt_right">0.306</td>
+<td class="gt_row gt_right">0.306</td>
+<td class="gt_row gt_right">0.008</td>
+<td class="gt_row gt_right">0.062</td>
+<td class="gt_row gt_right">0.039</td>
+<td class="gt_row gt_right">0.045</td>
+<td class="gt_row gt_right">0.046</td>
+<td class="gt_row gt_right">0.058</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">c2</td>
+<td class="gt_row gt_right">0.307</td>
+<td class="gt_row gt_right">0.319</td>
+<td class="gt_row gt_right">0.319</td>
+<td class="gt_row gt_right">0.004</td>
+<td class="gt_row gt_right">0.034</td>
+<td class="gt_row gt_right">0.020</td>
+<td class="gt_row gt_right">0.026</td>
+<td class="gt_row gt_right">0.031</td>
+<td class="gt_row gt_right">0.051</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">c3</td>
+<td class="gt_row gt_right">0.307</td>
+<td class="gt_row gt_right">0.323</td>
+<td class="gt_row gt_right">0.323</td>
+<td class="gt_row gt_right">0.011</td>
+<td class="gt_row gt_right">0.044</td>
+<td class="gt_row gt_right">0.029</td>
+<td class="gt_row gt_right">0.038</td>
+<td class="gt_row gt_right">0.045</td>
+<td class="gt_row gt_right">0.035</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">c4</td>
+<td class="gt_row gt_right">0.597</td>
+<td class="gt_row gt_right">0.609</td>
+<td class="gt_row gt_right">0.607</td>
+<td class="gt_row gt_right">0.040</td>
+<td class="gt_row gt_right">0.048</td>
+<td class="gt_row gt_right">0.052</td>
+<td class="gt_row gt_right">0.049</td>
+<td class="gt_row gt_right">0.045</td>
+<td class="gt_row gt_right">0.043</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">c5</td>
+<td class="gt_row gt_right">0.766</td>
+<td class="gt_row gt_right">0.774</td>
+<td class="gt_row gt_right">0.772</td>
+<td class="gt_row gt_right">0.056</td>
+<td class="gt_row gt_right">0.078</td>
+<td class="gt_row gt_right">0.102</td>
+<td class="gt_row gt_right">0.103</td>
+<td class="gt_row gt_right">0.079</td>
+<td class="gt_row gt_right">0.076</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">c6</td>
+<td class="gt_row gt_right">0.643</td>
+<td class="gt_row gt_right">0.647</td>
+<td class="gt_row gt_right">0.647</td>
+<td class="gt_row gt_right">0.048</td>
+<td class="gt_row gt_right">0.038</td>
+<td class="gt_row gt_right">0.037</td>
+<td class="gt_row gt_right">0.035</td>
+<td class="gt_row gt_right">0.037</td>
+<td class="gt_row gt_right">0.029</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">c7</td>
+<td class="gt_row gt_right">0.702</td>
+<td class="gt_row gt_right">0.710</td>
+<td class="gt_row gt_right">0.708</td>
+<td class="gt_row gt_right">0.048</td>
+<td class="gt_row gt_right">0.049</td>
+<td class="gt_row gt_right">0.054</td>
+<td class="gt_row gt_right">0.060</td>
+<td class="gt_row gt_right">0.049</td>
+<td class="gt_row gt_right">0.052</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">c8</td>
+<td class="gt_row gt_right">0.737</td>
+<td class="gt_row gt_right">0.746</td>
+<td class="gt_row gt_right">0.739</td>
+<td class="gt_row gt_right">0.065</td>
+<td class="gt_row gt_right">0.047</td>
+<td class="gt_row gt_right">0.048</td>
+<td class="gt_row gt_right">0.057</td>
+<td class="gt_row gt_right">0.052</td>
+<td class="gt_row gt_right">0.046</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">c9</td>
+<td class="gt_row gt_right">0.898</td>
+<td class="gt_row gt_right">0.900</td>
+<td class="gt_row gt_right">0.899</td>
+<td class="gt_row gt_right">0.069</td>
+<td class="gt_row gt_right">0.111</td>
+<td class="gt_row gt_right">0.157</td>
+<td class="gt_row gt_right">0.149</td>
+<td class="gt_row gt_right">0.111</td>
+<td class="gt_row gt_right">0.105</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">c10</td>
+<td class="gt_row gt_right">0.680</td>
+<td class="gt_row gt_right">0.687</td>
+<td class="gt_row gt_right">0.680</td>
+<td class="gt_row gt_right">0.051</td>
+<td class="gt_row gt_right">0.024</td>
+<td class="gt_row gt_right">0.022</td>
+<td class="gt_row gt_right">0.022</td>
+<td class="gt_row gt_right">0.025</td>
+<td class="gt_row gt_right">0.029</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">c11</td>
+<td class="gt_row gt_right">0.584</td>
+<td class="gt_row gt_right">0.590</td>
+<td class="gt_row gt_right">0.585</td>
+<td class="gt_row gt_right">0.045</td>
+<td class="gt_row gt_right">0.011</td>
+<td class="gt_row gt_right">0.010</td>
+<td class="gt_row gt_right">0.010</td>
+<td class="gt_row gt_right">0.009</td>
+<td class="gt_row gt_right">0.011</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">c12</td>
+<td class="gt_row gt_right">0.789</td>
+<td class="gt_row gt_right">0.793</td>
+<td class="gt_row gt_right">0.789</td>
+<td class="gt_row gt_right">0.062</td>
+<td class="gt_row gt_right">0.055</td>
+<td class="gt_row gt_right">0.063</td>
+<td class="gt_row gt_right">0.055</td>
+<td class="gt_row gt_right">0.049</td>
+<td class="gt_row gt_right">0.050</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">c13</td>
+<td class="gt_row gt_right">0.867</td>
+<td class="gt_row gt_right">0.868</td>
+<td class="gt_row gt_right">0.867</td>
+<td class="gt_row gt_right">0.087</td>
+<td class="gt_row gt_right">0.087</td>
+<td class="gt_row gt_right">0.105</td>
+<td class="gt_row gt_right">0.095</td>
+<td class="gt_row gt_right">0.064</td>
+<td class="gt_row gt_right">0.087</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">c14</td>
+<td class="gt_row gt_right">0.820</td>
+<td class="gt_row gt_right">0.820</td>
+<td class="gt_row gt_right">0.820</td>
+<td class="gt_row gt_right">0.067</td>
+<td class="gt_row gt_right">0.064</td>
+<td class="gt_row gt_right">0.070</td>
+<td class="gt_row gt_right">0.076</td>
+<td class="gt_row gt_right">0.063</td>
+<td class="gt_row gt_right">0.056</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">c15</td>
+<td class="gt_row gt_right">0.802</td>
+<td class="gt_row gt_right">0.804</td>
+<td class="gt_row gt_right">0.801</td>
+<td class="gt_row gt_right">0.054</td>
+<td class="gt_row gt_right">0.034</td>
+<td class="gt_row gt_right">0.034</td>
+<td class="gt_row gt_right">0.034</td>
+<td class="gt_row gt_right">0.035</td>
+<td class="gt_row gt_right">0.039</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">c16</td>
+<td class="gt_row gt_right">0.907</td>
+<td class="gt_row gt_right">0.907</td>
+<td class="gt_row gt_right">0.899</td>
+<td class="gt_row gt_right">0.089</td>
+<td class="gt_row gt_right">0.081</td>
+<td class="gt_row gt_right">0.091</td>
+<td class="gt_row gt_right">0.063</td>
+<td class="gt_row gt_right">0.055</td>
+<td class="gt_row gt_right">0.075</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">c17</td>
+<td class="gt_row gt_right">0.917</td>
+<td class="gt_row gt_right">0.918</td>
+<td class="gt_row gt_right">0.911</td>
+<td class="gt_row gt_right">0.074</td>
+<td class="gt_row gt_right">0.051</td>
+<td class="gt_row gt_right">0.063</td>
+<td class="gt_row gt_right">0.040</td>
+<td class="gt_row gt_right">0.033</td>
+<td class="gt_row gt_right">0.057</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">c18</td>
+<td class="gt_row gt_right">0.845</td>
+<td class="gt_row gt_right">0.846</td>
+<td class="gt_row gt_right">0.823</td>
+<td class="gt_row gt_right">0.057</td>
+<td class="gt_row gt_right">0.013</td>
+<td class="gt_row gt_right">0.013</td>
+<td class="gt_row gt_right">0.007</td>
+<td class="gt_row gt_right">0.007</td>
+<td class="gt_row gt_right">0.011</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">c19</td>
+<td class="gt_row gt_right">0.905</td>
+<td class="gt_row gt_right">0.906</td>
+<td class="gt_row gt_right">0.885</td>
+<td class="gt_row gt_right">0.071</td>
+<td class="gt_row gt_right">0.034</td>
+<td class="gt_row gt_right">0.039</td>
+<td class="gt_row gt_right">0.019</td>
+<td class="gt_row gt_right">0.018</td>
+<td class="gt_row gt_right">0.033</td></tr>
+  </tbody>
+  
+  
+</table>
 </div>
-<div id="sample-size-of-5-in-each-group" class="section level2">
-<h2>Sample size of 5 in each group</h2>
+<p>Plot of all type I error rates for the 5 cell types:</p>
+<pre class="r"><code>layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error,beside=TRUE,col=ggplotColors(length(p)),
+        ylab=&quot;Proportion sig. tests&quot;,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste(&quot;Type I error rate at alpha = 0.05, n=&quot;, nsamp/2,sep=&quot;&quot;)), cex.main=1.75,adj=0)
+
+par(mar=c(0,0,0,0))
+plot(1, type = &quot;n&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;, xaxt=&quot;n&quot;,yaxt=&quot;n&quot;, bty=&quot;n&quot;)
+legend(&quot;center&quot;,fill=ggplotColors(length(p)),legend=c(paste(&quot;True p=&quot;,round(p,4),sep=&quot;&quot;)), cex=1.5)</code></pre>
+<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-16-1.png" width="768" style="display: block; margin: auto;" /></p>
+<p>Removing the most poorly performing methods (1-3):</p>
+<pre class="r"><code>layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
+par(mar=c(5,5.5,3,2))
+par(mgp=c(4,1,0))
+barplot(type1error[,4:9],beside=TRUE,col=ggplotColors(length(p)),
+        ylab=&quot;Proportion sig. tests&quot;,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,0.18), las=2)
+abline(h=pcut,lty=2,lwd=2)
+title(c(paste(&quot;Type I error rate at alpha = 0.05, n=&quot;, nsamp/2,sep=&quot;&quot;)), cex.main=1.75,adj=0)
+
+par(mar=c(0,0,0,0))
+plot(1, type = &quot;n&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;, xaxt=&quot;n&quot;,yaxt=&quot;n&quot;, bty=&quot;n&quot;)
+legend(&quot;center&quot;,fill=ggplotColors(length(p)),legend=c(paste(&quot;True p=&quot;,round(p,4),sep=&quot;&quot;)), cex=1.5)</code></pre>
+<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>type1error20CT &lt;- type1error</code></pre>
+</div>
+</div>
+<div id="simulations-with-true-differences-and-sample-size-n-5"
+class="section level1">
+<h1>Simulations with true differences and sample size n = 5</h1>
+<div id="two-cell-types-two-groups-n5-true-differences"
+class="section level2">
+<h2>Two cell types, two groups, n=5, true differences</h2>
+<p>The two cell types case is fairly special. If one cell type changes
+then naturally the second cell type also changes.</p>
+<pre class="r"><code># Sim parameters
+nsim &lt;- 1000
+depth &lt;- 5000
+
+grp1.trueprops &lt;- c(0.4,0.6)
+grp2.trueprops &lt;- c(0.2,0.8)
+
+trueprops &lt;- (grp1.trueprops+grp2.trueprops)/length(grp1.trueprops)
+
+da.fac &lt;- grp2.trueprops/grp1.trueprops
+names(grp1.trueprops) &lt;-names(grp1.trueprops) &lt;- c(&quot;C0&quot;,&quot;C1&quot;)
+
+da.fac</code></pre>
+<pre><code>[1] 0.500000 1.333333</code></pre>
+<pre class="r"><code># Decide on what output to keep
+pval.chsq &lt;- pval.bb &lt;- pval.lb &lt;- pval.nb &lt;- pval.qlf &lt;- pval.pois &lt;- pval.logit &lt;-  pval.asin &lt;- pval.coda &lt;- matrix(NA,nrow=length(grp1.trueprops),ncol=nsim)</code></pre>
+<pre class="r"><code>par(mar=c(5,5,2,2))
+par(mfrow=c(1,1))
+barplot(t(cbind(grp1.trueprops,grp2.trueprops)), beside=TRUE, col=c(2,4), 
+        ylab=&quot;True cell type proportion&quot;)
+legend(&quot;topleft&quot;, fill=c(2,4),legend=c(&quot;Group 1&quot;,&quot;Group 2&quot;))
+title(&quot;True cell type proportions for Group 1 and 2&quot;,adj=0)</code></pre>
+<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Get hyperparameters for alpha and beta
+# Note group 1 and group 2 have different b parameters to accommodate true
+# differences in cell type proportions
+a &lt;- c(10,10)
+b.grp1 &lt;- a*(1-grp1.trueprops)/grp1.trueprops
+b.grp2 &lt;- a*(1-grp2.trueprops)/grp2.trueprops</code></pre>
+<p>Next we simulate the cell type counts and run the various statistical
+models for testing cell type proportion differences between the two
+groups. We expect to see significant differences in both cell types
+however cell type C0 has a larger fold change (2) compared to cell type
+C1, which only increases by 33%.</p>
 <pre class="r"><code>nsamp &lt;- 10
 
 for(i in 1:nsim){
@@ -1506,6 +2232,658 @@ for(i in 1:nsim){
   
     # asinsqrt transform
     fit &lt;- lmFit(trans.prop, des)
+    fit &lt;- eBayes(fit, robust=FALSE)
+
+    pval.asin[,i] &lt;- fit$p.value[,2]
+    
+    # logit transform
+    fit.logit &lt;- lmFit(logit.prop, des)
+    fit.logit &lt;- eBayes(fit.logit, robust=FALSE)
+
+    pval.logit[,i] &lt;- fit.logit$p.value[,2]
+
+    # Chi-square test for differences in proportions
+    n &lt;- tapply(tot.cells, grp, sum)
+    for(h in 1:nrow(counts)){
+        pval.chsq[h,i] &lt;- prop.test(tapply(counts[h,],grp,sum),n)$p.value
+    }
+
+    # Beta binomial implemented in edgeR (methylation workflow)
+    meth.counts &lt;- counts
+    unmeth.counts &lt;- t(tot.cells - t(counts))
+    new.counts &lt;- cbind(meth.counts,unmeth.counts)
+    sam.info &lt;- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c(&quot;me&quot;,&quot;un&quot;), each=nsamp))
+
+    design.samples &lt;- model.matrix(~0+factor(sam.info$Sample))
+    colnames(design.samples) &lt;- paste(&quot;S&quot;,1:nsamp,sep=&quot;&quot;)
+    design.group &lt;- model.matrix(~0+factor(sam.info$Group))   
+    colnames(design.group) &lt;- c(&quot;A&quot;,&quot;B&quot;)
+    design.bb &lt;- cbind(design.samples, (sam.info$Meth==&quot;me&quot;) * design.group)
+    lib.size = rep(tot.cells,2)
+
+    y &lt;- DGEList(new.counts)
+    y$samples$lib.size &lt;- lib.size
+    y &lt;- estimateDisp(y, design.bb, trend=&quot;none&quot;)
+    fit.bb &lt;- glmFit(y, design.bb)
+    contr &lt;- makeContrasts(Grp=B-A, levels=design.bb)
+    lrt &lt;- glmLRT(fit.bb, contrast=contr)
+    pval.bb[,i] &lt;- lrt$table$PValue
+
+    # Logistic binomial regression
+    fit.lb &lt;- glmFit(y, design.bb, dispersion = 0)
+    lrt.lb &lt;- glmLRT(fit.lb, contrast=contr)
+    pval.lb[,i] &lt;- lrt.lb$table$PValue
+
+    # Negative binomial
+    y.nb &lt;- DGEList(counts)
+    y.nb &lt;- estimateDisp(y.nb, des, trend=&quot;none&quot;)
+    fit.nb &lt;- glmFit(y.nb, des)
+    lrt.nb &lt;- glmLRT(fit.nb, coef=2)
+    pval.nb[,i] &lt;- lrt.nb$table$PValue
+    
+    # Negative binomial QLF test
+    fit.qlf &lt;- glmQLFit(y.nb, des, robust=FALSE, abundance.trend = FALSE)
+    res.qlf &lt;- glmQLFTest(fit.qlf, coef=2)
+    pval.qlf[,i] &lt;- res.qlf$table$PValue
+
+    # Poisson
+    fit.poi &lt;- glmFit(y.nb, des, dispersion = 0)
+    lrt.poi &lt;- glmLRT(fit.poi, coef=2)
+    pval.pois[,i] &lt;- lrt.poi$table$PValue
+    
+    # CODA
+    # Replace zero counts with 0.5 so that the geometric mean always works
+    if(any(counts==0)) counts[counts==0] &lt;- 0.5
+    geomean &lt;- apply(counts,2, function(x) exp(mean(log(x))))
+    geomean.mat &lt;- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
+    clr &lt;- counts/geomean.mat
+    logratio &lt;- log(clr)
+    
+    fit.coda &lt;- lmFit(logratio, des)
+    fit.coda &lt;- eBayes(fit.coda, robust=FALSE)
+
+    pval.coda[,i] &lt;- fit.coda$p.value[,2]
+
+}</code></pre>
+<p>We can look at the number of significant tests at certain p-value
+cut-offs:</p>
+<pre class="r"><code>pcut &lt;- 0.05
+de &lt;- da.fac != 1
+sig.disc &lt;- matrix(NA,nrow=length(trueprops),ncol=9)
+rownames(sig.disc) &lt;- c(&quot;C0&quot;,&quot;C1&quot;)
+colnames(sig.disc) &lt;- c(&quot;chisq&quot;,&quot;logbin&quot;,&quot;pois&quot;,&quot;asin&quot;, &quot;logit&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;nbQLF&quot;,&quot;CODA&quot;)
+
+sig.disc[,1]&lt;-rowSums(pval.chsq&lt;pcut)/nsim 
+sig.disc[,2]&lt;-rowSums(pval.lb&lt;pcut)/nsim
+sig.disc[,3]&lt;-rowSums(pval.pois&lt;pcut)/nsim 
+sig.disc[,4]&lt;-rowSums(pval.asin&lt;pcut)/nsim 
+sig.disc[,5]&lt;-rowSums(pval.logit&lt;pcut)/nsim 
+sig.disc[,6]&lt;-rowSums(pval.bb&lt;pcut)/nsim
+sig.disc[,7]&lt;-rowSums(pval.nb&lt;pcut)/nsim 
+sig.disc[,8]&lt;-rowSums(pval.qlf&lt;pcut)/nsim
+sig.disc[,9]&lt;-rowSums(pval.coda&lt;pcut)/nsim </code></pre>
+<pre class="r"><code>gt(data.frame(sig.disc),rownames_to_stub = TRUE,caption=&quot;Proportion of significant tests: 2 cell types&quot;)</code></pre>
+<div id="rcpuhacwgt" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#rcpuhacwgt .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#rcpuhacwgt .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#rcpuhacwgt .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#rcpuhacwgt .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#rcpuhacwgt .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#rcpuhacwgt .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#rcpuhacwgt .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#rcpuhacwgt .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#rcpuhacwgt .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#rcpuhacwgt .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#rcpuhacwgt .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#rcpuhacwgt .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#rcpuhacwgt .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#rcpuhacwgt .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#rcpuhacwgt .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#rcpuhacwgt .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#rcpuhacwgt .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#rcpuhacwgt .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#rcpuhacwgt .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#rcpuhacwgt .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#rcpuhacwgt .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#rcpuhacwgt .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#rcpuhacwgt .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#rcpuhacwgt .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#rcpuhacwgt .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#rcpuhacwgt .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#rcpuhacwgt .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#rcpuhacwgt .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#rcpuhacwgt .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#rcpuhacwgt .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#rcpuhacwgt .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#rcpuhacwgt .gt_left {
+  text-align: left;
+}
+
+#rcpuhacwgt .gt_center {
+  text-align: center;
+}
+
+#rcpuhacwgt .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#rcpuhacwgt .gt_font_normal {
+  font-weight: normal;
+}
+
+#rcpuhacwgt .gt_font_bold {
+  font-weight: bold;
+}
+
+#rcpuhacwgt .gt_font_italic {
+  font-style: italic;
+}
+
+#rcpuhacwgt .gt_super {
+  font-size: 65%;
+}
+
+#rcpuhacwgt .gt_two_val_uncert {
+  display: inline-block;
+  line-height: 1em;
+  text-align: right;
+  font-size: 60%;
+  vertical-align: -0.25em;
+  margin-left: 0.1em;
+}
+
+#rcpuhacwgt .gt_footnote_marks {
+  font-style: italic;
+  font-weight: normal;
+  font-size: 75%;
+  vertical-align: 0.4em;
+}
+
+#rcpuhacwgt .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#rcpuhacwgt .gt_slash_mark {
+  font-size: 0.7em;
+  line-height: 0.7em;
+  vertical-align: 0.15em;
+}
+
+#rcpuhacwgt .gt_fraction_numerator {
+  font-size: 0.6em;
+  line-height: 0.6em;
+  vertical-align: 0.45em;
+}
+
+#rcpuhacwgt .gt_fraction_denominator {
+  font-size: 0.6em;
+  line-height: 0.6em;
+  vertical-align: -0.05em;
+}
+</style>
+<table class="gt_table">
+  <caption>Proportion of significant tests: 2 cell types</caption>
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1"></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">chisq</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">logbin</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">pois</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">asin</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">logit</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">betabin</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">negbin</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">nbQLF</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">CODA</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td class="gt_row gt_right gt_stub">C0</td>
+<td class="gt_row gt_right">1</td>
+<td class="gt_row gt_right">1</td>
+<td class="gt_row gt_right">1</td>
+<td class="gt_row gt_right">0.993</td>
+<td class="gt_row gt_right">0.993</td>
+<td class="gt_row gt_right">0.995</td>
+<td class="gt_row gt_right">0.998</td>
+<td class="gt_row gt_right">0.996</td>
+<td class="gt_row gt_right">0.993</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">C1</td>
+<td class="gt_row gt_right">1</td>
+<td class="gt_row gt_right">1</td>
+<td class="gt_row gt_right">1</td>
+<td class="gt_row gt_right">0.993</td>
+<td class="gt_row gt_right">0.993</td>
+<td class="gt_row gt_right">0.995</td>
+<td class="gt_row gt_right">0.972</td>
+<td class="gt_row gt_right">0.969</td>
+<td class="gt_row gt_right">0.993</td></tr>
+  </tbody>
+  
+  
+</table>
+</div>
+<pre class="r"><code>layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
+par(mar=c(9,5,3,2))
+par(mgp=c(3, 0.5, 0))
+o &lt;- order(trueprops)
+names &lt;- c(&quot;propeller (asin)&quot;,&quot;propeller (logit)&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;negbinQLF&quot;,&quot;CODA&quot;)
+barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(b.grp1)),
+        ylab=&quot;Proportion sig. tests&quot;, names=names,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
+title(paste(&quot;Significant tests, n=&quot;,nsamp/2,sep=&quot;&quot;), cex.main=1.5,adj=0)
+abline(h=pcut,lty=2,lwd=2)
+par(mar=c(0,0,0,0))
+plot(1, type = &quot;n&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;, xaxt=&quot;n&quot;,yaxt=&quot;n&quot;, bty=&quot;n&quot;)
+legend(&quot;center&quot;, legend=paste(&quot;True p =&quot;,round(trueprops,3)[o]), fill=ggplotColors(length(b.grp1)), cex=1.5)</code></pre>
+<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-26-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="twenty-cell-types-two-groups-n5-true-differences"
+class="section level2">
+<h2>Twenty cell types, two groups, n=5, true differences</h2>
+<pre class="r"><code>trueprops &lt;- sort(table(keep_celltypes)/length(keep_celltypes))</code></pre>
+<pre class="r"><code># Sim parameters
+nsim &lt;- 1000
+depth &lt;- 5000
+
+# Estimate parameters for beta distribution from real data
+betaparams &lt;- estimateBetaParamsFromCounts(o.pbmc.counts)
+a &lt;- abs(betaparams$alpha)
+b &lt;- abs(betaparams$beta)
+
+# Decide on what output to keep
+pval.chsq &lt;- pval.bb &lt;- pval.lb &lt;- pval.nb &lt;- pval.qlf &lt;- pval.pois &lt;- pval.logit &lt;-  pval.asin &lt;- pval.coda &lt;- matrix(NA,nrow=length(p),ncol=nsim)</code></pre>
+<p>Set up true proportions for the two groups:</p>
+<pre class="r"><code>barplot(trueprops,las=2)</code></pre>
+<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-29-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Randomly sample eight cell types to change between two groups
+diffct &lt;- c(&quot;cDC2&quot;,&quot;NK Proliferating&quot;,&quot;MAIT&quot;,&quot;B memory&quot;,&quot;CD14 Mono&quot;,&quot;B naive&quot;,
+            &quot;NK&quot;,&quot;CD4 Naive&quot;)
+da.fac &lt;- rep(1,length(trueprops))
+names(da.fac) &lt;- names(trueprops)
+da.fac[diffct] &lt;- rep(c(1/3,1.5),4)
+
+grp1.trueprops &lt;- grp2.trueprops &lt;- trueprops
+grp2.trueprops &lt;- grp1.trueprops*da.fac
+
+sum(grp2.trueprops)</code></pre>
+<pre><code>[1] 1.01205</code></pre>
+<pre class="r"><code># Adjust proportions in group2 to add to 1
+grp2.trueprops[&quot;CD4 Naive&quot;] &lt;- grp2.trueprops[&quot;CD4 Naive&quot;] - (sum(grp2.trueprops)-1)
+
+sum(grp1.trueprops)</code></pre>
+<pre><code>[1] 1</code></pre>
+<pre class="r"><code>sum(grp2.trueprops)</code></pre>
+<pre><code>[1] 1</code></pre>
+<pre class="r"><code>par(mar=c(9,5,2,2))
+barplot(t(cbind(grp1.trueprops,grp2.trueprops)), beside=TRUE, col=c(2,4), 
+        las=2, ylab=&quot;True cell type proportion&quot;,ylim=c(0,0.32))
+legend(&quot;top&quot;, fill=c(2,4),legend=c(&quot;Group 1&quot;,&quot;Group 2&quot;))
+title(&quot;True cell type proportions for Group 1 and 2&quot;,adj=0)
+text(2,0.02,label=&quot;*&quot;, cex=2)
+text(11,0.02,label=&quot;*&quot;, cex=2)
+text(17,0.03,label=&quot;*&quot;, cex=2)
+text(26,0.05,label=&quot;*&quot;, cex=2)
+text(38,0.06,label=&quot;*&quot;, cex=2)
+text(38,0.06,label=&quot;*&quot;, cex=2)
+text(47,0.1,label=&quot;*&quot;, cex=2)
+text(53,0.18,label=&quot;*&quot;, cex=2)
+text(59,0.31,label=&quot;*&quot;, cex=2)
+legend(&quot;topleft&quot;,legend=&quot;* = true difference&quot;,cex=1.5)</code></pre>
+<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-30-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Get hyperparameters for alpha and beta
+# Note group 1 and group 2 have different b parameters to accommodate true
+# differences in cell type proportions
+a &lt;- 10
+b.grp1 &lt;- a*(1-grp1.trueprops)/grp1.trueprops
+b.grp2 &lt;- a*(1-grp2.trueprops)/grp2.trueprops</code></pre>
+<p>Next we simulate the cell type counts and run the various statistical
+models for testing cell type proportion differences between the two
+groups. We expect to see significant differences in cell type
+proportions in 8/20 cell types, and no significant differences in the
+remaining cell types between group 1 and group 2.</p>
+</div>
+<div id="sample-size-of-5-in-each-group" class="section level2">
+<h2>Sample size of 5 in each group</h2>
+<pre class="r"><code>nsamp &lt;- 10
+
+for(i in 1:nsim){
+    #Simulate cell type counts
+    counts &lt;- SimulateCellCountsTrueDiff(props=trueprops,nsamp=nsamp,depth=depth,a=rep(a,length(trueprops)),
+                                         b.grp1=b.grp1,b.grp2=b.grp2)
+
+    tot.cells &lt;- colSums(counts)
+    # propeller
+    est.props &lt;- t(t(counts)/tot.cells)
+    
+    #asin transform
+    trans.prop &lt;- asin(sqrt(est.props))
+    
+    #logit transform
+    nc &lt;- normCounts(counts)
+    est.props.logit &lt;- t(t(nc+0.5)/(colSums(nc+0.5)))
+    logit.prop &lt;- log(est.props.logit/(1-est.props.logit))
+
+    grp &lt;- rep(c(0,1), each=nsamp/2)
+    des &lt;- model.matrix(~grp)
+  
+    # asinsqrt transform
+    fit &lt;- lmFit(trans.prop, des)
     fit &lt;- eBayes(fit, robust=TRUE)
 
     pval.asin[,i] &lt;- fit$p.value[,2]
@@ -1595,15 +2973,15 @@ sig.disc[,5]&lt;-rowSums(pval.logit&lt;pcut)/nsim
 sig.disc[,6]&lt;-rowSums(pval.bb&lt;pcut)/nsim
 sig.disc[,7]&lt;-rowSums(pval.nb&lt;pcut)/nsim 
 sig.disc[,8]&lt;-rowSums(pval.qlf&lt;pcut)/nsim
-sig.disc[,9]&lt;-rowSums(pval.coda&lt;pcut)/nsim 
-o &lt;- order(trueprops)</code></pre>
-<pre class="r"><code>gt(data.frame(sig.disc[o,]),rownames_to_stub = TRUE, caption=&quot;Proportion of significant tests: n=5&quot;)</code></pre>
-<div id="mrudladqvp" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+sig.disc[,9]&lt;-rowSums(pval.coda&lt;pcut)/nsim </code></pre>
+<pre class="r"><code>o &lt;- order(trueprops)
+gt(data.frame(sig.disc[o,]),rownames_to_stub = TRUE,caption=&quot;Proportion of significant tests: 20 cell types&quot;)</code></pre>
+<div id="tbkgxbmjcc" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-#mrudladqvp .gt_table {
+#tbkgxbmjcc .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -1628,7 +3006,7 @@ o &lt;- order(trueprops)</code></pre>
   border-left-color: #D3D3D3;
 }
 
-#mrudladqvp .gt_heading {
+#tbkgxbmjcc .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -1640,7 +3018,7 @@ o &lt;- order(trueprops)</code></pre>
   border-right-color: #D3D3D3;
 }
 
-#mrudladqvp .gt_title {
+#tbkgxbmjcc .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -1652,7 +3030,7 @@ o &lt;- order(trueprops)</code></pre>
   border-bottom-width: 0;
 }
 
-#mrudladqvp .gt_subtitle {
+#tbkgxbmjcc .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -1664,13 +3042,13 @@ o &lt;- order(trueprops)</code></pre>
   border-top-width: 0;
 }
 
-#mrudladqvp .gt_bottom_border {
+#tbkgxbmjcc .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#mrudladqvp .gt_col_headings {
+#tbkgxbmjcc .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1685,7 +3063,7 @@ o &lt;- order(trueprops)</code></pre>
   border-right-color: #D3D3D3;
 }
 
-#mrudladqvp .gt_col_heading {
+#tbkgxbmjcc .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1705,7 +3083,7 @@ o &lt;- order(trueprops)</code></pre>
   overflow-x: hidden;
 }
 
-#mrudladqvp .gt_column_spanner_outer {
+#tbkgxbmjcc .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1717,15 +3095,15 @@ o &lt;- order(trueprops)</code></pre>
   padding-right: 4px;
 }
 
-#mrudladqvp .gt_column_spanner_outer:first-child {
+#tbkgxbmjcc .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#mrudladqvp .gt_column_spanner_outer:last-child {
+#tbkgxbmjcc .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#mrudladqvp .gt_column_spanner {
+#tbkgxbmjcc .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -1737,7 +3115,7 @@ o &lt;- order(trueprops)</code></pre>
   width: 100%;
 }
 
-#mrudladqvp .gt_group_heading {
+#tbkgxbmjcc .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1762,7 +3140,7 @@ o &lt;- order(trueprops)</code></pre>
   vertical-align: middle;
 }
 
-#mrudladqvp .gt_empty_group_heading {
+#tbkgxbmjcc .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1777,15 +3155,15 @@ o &lt;- order(trueprops)</code></pre>
   vertical-align: middle;
 }
 
-#mrudladqvp .gt_from_md > :first-child {
+#tbkgxbmjcc .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#mrudladqvp .gt_from_md > :last-child {
+#tbkgxbmjcc .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#mrudladqvp .gt_row {
+#tbkgxbmjcc .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1804,7 +3182,7 @@ o &lt;- order(trueprops)</code></pre>
   overflow-x: hidden;
 }
 
-#mrudladqvp .gt_stub {
+#tbkgxbmjcc .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1817,7 +3195,7 @@ o &lt;- order(trueprops)</code></pre>
   padding-right: 5px;
 }
 
-#mrudladqvp .gt_stub_row_group {
+#tbkgxbmjcc .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1831,11 +3209,11 @@ o &lt;- order(trueprops)</code></pre>
   vertical-align: top;
 }
 
-#mrudladqvp .gt_row_group_first td {
+#tbkgxbmjcc .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#mrudladqvp .gt_summary_row {
+#tbkgxbmjcc .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1845,16 +3223,16 @@ o &lt;- order(trueprops)</code></pre>
   padding-right: 5px;
 }
 
-#mrudladqvp .gt_first_summary_row {
+#tbkgxbmjcc .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#mrudladqvp .gt_first_summary_row.thick {
+#tbkgxbmjcc .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#mrudladqvp .gt_last_summary_row {
+#tbkgxbmjcc .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1864,7 +3242,7 @@ o &lt;- order(trueprops)</code></pre>
   border-bottom-color: #D3D3D3;
 }
 
-#mrudladqvp .gt_grand_summary_row {
+#tbkgxbmjcc .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1874,7 +3252,7 @@ o &lt;- order(trueprops)</code></pre>
   padding-right: 5px;
 }
 
-#mrudladqvp .gt_first_grand_summary_row {
+#tbkgxbmjcc .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1884,11 +3262,11 @@ o &lt;- order(trueprops)</code></pre>
   border-top-color: #D3D3D3;
 }
 
-#mrudladqvp .gt_striped {
+#tbkgxbmjcc .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#mrudladqvp .gt_table_body {
+#tbkgxbmjcc .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1897,7 +3275,7 @@ o &lt;- order(trueprops)</code></pre>
   border-bottom-color: #D3D3D3;
 }
 
-#mrudladqvp .gt_footnotes {
+#tbkgxbmjcc .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1911,7 +3289,7 @@ o &lt;- order(trueprops)</code></pre>
   border-right-color: #D3D3D3;
 }
 
-#mrudladqvp .gt_footnote {
+#tbkgxbmjcc .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-left: 4px;
@@ -1920,7 +3298,7 @@ o &lt;- order(trueprops)</code></pre>
   padding-right: 5px;
 }
 
-#mrudladqvp .gt_sourcenotes {
+#tbkgxbmjcc .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1934,7 +3312,7 @@ o &lt;- order(trueprops)</code></pre>
   border-right-color: #D3D3D3;
 }
 
-#mrudladqvp .gt_sourcenote {
+#tbkgxbmjcc .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1942,36 +3320,36 @@ o &lt;- order(trueprops)</code></pre>
   padding-right: 5px;
 }
 
-#mrudladqvp .gt_left {
+#tbkgxbmjcc .gt_left {
   text-align: left;
 }
 
-#mrudladqvp .gt_center {
+#tbkgxbmjcc .gt_center {
   text-align: center;
 }
 
-#mrudladqvp .gt_right {
+#tbkgxbmjcc .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#mrudladqvp .gt_font_normal {
+#tbkgxbmjcc .gt_font_normal {
   font-weight: normal;
 }
 
-#mrudladqvp .gt_font_bold {
+#tbkgxbmjcc .gt_font_bold {
   font-weight: bold;
 }
 
-#mrudladqvp .gt_font_italic {
+#tbkgxbmjcc .gt_font_italic {
   font-style: italic;
 }
 
-#mrudladqvp .gt_super {
+#tbkgxbmjcc .gt_super {
   font-size: 65%;
 }
 
-#mrudladqvp .gt_two_val_uncert {
+#tbkgxbmjcc .gt_two_val_uncert {
   display: inline-block;
   line-height: 1em;
   text-align: right;
@@ -1980,38 +3358,38 @@ o &lt;- order(trueprops)</code></pre>
   margin-left: 0.1em;
 }
 
-#mrudladqvp .gt_footnote_marks {
+#tbkgxbmjcc .gt_footnote_marks {
   font-style: italic;
   font-weight: normal;
   font-size: 75%;
   vertical-align: 0.4em;
 }
 
-#mrudladqvp .gt_asterisk {
+#tbkgxbmjcc .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#mrudladqvp .gt_slash_mark {
+#tbkgxbmjcc .gt_slash_mark {
   font-size: 0.7em;
   line-height: 0.7em;
   vertical-align: 0.15em;
 }
 
-#mrudladqvp .gt_fraction_numerator {
+#tbkgxbmjcc .gt_fraction_numerator {
   font-size: 0.6em;
   line-height: 0.6em;
   vertical-align: 0.45em;
 }
 
-#mrudladqvp .gt_fraction_denominator {
+#tbkgxbmjcc .gt_fraction_denominator {
   font-size: 0.6em;
   line-height: 0.6em;
   vertical-align: -0.05em;
 }
 </style>
 <table class="gt_table">
-  <caption>Proportion of significant tests: n=5</caption>
+  <caption>Proportion of significant tests: 20 cell types</caption>
   
   <thead class="gt_col_headings">
     <tr>
@@ -2028,1467 +3406,742 @@ o &lt;- order(trueprops)</code></pre>
     </tr>
   </thead>
   <tbody class="gt_table_body">
-    <tr><td class="gt_row gt_right gt_stub">Smooth muscle cells</td>
-<td class="gt_row gt_right">0.994</td>
-<td class="gt_row gt_right">0.994</td>
-<td class="gt_row gt_right">0.994</td>
-<td class="gt_row gt_right">0.522</td>
-<td class="gt_row gt_right">0.737</td>
-<td class="gt_row gt_right">0.762</td>
-<td class="gt_row gt_right">0.813</td>
-<td class="gt_row gt_right">0.771</td>
-<td class="gt_row gt_right">0.715</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Neurons</td>
-<td class="gt_row gt_right">0.742</td>
-<td class="gt_row gt_right">0.745</td>
-<td class="gt_row gt_right">0.744</td>
-<td class="gt_row gt_right">0.024</td>
-<td class="gt_row gt_right">0.071</td>
-<td class="gt_row gt_right">0.081</td>
-<td class="gt_row gt_right">0.105</td>
-<td class="gt_row gt_right">0.090</td>
-<td class="gt_row gt_right">0.095</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Epicardial cells</td>
-<td class="gt_row gt_right">0.847</td>
-<td class="gt_row gt_right">0.849</td>
-<td class="gt_row gt_right">0.840</td>
-<td class="gt_row gt_right">0.053</td>
-<td class="gt_row gt_right">0.050</td>
-<td class="gt_row gt_right">0.055</td>
-<td class="gt_row gt_right">0.069</td>
-<td class="gt_row gt_right">0.058</td>
-<td class="gt_row gt_right">0.081</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Immune cells</td>
-<td class="gt_row gt_right">0.903</td>
-<td class="gt_row gt_right">0.903</td>
-<td class="gt_row gt_right">0.901</td>
-<td class="gt_row gt_right">0.083</td>
-<td class="gt_row gt_right">0.112</td>
-<td class="gt_row gt_right">0.126</td>
-<td class="gt_row gt_right">0.113</td>
-<td class="gt_row gt_right">0.094</td>
-<td class="gt_row gt_right">0.128</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Endothelial cells</td>
-<td class="gt_row gt_right">0.824</td>
-<td class="gt_row gt_right">0.824</td>
-<td class="gt_row gt_right">0.813</td>
-<td class="gt_row gt_right">0.048</td>
-<td class="gt_row gt_right">0.013</td>
-<td class="gt_row gt_right">0.016</td>
-<td class="gt_row gt_right">0.027</td>
-<td class="gt_row gt_right">0.024</td>
-<td class="gt_row gt_right">0.053</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Fibroblast</td>
-<td class="gt_row gt_right">0.998</td>
-<td class="gt_row gt_right">0.998</td>
-<td class="gt_row gt_right">0.998</td>
-<td class="gt_row gt_right">0.816</td>
-<td class="gt_row gt_right">0.775</td>
+    <tr><td class="gt_row gt_right gt_stub">cDC2</td>
 <td class="gt_row gt_right">0.812</td>
-<td class="gt_row gt_right">0.724</td>
-<td class="gt_row gt_right">0.689</td>
-<td class="gt_row gt_right">0.474</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Cardiomyocytes</td>
-<td class="gt_row gt_right">0.998</td>
-<td class="gt_row gt_right">0.998</td>
-<td class="gt_row gt_right">0.998</td>
-<td class="gt_row gt_right">0.737</td>
-<td class="gt_row gt_right">0.707</td>
-<td class="gt_row gt_right">0.729</td>
-<td class="gt_row gt_right">0.484</td>
-<td class="gt_row gt_right">0.469</td>
-<td class="gt_row gt_right">0.626</td></tr>
-  </tbody>
-  
-  
-</table>
-</div>
-<pre class="r"><code>layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
-par(mar=c(8,5,3,2))
-par(mgp=c(3, 0.5, 0))
-o &lt;- order(trueprops)
-names &lt;- c(&quot;propeller (asin)&quot;,&quot;propeller (logit)&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;negbinQLF&quot;,&quot;CODA&quot;)
-barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(b)),
-        ylab=&quot;Proportion sig. tests&quot;, names=names,
-        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
-title(paste(&quot;Significant tests, n=&quot;,nsamp/2,sep=&quot;&quot;), cex.main=1.5)
-abline(h=pcut,lty=2,lwd=2)
-par(mar=c(0,0,0,0))
-plot(1, type = &quot;n&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;, xaxt=&quot;n&quot;,yaxt=&quot;n&quot;, bty=&quot;n&quot;)
-legend(&quot;center&quot;, legend=paste(&quot;True p =&quot;,round(trueprops,3)[o]), fill=ggplotColors(length(b)), cex=1.5)</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>o &lt;- order(trueprops)
-mysig &lt;- sig.disc[o,4:9]
-colnames(mysig) &lt;- names
-pheatmap(mysig, scale=&quot;none&quot;, cluster_rows = FALSE, cluster_cols = FALSE,
-         labels_row = c(expression(paste(pi, &quot; = 0.008*&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.016&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.064&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.076&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.102&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.183*&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.551*&quot;, sep=&quot;&quot;))),
-         main=paste(&quot;Significant tests, n=&quot;,nsamp/2,sep=&quot;&quot;))</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>auc.asin &lt;- auc.logit &lt;- auc.bb &lt;- auc.nb &lt;- auc.qlf &lt;- auc.coda &lt;- rep(NA,nsim)
-for(i in 1:nsim){
-  auc.asin[i] &lt;- auroc(score=1-pval.asin[,i],bool=de)
-  auc.logit[i] &lt;- auroc(score=1-pval.logit[,i],bool=de)
-  auc.bb[i] &lt;- auroc(score=1-pval.bb[,i],bool=de)
-  auc.nb[i] &lt;- auroc(score=1-pval.nb[,i],bool=de)
-  auc.qlf[i] &lt;- auroc(score=1-pval.qlf[,i],bool=de)
-  auc.coda[i] &lt;- auroc(score=1-pval.coda[,i],bool=de)
-}
-
-mean(auc.asin)</code></pre>
-<pre><code>[1] 0.9325833</code></pre>
-<pre class="r"><code>mean(auc.logit)</code></pre>
-<pre><code>[1] 0.9353333</code></pre>
-<pre class="r"><code>mean(auc.bb)</code></pre>
-<pre><code>[1] 0.9365833</code></pre>
-<pre class="r"><code>mean(auc.nb)</code></pre>
-<pre><code>[1] 0.9129167</code></pre>
-<pre class="r"><code>mean(auc.qlf)</code></pre>
-<pre><code>[1] 0.91525</code></pre>
-<pre class="r"><code>mean(auc.coda)</code></pre>
-<pre><code>[1] 0.8665833</code></pre>
-<pre class="r"><code>par(mfrow=c(1,1))
-par(mar=c(9,5,3,2))
-barplot(c(mean(auc.asin),mean(auc.logit),mean(auc.bb),mean(auc.nb),mean(auc.qlf),mean(auc.coda)), ylim=c(0,1), ylab= &quot;AUC&quot;, cex.axis=1.5, cex.lab=1.5, names=names, las=2, cex.names = 1.5)
-title(paste(&quot;AUC: sample size n=&quot;,nsamp/2,sep=&quot;&quot;),cex.main=1.5)</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-22-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>sig.disc5 &lt;- sig.disc</code></pre>
-</div>
-<div id="sample-size-of-10-in-each-group" class="section level2">
-<h2>Sample size of 10 in each group</h2>
-<pre class="r"><code>nsamp &lt;- 20
-
-for(i in 1:nsim){
-    #Simulate cell type counts
-    counts &lt;- SimulateCellCountsTrueDiff(props=trueprops,nsamp=nsamp,depth=depth,a=a,
-                                         b.grp1=b.grp1,b.grp2=b.grp2)
-
-    tot.cells &lt;- colSums(counts)
-    # propeller
-    est.props &lt;- t(t(counts)/tot.cells)
-    
-    #asin transform
-    trans.prop &lt;- asin(sqrt(est.props))
-    
-    #logit transform
-    nc &lt;- normCounts(counts)
-    est.props.logit &lt;- t(t(nc+0.5)/(colSums(nc+0.5)))
-    logit.prop &lt;- log(est.props.logit/(1-est.props.logit))
-
-    grp &lt;- rep(c(0,1), each=nsamp/2)
-    des &lt;- model.matrix(~grp)
-  
-    # asinsqrt transform
-    fit &lt;- lmFit(trans.prop, des)
-    fit &lt;- eBayes(fit, robust=TRUE)
-
-    pval.asin[,i] &lt;- fit$p.value[,2]
-    
-    # logit transform
-    fit.logit &lt;- lmFit(logit.prop, des)
-    fit.logit &lt;- eBayes(fit.logit, robust=TRUE)
-
-    pval.logit[,i] &lt;- fit.logit$p.value[,2]
-
-    # Chi-square test for differences in proportions
-    n &lt;- tapply(tot.cells, grp, sum)
-    for(h in 1:nrow(counts)){
-        pval.chsq[h,i] &lt;- prop.test(tapply(counts[h,],grp,sum),n)$p.value
-    }
-
-    # Beta binomial implemented in edgeR (methylation workflow)
-    meth.counts &lt;- counts
-    unmeth.counts &lt;- t(tot.cells - t(counts))
-    new.counts &lt;- cbind(meth.counts,unmeth.counts)
-    sam.info &lt;- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c(&quot;me&quot;,&quot;un&quot;), each=nsamp))
-
-    design.samples &lt;- model.matrix(~0+factor(sam.info$Sample))
-    colnames(design.samples) &lt;- paste(&quot;S&quot;,1:nsamp,sep=&quot;&quot;)
-    design.group &lt;- model.matrix(~0+factor(sam.info$Group))   
-    colnames(design.group) &lt;- c(&quot;A&quot;,&quot;B&quot;)
-    design.bb &lt;- cbind(design.samples, (sam.info$Meth==&quot;me&quot;) * design.group)
-    lib.size = rep(tot.cells,2)
-
-    y &lt;- DGEList(new.counts)
-    y$samples$lib.size &lt;- lib.size
-    y &lt;- estimateDisp(y, design.bb, trend=&quot;none&quot;)
-    fit.bb &lt;- glmFit(y, design.bb)
-    contr &lt;- makeContrasts(Grp=B-A, levels=design.bb)
-    lrt &lt;- glmLRT(fit.bb, contrast=contr)
-    pval.bb[,i] &lt;- lrt$table$PValue
-
-    # Logistic binomial regression
-    fit.lb &lt;- glmFit(y, design.bb, dispersion = 0)
-    lrt.lb &lt;- glmLRT(fit.lb, contrast=contr)
-    pval.lb[,i] &lt;- lrt.lb$table$PValue
-
-    # Negative binomial
-    y.nb &lt;- DGEList(counts)
-    y.nb &lt;- estimateDisp(y.nb, des, trend=&quot;none&quot;)
-    fit.nb &lt;- glmFit(y.nb, des)
-    lrt.nb &lt;- glmLRT(fit.nb, coef=2)
-    pval.nb[,i] &lt;- lrt.nb$table$PValue
-    
-    # Negative binomial QLF test
-    fit.qlf &lt;- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
-    res.qlf &lt;- glmQLFTest(fit.qlf, coef=2)
-    pval.qlf[,i] &lt;- res.qlf$table$PValue
-
-    # Poisson
-    fit.poi &lt;- glmFit(y.nb, des, dispersion = 0)
-    lrt.poi &lt;- glmLRT(fit.poi, coef=2)
-    pval.pois[,i] &lt;- lrt.poi$table$PValue
-    
-    # CODA
-    # Replace zero counts with 0.5 so that the geometric mean always works
-    if(any(counts==0)) counts[counts==0] &lt;- 0.5
-    geomean &lt;- apply(counts,2, function(x) exp(mean(log(x))))
-    geomean.mat &lt;- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
-    clr &lt;- counts/geomean.mat
-    logratio &lt;- log(clr)
-    
-    fit.coda &lt;- lmFit(logratio, des)
-    fit.coda &lt;- eBayes(fit.coda, robust=TRUE)
-
-    pval.coda[,i] &lt;- fit.coda$p.value[,2]
-
-}</code></pre>
-<p>We can look at the number of significant tests at certain p-value
-cut-offs:</p>
-<pre class="r"><code>pcut &lt;- 0.05
-de &lt;- da.fac != 1
-sig.disc &lt;- matrix(NA,nrow=length(trueprops),ncol=9)
-rownames(sig.disc) &lt;- names(trueprops)
-colnames(sig.disc) &lt;- c(&quot;chisq&quot;,&quot;logbin&quot;,&quot;pois&quot;,&quot;asin&quot;, &quot;logit&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;nbQLF&quot;,&quot;CODA&quot;)
-
-sig.disc[,1]&lt;-rowSums(pval.chsq&lt;pcut)/nsim 
-sig.disc[,2]&lt;-rowSums(pval.lb&lt;pcut)/nsim
-sig.disc[,3]&lt;-rowSums(pval.pois&lt;pcut)/nsim 
-sig.disc[,4]&lt;-rowSums(pval.asin&lt;pcut)/nsim 
-sig.disc[,5]&lt;-rowSums(pval.logit&lt;pcut)/nsim 
-sig.disc[,6]&lt;-rowSums(pval.bb&lt;pcut)/nsim
-sig.disc[,7]&lt;-rowSums(pval.nb&lt;pcut)/nsim 
-sig.disc[,8]&lt;-rowSums(pval.qlf&lt;pcut)/nsim
-sig.disc[,9]&lt;-rowSums(pval.coda&lt;pcut)/nsim 
-o &lt;- order(trueprops)</code></pre>
-<pre class="r"><code>gt(data.frame(sig.disc[o,]),rownames_to_stub = TRUE, caption=&quot;Proportion of significant tests: n=10&quot;)</code></pre>
-<div id="mcopgkjuea" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>html {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
-}
-
-#mcopgkjuea .gt_table {
-  display: table;
-  border-collapse: collapse;
-  margin-left: auto;
-  margin-right: auto;
-  color: #333333;
-  font-size: 16px;
-  font-weight: normal;
-  font-style: normal;
-  background-color: #FFFFFF;
-  width: auto;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #A8A8A8;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #A8A8A8;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-}
-
-#mcopgkjuea .gt_heading {
-  background-color: #FFFFFF;
-  text-align: center;
-  border-bottom-color: #FFFFFF;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#mcopgkjuea .gt_title {
-  color: #333333;
-  font-size: 125%;
-  font-weight: initial;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-color: #FFFFFF;
-  border-bottom-width: 0;
-}
-
-#mcopgkjuea .gt_subtitle {
-  color: #333333;
-  font-size: 85%;
-  font-weight: initial;
-  padding-top: 0;
-  padding-bottom: 6px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-color: #FFFFFF;
-  border-top-width: 0;
-}
-
-#mcopgkjuea .gt_bottom_border {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#mcopgkjuea .gt_col_headings {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#mcopgkjuea .gt_col_heading {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 6px;
-  padding-left: 5px;
-  padding-right: 5px;
-  overflow-x: hidden;
-}
-
-#mcopgkjuea .gt_column_spanner_outer {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-left: 4px;
-  padding-right: 4px;
-}
-
-#mcopgkjuea .gt_column_spanner_outer:first-child {
-  padding-left: 0;
-}
-
-#mcopgkjuea .gt_column_spanner_outer:last-child {
-  padding-right: 0;
-}
-
-#mcopgkjuea .gt_column_spanner {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  overflow-x: hidden;
-  display: inline-block;
-  width: 100%;
-}
-
-#mcopgkjuea .gt_group_heading {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-}
-
-#mcopgkjuea .gt_empty_group_heading {
-  padding: 0.5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: middle;
-}
-
-#mcopgkjuea .gt_from_md > :first-child {
-  margin-top: 0;
-}
-
-#mcopgkjuea .gt_from_md > :last-child {
-  margin-bottom: 0;
-}
-
-#mcopgkjuea .gt_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  margin: 10px;
-  border-top-style: solid;
-  border-top-width: 1px;
-  border-top-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-  overflow-x: hidden;
-}
-
-#mcopgkjuea .gt_stub {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#mcopgkjuea .gt_stub_row_group {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-  vertical-align: top;
-}
-
-#mcopgkjuea .gt_row_group_first td {
-  border-top-width: 2px;
-}
-
-#mcopgkjuea .gt_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#mcopgkjuea .gt_first_summary_row {
-  border-top-style: solid;
-  border-top-color: #D3D3D3;
-}
-
-#mcopgkjuea .gt_first_summary_row.thick {
-  border-top-width: 2px;
-}
-
-#mcopgkjuea .gt_last_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#mcopgkjuea .gt_grand_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#mcopgkjuea .gt_first_grand_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-style: double;
-  border-top-width: 6px;
-  border-top-color: #D3D3D3;
-}
-
-#mcopgkjuea .gt_striped {
-  background-color: rgba(128, 128, 128, 0.05);
-}
-
-#mcopgkjuea .gt_table_body {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#mcopgkjuea .gt_footnotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#mcopgkjuea .gt_footnote {
-  margin: 0px;
-  font-size: 90%;
-  padding-left: 4px;
-  padding-right: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#mcopgkjuea .gt_sourcenotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#mcopgkjuea .gt_sourcenote {
-  font-size: 90%;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#mcopgkjuea .gt_left {
-  text-align: left;
-}
-
-#mcopgkjuea .gt_center {
-  text-align: center;
-}
-
-#mcopgkjuea .gt_right {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-#mcopgkjuea .gt_font_normal {
-  font-weight: normal;
-}
-
-#mcopgkjuea .gt_font_bold {
-  font-weight: bold;
-}
-
-#mcopgkjuea .gt_font_italic {
-  font-style: italic;
-}
-
-#mcopgkjuea .gt_super {
-  font-size: 65%;
-}
-
-#mcopgkjuea .gt_two_val_uncert {
-  display: inline-block;
-  line-height: 1em;
-  text-align: right;
-  font-size: 60%;
-  vertical-align: -0.25em;
-  margin-left: 0.1em;
-}
-
-#mcopgkjuea .gt_footnote_marks {
-  font-style: italic;
-  font-weight: normal;
-  font-size: 75%;
-  vertical-align: 0.4em;
-}
-
-#mcopgkjuea .gt_asterisk {
-  font-size: 100%;
-  vertical-align: 0;
-}
-
-#mcopgkjuea .gt_slash_mark {
-  font-size: 0.7em;
-  line-height: 0.7em;
-  vertical-align: 0.15em;
-}
-
-#mcopgkjuea .gt_fraction_numerator {
-  font-size: 0.6em;
-  line-height: 0.6em;
-  vertical-align: 0.45em;
-}
-
-#mcopgkjuea .gt_fraction_denominator {
-  font-size: 0.6em;
-  line-height: 0.6em;
-  vertical-align: -0.05em;
-}
-</style>
-<table class="gt_table">
-  <caption>Proportion of significant tests: n=10</caption>
-  
-  <thead class="gt_col_headings">
-    <tr>
-      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1"></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">chisq</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">logbin</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">pois</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">asin</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">logit</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">betabin</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">negbin</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">nbQLF</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">CODA</th>
-    </tr>
-  </thead>
-  <tbody class="gt_table_body">
-    <tr><td class="gt_row gt_right gt_stub">Smooth muscle cells</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">0.944</td>
-<td class="gt_row gt_right">0.971</td>
-<td class="gt_row gt_right">0.976</td>
-<td class="gt_row gt_right">0.976</td>
-<td class="gt_row gt_right">0.971</td>
-<td class="gt_row gt_right">0.964</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Neurons</td>
-<td class="gt_row gt_right">0.754</td>
-<td class="gt_row gt_right">0.755</td>
-<td class="gt_row gt_right">0.754</td>
-<td class="gt_row gt_right">0.040</td>
-<td class="gt_row gt_right">0.060</td>
-<td class="gt_row gt_right">0.067</td>
-<td class="gt_row gt_right">0.088</td>
-<td class="gt_row gt_right">0.068</td>
-<td class="gt_row gt_right">0.109</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Epicardial cells</td>
-<td class="gt_row gt_right">0.843</td>
-<td class="gt_row gt_right">0.845</td>
-<td class="gt_row gt_right">0.841</td>
-<td class="gt_row gt_right">0.049</td>
-<td class="gt_row gt_right">0.046</td>
-<td class="gt_row gt_right">0.048</td>
-<td class="gt_row gt_right">0.058</td>
-<td class="gt_row gt_right">0.051</td>
-<td class="gt_row gt_right">0.133</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Immune cells</td>
-<td class="gt_row gt_right">0.889</td>
-<td class="gt_row gt_right">0.889</td>
-<td class="gt_row gt_right">0.887</td>
-<td class="gt_row gt_right">0.061</td>
-<td class="gt_row gt_right">0.073</td>
-<td class="gt_row gt_right">0.083</td>
-<td class="gt_row gt_right">0.075</td>
-<td class="gt_row gt_right">0.059</td>
-<td class="gt_row gt_right">0.115</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Endothelial cells</td>
-<td class="gt_row gt_right">0.796</td>
-<td class="gt_row gt_right">0.796</td>
-<td class="gt_row gt_right">0.787</td>
-<td class="gt_row gt_right">0.040</td>
-<td class="gt_row gt_right">0.015</td>
-<td class="gt_row gt_right">0.015</td>
-<td class="gt_row gt_right">0.022</td>
-<td class="gt_row gt_right">0.022</td>
-<td class="gt_row gt_right">0.143</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Fibroblast</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">0.980</td>
-<td class="gt_row gt_right">0.974</td>
-<td class="gt_row gt_right">0.981</td>
-<td class="gt_row gt_right">0.964</td>
-<td class="gt_row gt_right">0.960</td>
-<td class="gt_row gt_right">0.754</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Cardiomyocytes</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">0.999</td>
-<td class="gt_row gt_right">0.936</td>
-<td class="gt_row gt_right">0.924</td>
-<td class="gt_row gt_right">0.938</td>
-<td class="gt_row gt_right">0.866</td>
-<td class="gt_row gt_right">0.856</td>
-<td class="gt_row gt_right">0.880</td></tr>
-  </tbody>
-  
-  
-</table>
-</div>
-<pre class="r"><code>layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
-par(mar=c(8,5,3,2))
-par(mgp=c(3, 0.5, 0))
-o &lt;- order(trueprops)
-names &lt;- c(&quot;propeller (asin)&quot;,&quot;propeller (logit)&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;negbinQLF&quot;,&quot;CODA&quot;)
-barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(b)),
-        ylab=&quot;Proportion sig. tests&quot;, names=names,
-        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
-title(paste(&quot;Significant tests, n=&quot;,nsamp/2,sep=&quot;&quot;), cex.main=1.5)
-abline(h=pcut,lty=2,lwd=2)
-par(mar=c(0,0,0,0))
-plot(1, type = &quot;n&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;, xaxt=&quot;n&quot;,yaxt=&quot;n&quot;, bty=&quot;n&quot;)
-legend(&quot;center&quot;, legend=paste(&quot;True p =&quot;,round(trueprops,3)[o]), fill=ggplotColors(length(b)), cex=1.5)</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-27-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>o &lt;- order(trueprops)
-mysig &lt;- sig.disc[o,4:9]
-colnames(mysig) &lt;- names
-pheatmap(mysig, scale=&quot;none&quot;, cluster_rows = FALSE, cluster_cols = FALSE,
-         labels_row = c(expression(paste(pi, &quot; = 0.008*&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.016&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.064&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.076&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.102&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.183*&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.551*&quot;, sep=&quot;&quot;))),
-         main=paste(&quot;Significant tests, n=&quot;,nsamp/2,sep=&quot;&quot;))</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-28-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>auc.asin &lt;- auc.logit &lt;- auc.bb &lt;- auc.nb &lt;- auc.qlf &lt;- auc.coda &lt;- rep(NA,nsim)
-for(i in 1:nsim){
-  auc.asin[i] &lt;- auroc(score=1-pval.asin[,i],bool=de)
-  auc.logit[i] &lt;- auroc(score=1-pval.logit[,i],bool=de)
-  auc.bb[i] &lt;- auroc(score=1-pval.bb[,i],bool=de)
-  auc.nb[i] &lt;- auroc(score=1-pval.nb[,i],bool=de)
-  auc.qlf[i] &lt;- auroc(score=1-pval.qlf[,i],bool=de)
-  auc.coda[i] &lt;- auroc(score=1-pval.coda[,i],bool=de)
-}
-
-mean(auc.asin)</code></pre>
-<pre><code>[1] 0.9900833</code></pre>
-<pre class="r"><code>mean(auc.logit)</code></pre>
-<pre><code>[1] 0.9899167</code></pre>
-<pre class="r"><code>mean(auc.bb)</code></pre>
-<pre><code>[1] 0.99025</code></pre>
-<pre class="r"><code>mean(auc.nb)</code></pre>
-<pre><code>[1] 0.9848333</code></pre>
-<pre class="r"><code>mean(auc.qlf)</code></pre>
-<pre><code>[1] 0.98525</code></pre>
-<pre class="r"><code>mean(auc.coda)</code></pre>
-<pre><code>[1] 0.9490833</code></pre>
-<pre class="r"><code>par(mfrow=c(1,1))
-par(mar=c(9,5,3,2))
-barplot(c(mean(auc.asin),mean(auc.logit),mean(auc.bb),mean(auc.nb),mean(auc.qlf),mean(auc.coda)), ylim=c(0,1), ylab= &quot;AUC&quot;, cex.axis=1.5, cex.lab=1.5, names=names, las=2, cex.names = 1.5)
-title(paste(&quot;AUC: sample size n=&quot;,nsamp/2,sep=&quot;&quot;),cex.main=1.5)</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-30-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>sig.disc10 &lt;- sig.disc</code></pre>
-</div>
-<div id="sample-size-of-20-in-each-group" class="section level2">
-<h2>Sample size of 20 in each group</h2>
-<pre class="r"><code>nsamp &lt;- 40
-
-for(i in 1:nsim){
-    #Simulate cell type counts
-    counts &lt;- SimulateCellCountsTrueDiff(props=trueprops,nsamp=nsamp,depth=depth,a=a,
-                                         b.grp1=b.grp1,b.grp2=b.grp2)
-
-    tot.cells &lt;- colSums(counts)
-    # propeller
-    est.props &lt;- t(t(counts)/tot.cells)
-    
-    #asin transform
-    trans.prop &lt;- asin(sqrt(est.props))
-    
-    #logit transform
-    nc &lt;- normCounts(counts)
-    est.props.logit &lt;- t(t(nc+0.5)/(colSums(nc+0.5)))
-    logit.prop &lt;- log(est.props.logit/(1-est.props.logit))
-
-    grp &lt;- rep(c(0,1), each=nsamp/2)
-    des &lt;- model.matrix(~grp)
-  
-    # asinsqrt transform
-    fit &lt;- lmFit(trans.prop, des)
-    fit &lt;- eBayes(fit, robust=TRUE)
-
-    pval.asin[,i] &lt;- fit$p.value[,2]
-    
-    # logit transform
-    fit.logit &lt;- lmFit(logit.prop, des)
-    fit.logit &lt;- eBayes(fit.logit, robust=TRUE)
-
-    pval.logit[,i] &lt;- fit.logit$p.value[,2]
-
-    # Chi-square test for differences in proportions
-    n &lt;- tapply(tot.cells, grp, sum)
-    for(h in 1:nrow(counts)){
-        pval.chsq[h,i] &lt;- prop.test(tapply(counts[h,],grp,sum),n)$p.value
-    }
-
-    # Beta binomial implemented in edgeR (methylation workflow)
-    meth.counts &lt;- counts
-    unmeth.counts &lt;- t(tot.cells - t(counts))
-    new.counts &lt;- cbind(meth.counts,unmeth.counts)
-    sam.info &lt;- data.frame(Sample = rep(1:nsamp,2), Group=rep(grp,2), Meth = rep(c(&quot;me&quot;,&quot;un&quot;), each=nsamp))
-
-    design.samples &lt;- model.matrix(~0+factor(sam.info$Sample))
-    colnames(design.samples) &lt;- paste(&quot;S&quot;,1:nsamp,sep=&quot;&quot;)
-    design.group &lt;- model.matrix(~0+factor(sam.info$Group))   
-    colnames(design.group) &lt;- c(&quot;A&quot;,&quot;B&quot;)
-    design.bb &lt;- cbind(design.samples, (sam.info$Meth==&quot;me&quot;) * design.group)
-    lib.size = rep(tot.cells,2)
-
-    y &lt;- DGEList(new.counts)
-    y$samples$lib.size &lt;- lib.size
-    y &lt;- estimateDisp(y, design.bb, trend=&quot;none&quot;)
-    fit.bb &lt;- glmFit(y, design.bb)
-    contr &lt;- makeContrasts(Grp=B-A, levels=design.bb)
-    lrt &lt;- glmLRT(fit.bb, contrast=contr)
-    pval.bb[,i] &lt;- lrt$table$PValue
-
-    # Logistic binomial regression
-    fit.lb &lt;- glmFit(y, design.bb, dispersion = 0)
-    lrt.lb &lt;- glmLRT(fit.lb, contrast=contr)
-    pval.lb[,i] &lt;- lrt.lb$table$PValue
-
-    # Negative binomial
-    y.nb &lt;- DGEList(counts)
-    y.nb &lt;- estimateDisp(y.nb, des, trend=&quot;none&quot;)
-    fit.nb &lt;- glmFit(y.nb, des)
-    lrt.nb &lt;- glmLRT(fit.nb, coef=2)
-    pval.nb[,i] &lt;- lrt.nb$table$PValue
-    
-    # Negative binomial QLF test
-    fit.qlf &lt;- glmQLFit(y.nb, des, robust=TRUE, abundance.trend = FALSE)
-    res.qlf &lt;- glmQLFTest(fit.qlf, coef=2)
-    pval.qlf[,i] &lt;- res.qlf$table$PValue
-
-    # Poisson
-    fit.poi &lt;- glmFit(y.nb, des, dispersion = 0)
-    lrt.poi &lt;- glmLRT(fit.poi, coef=2)
-    pval.pois[,i] &lt;- lrt.poi$table$PValue
-    
-    # CODA
-    # Replace zero counts with 0.5 so that the geometric mean always works
-    if(any(counts==0)) counts[counts==0] &lt;- 0.5
-    geomean &lt;- apply(counts,2, function(x) exp(mean(log(x))))
-    geomean.mat &lt;- expandAsMatrix(geomean,dim=c(nrow(counts),ncol(counts)),byrow = FALSE)
-    clr &lt;- counts/geomean.mat
-    logratio &lt;- log(clr)
-    
-    fit.coda &lt;- lmFit(logratio, des)
-    fit.coda &lt;- eBayes(fit.coda, robust=TRUE)
-
-    pval.coda[,i] &lt;- fit.coda$p.value[,2]
-
-}</code></pre>
-<p>We can look at the number of significant tests at certain p-value
-cut-offs:</p>
-<pre class="r"><code>pcut &lt;- 0.05
-de &lt;- da.fac != 1
-sig.disc &lt;- matrix(NA,nrow=length(trueprops),ncol=9)
-rownames(sig.disc) &lt;- names(trueprops)
-colnames(sig.disc) &lt;- c(&quot;chisq&quot;,&quot;logbin&quot;,&quot;pois&quot;,&quot;asin&quot;, &quot;logit&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;nbQLF&quot;,&quot;CODA&quot;)
-
-sig.disc[,1]&lt;-rowSums(pval.chsq&lt;pcut)/nsim 
-sig.disc[,2]&lt;-rowSums(pval.lb&lt;pcut)/nsim
-sig.disc[,3]&lt;-rowSums(pval.pois&lt;pcut)/nsim 
-sig.disc[,4]&lt;-rowSums(pval.asin&lt;pcut)/nsim 
-sig.disc[,5]&lt;-rowSums(pval.logit&lt;pcut)/nsim 
-sig.disc[,6]&lt;-rowSums(pval.bb&lt;pcut)/nsim
-sig.disc[,7]&lt;-rowSums(pval.nb&lt;pcut)/nsim 
-sig.disc[,8]&lt;-rowSums(pval.qlf&lt;pcut)/nsim
-sig.disc[,9]&lt;-rowSums(pval.coda&lt;pcut)/nsim 
-o &lt;- order(trueprops)</code></pre>
-<pre class="r"><code>gt(data.frame(sig.disc[o,]),rownames_to_stub = TRUE, caption=&quot;Proportion of significant tests: n=20&quot;)</code></pre>
-<div id="hupgmhxzmf" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>html {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
-}
-
-#hupgmhxzmf .gt_table {
-  display: table;
-  border-collapse: collapse;
-  margin-left: auto;
-  margin-right: auto;
-  color: #333333;
-  font-size: 16px;
-  font-weight: normal;
-  font-style: normal;
-  background-color: #FFFFFF;
-  width: auto;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #A8A8A8;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #A8A8A8;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-}
-
-#hupgmhxzmf .gt_heading {
-  background-color: #FFFFFF;
-  text-align: center;
-  border-bottom-color: #FFFFFF;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#hupgmhxzmf .gt_title {
-  color: #333333;
-  font-size: 125%;
-  font-weight: initial;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-color: #FFFFFF;
-  border-bottom-width: 0;
-}
-
-#hupgmhxzmf .gt_subtitle {
-  color: #333333;
-  font-size: 85%;
-  font-weight: initial;
-  padding-top: 0;
-  padding-bottom: 6px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-color: #FFFFFF;
-  border-top-width: 0;
-}
-
-#hupgmhxzmf .gt_bottom_border {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#hupgmhxzmf .gt_col_headings {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#hupgmhxzmf .gt_col_heading {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 6px;
-  padding-left: 5px;
-  padding-right: 5px;
-  overflow-x: hidden;
-}
-
-#hupgmhxzmf .gt_column_spanner_outer {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-left: 4px;
-  padding-right: 4px;
-}
-
-#hupgmhxzmf .gt_column_spanner_outer:first-child {
-  padding-left: 0;
-}
-
-#hupgmhxzmf .gt_column_spanner_outer:last-child {
-  padding-right: 0;
-}
-
-#hupgmhxzmf .gt_column_spanner {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  overflow-x: hidden;
-  display: inline-block;
-  width: 100%;
-}
-
-#hupgmhxzmf .gt_group_heading {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-}
-
-#hupgmhxzmf .gt_empty_group_heading {
-  padding: 0.5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: middle;
-}
-
-#hupgmhxzmf .gt_from_md > :first-child {
-  margin-top: 0;
-}
-
-#hupgmhxzmf .gt_from_md > :last-child {
-  margin-bottom: 0;
-}
-
-#hupgmhxzmf .gt_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  margin: 10px;
-  border-top-style: solid;
-  border-top-width: 1px;
-  border-top-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-  overflow-x: hidden;
-}
-
-#hupgmhxzmf .gt_stub {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#hupgmhxzmf .gt_stub_row_group {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-  vertical-align: top;
-}
-
-#hupgmhxzmf .gt_row_group_first td {
-  border-top-width: 2px;
-}
-
-#hupgmhxzmf .gt_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#hupgmhxzmf .gt_first_summary_row {
-  border-top-style: solid;
-  border-top-color: #D3D3D3;
-}
-
-#hupgmhxzmf .gt_first_summary_row.thick {
-  border-top-width: 2px;
-}
-
-#hupgmhxzmf .gt_last_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#hupgmhxzmf .gt_grand_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#hupgmhxzmf .gt_first_grand_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-style: double;
-  border-top-width: 6px;
-  border-top-color: #D3D3D3;
-}
-
-#hupgmhxzmf .gt_striped {
-  background-color: rgba(128, 128, 128, 0.05);
-}
-
-#hupgmhxzmf .gt_table_body {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#hupgmhxzmf .gt_footnotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#hupgmhxzmf .gt_footnote {
-  margin: 0px;
-  font-size: 90%;
-  padding-left: 4px;
-  padding-right: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#hupgmhxzmf .gt_sourcenotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#hupgmhxzmf .gt_sourcenote {
-  font-size: 90%;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#hupgmhxzmf .gt_left {
-  text-align: left;
-}
-
-#hupgmhxzmf .gt_center {
-  text-align: center;
-}
-
-#hupgmhxzmf .gt_right {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-#hupgmhxzmf .gt_font_normal {
-  font-weight: normal;
-}
-
-#hupgmhxzmf .gt_font_bold {
-  font-weight: bold;
-}
-
-#hupgmhxzmf .gt_font_italic {
-  font-style: italic;
-}
-
-#hupgmhxzmf .gt_super {
-  font-size: 65%;
-}
-
-#hupgmhxzmf .gt_two_val_uncert {
-  display: inline-block;
-  line-height: 1em;
-  text-align: right;
-  font-size: 60%;
-  vertical-align: -0.25em;
-  margin-left: 0.1em;
-}
-
-#hupgmhxzmf .gt_footnote_marks {
-  font-style: italic;
-  font-weight: normal;
-  font-size: 75%;
-  vertical-align: 0.4em;
-}
-
-#hupgmhxzmf .gt_asterisk {
-  font-size: 100%;
-  vertical-align: 0;
-}
-
-#hupgmhxzmf .gt_slash_mark {
-  font-size: 0.7em;
-  line-height: 0.7em;
-  vertical-align: 0.15em;
-}
-
-#hupgmhxzmf .gt_fraction_numerator {
-  font-size: 0.6em;
-  line-height: 0.6em;
-  vertical-align: 0.45em;
-}
-
-#hupgmhxzmf .gt_fraction_denominator {
-  font-size: 0.6em;
-  line-height: 0.6em;
-  vertical-align: -0.05em;
-}
-</style>
-<table class="gt_table">
-  <caption>Proportion of significant tests: n=20</caption>
-  
-  <thead class="gt_col_headings">
-    <tr>
-      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1"></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">chisq</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">logbin</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">pois</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">asin</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">logit</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">betabin</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">negbin</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">nbQLF</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">CODA</th>
-    </tr>
-  </thead>
-  <tbody class="gt_table_body">
-    <tr><td class="gt_row gt_right gt_stub">Smooth muscle cells</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">1.000</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Neurons</td>
-<td class="gt_row gt_right">0.758</td>
-<td class="gt_row gt_right">0.761</td>
-<td class="gt_row gt_right">0.758</td>
-<td class="gt_row gt_right">0.042</td>
-<td class="gt_row gt_right">0.054</td>
-<td class="gt_row gt_right">0.058</td>
-<td class="gt_row gt_right">0.066</td>
-<td class="gt_row gt_right">0.058</td>
-<td class="gt_row gt_right">0.155</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Epicardial cells</td>
-<td class="gt_row gt_right">0.856</td>
-<td class="gt_row gt_right">0.856</td>
-<td class="gt_row gt_right">0.850</td>
-<td class="gt_row gt_right">0.053</td>
-<td class="gt_row gt_right">0.049</td>
-<td class="gt_row gt_right">0.054</td>
-<td class="gt_row gt_right">0.067</td>
-<td class="gt_row gt_right">0.059</td>
-<td class="gt_row gt_right">0.188</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Immune cells</td>
-<td class="gt_row gt_right">0.915</td>
-<td class="gt_row gt_right">0.916</td>
-<td class="gt_row gt_right">0.910</td>
+<td class="gt_row gt_right">0.840</td>
+<td class="gt_row gt_right">0.840</td>
+<td class="gt_row gt_right">0.371</td>
+<td class="gt_row gt_right">0.739</td>
+<td class="gt_row gt_right">0.756</td>
+<td class="gt_row gt_right">0.784</td>
+<td class="gt_row gt_right">0.744</td>
+<td class="gt_row gt_right">0.697</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">Platelet</td>
+<td class="gt_row gt_right">0.147</td>
+<td class="gt_row gt_right">0.169</td>
+<td class="gt_row gt_right">0.169</td>
+<td class="gt_row gt_right">0.011</td>
+<td class="gt_row gt_right">0.096</td>
 <td class="gt_row gt_right">0.056</td>
 <td class="gt_row gt_right">0.063</td>
-<td class="gt_row gt_right">0.066</td>
-<td class="gt_row gt_right">0.058</td>
-<td class="gt_row gt_right">0.038</td>
-<td class="gt_row gt_right">0.116</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Endothelial cells</td>
-<td class="gt_row gt_right">0.826</td>
-<td class="gt_row gt_right">0.826</td>
-<td class="gt_row gt_right">0.814</td>
+<td class="gt_row gt_right">0.055</td>
+<td class="gt_row gt_right">0.146</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">dnT</td>
+<td class="gt_row gt_right">0.186</td>
+<td class="gt_row gt_right">0.208</td>
+<td class="gt_row gt_right">0.206</td>
+<td class="gt_row gt_right">0.017</td>
+<td class="gt_row gt_right">0.074</td>
+<td class="gt_row gt_right">0.043</td>
+<td class="gt_row gt_right">0.055</td>
+<td class="gt_row gt_right">0.044</td>
+<td class="gt_row gt_right">0.111</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">NK Proliferating</td>
+<td class="gt_row gt_right">0.625</td>
+<td class="gt_row gt_right">0.649</td>
+<td class="gt_row gt_right">0.648</td>
+<td class="gt_row gt_right">0.176</td>
+<td class="gt_row gt_right">0.364</td>
+<td class="gt_row gt_right">0.335</td>
+<td class="gt_row gt_right">0.370</td>
+<td class="gt_row gt_right">0.334</td>
+<td class="gt_row gt_right">0.591</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">NK_CD56bright</td>
+<td class="gt_row gt_right">0.370</td>
+<td class="gt_row gt_right">0.385</td>
+<td class="gt_row gt_right">0.383</td>
+<td class="gt_row gt_right">0.031</td>
+<td class="gt_row gt_right">0.053</td>
+<td class="gt_row gt_right">0.053</td>
+<td class="gt_row gt_right">0.071</td>
+<td class="gt_row gt_right">0.062</td>
+<td class="gt_row gt_right">0.109</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">MAIT</td>
+<td class="gt_row gt_right">0.999</td>
+<td class="gt_row gt_right">0.999</td>
+<td class="gt_row gt_right">0.999</td>
+<td class="gt_row gt_right">0.977</td>
+<td class="gt_row gt_right">0.990</td>
+<td class="gt_row gt_right">0.991</td>
+<td class="gt_row gt_right">0.992</td>
+<td class="gt_row gt_right">0.992</td>
+<td class="gt_row gt_right">0.984</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">CD8 TCM</td>
+<td class="gt_row gt_right">0.476</td>
+<td class="gt_row gt_right">0.487</td>
+<td class="gt_row gt_right">0.484</td>
+<td class="gt_row gt_right">0.046</td>
+<td class="gt_row gt_right">0.046</td>
 <td class="gt_row gt_right">0.057</td>
-<td class="gt_row gt_right">0.028</td>
-<td class="gt_row gt_right">0.027</td>
+<td class="gt_row gt_right">0.071</td>
+<td class="gt_row gt_right">0.059</td>
+<td class="gt_row gt_right">0.083</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">CD16 Mono</td>
+<td class="gt_row gt_right">0.473</td>
+<td class="gt_row gt_right">0.478</td>
+<td class="gt_row gt_right">0.475</td>
+<td class="gt_row gt_right">0.055</td>
+<td class="gt_row gt_right">0.055</td>
+<td class="gt_row gt_right">0.063</td>
+<td class="gt_row gt_right">0.078</td>
+<td class="gt_row gt_right">0.067</td>
+<td class="gt_row gt_right">0.091</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">B memory</td>
+<td class="gt_row gt_right">0.936</td>
+<td class="gt_row gt_right">0.939</td>
+<td class="gt_row gt_right">0.936</td>
+<td class="gt_row gt_right">0.455</td>
+<td class="gt_row gt_right">0.421</td>
+<td class="gt_row gt_right">0.502</td>
+<td class="gt_row gt_right">0.518</td>
+<td class="gt_row gt_right">0.502</td>
+<td class="gt_row gt_right">0.711</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">CD4 CTL</td>
+<td class="gt_row gt_right">0.601</td>
+<td class="gt_row gt_right">0.609</td>
+<td class="gt_row gt_right">0.602</td>
+<td class="gt_row gt_right">0.052</td>
+<td class="gt_row gt_right">0.035</td>
+<td class="gt_row gt_right">0.051</td>
+<td class="gt_row gt_right">0.061</td>
 <td class="gt_row gt_right">0.049</td>
-<td class="gt_row gt_right">0.047</td>
-<td class="gt_row gt_right">0.341</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Fibroblast</td>
+<td class="gt_row gt_right">0.085</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">CD4 TEM</td>
+<td class="gt_row gt_right">0.588</td>
+<td class="gt_row gt_right">0.598</td>
+<td class="gt_row gt_right">0.594</td>
+<td class="gt_row gt_right">0.054</td>
+<td class="gt_row gt_right">0.039</td>
+<td class="gt_row gt_right">0.055</td>
+<td class="gt_row gt_right">0.064</td>
+<td class="gt_row gt_right">0.050</td>
+<td class="gt_row gt_right">0.088</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">Treg</td>
+<td class="gt_row gt_right">0.596</td>
+<td class="gt_row gt_right">0.606</td>
+<td class="gt_row gt_right">0.599</td>
+<td class="gt_row gt_right">0.058</td>
+<td class="gt_row gt_right">0.034</td>
+<td class="gt_row gt_right">0.057</td>
+<td class="gt_row gt_right">0.070</td>
+<td class="gt_row gt_right">0.057</td>
+<td class="gt_row gt_right">0.070</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">CD14 Mono</td>
 <td class="gt_row gt_right">1.000</td>
 <td class="gt_row gt_right">1.000</td>
 <td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">0.968</td></tr>
-    <tr><td class="gt_row gt_right gt_stub">Cardiomyocytes</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">1.000</td>
-<td class="gt_row gt_right">0.998</td>
-<td class="gt_row gt_right">1.000</td>
+<td class="gt_row gt_right">0.991</td>
+<td class="gt_row gt_right">0.995</td>
 <td class="gt_row gt_right">0.996</td>
-<td class="gt_row gt_right">0.994</td>
-<td class="gt_row gt_right">0.994</td></tr>
+<td class="gt_row gt_right">0.997</td>
+<td class="gt_row gt_right">0.997</td>
+<td class="gt_row gt_right">0.985</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">B intermediate</td>
+<td class="gt_row gt_right">0.627</td>
+<td class="gt_row gt_right">0.632</td>
+<td class="gt_row gt_right">0.625</td>
+<td class="gt_row gt_right">0.065</td>
+<td class="gt_row gt_right">0.039</td>
+<td class="gt_row gt_right">0.059</td>
+<td class="gt_row gt_right">0.065</td>
+<td class="gt_row gt_right">0.060</td>
+<td class="gt_row gt_right">0.081</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">CD8 Naive</td>
+<td class="gt_row gt_right">0.640</td>
+<td class="gt_row gt_right">0.645</td>
+<td class="gt_row gt_right">0.639</td>
+<td class="gt_row gt_right">0.065</td>
+<td class="gt_row gt_right">0.039</td>
+<td class="gt_row gt_right">0.055</td>
+<td class="gt_row gt_right">0.066</td>
+<td class="gt_row gt_right">0.054</td>
+<td class="gt_row gt_right">0.090</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">B naive</td>
+<td class="gt_row gt_right">0.953</td>
+<td class="gt_row gt_right">0.953</td>
+<td class="gt_row gt_right">0.953</td>
+<td class="gt_row gt_right">0.516</td>
+<td class="gt_row gt_right">0.464</td>
+<td class="gt_row gt_right">0.529</td>
+<td class="gt_row gt_right">0.534</td>
+<td class="gt_row gt_right">0.506</td>
+<td class="gt_row gt_right">0.716</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">CD8 TEM</td>
+<td class="gt_row gt_right">0.797</td>
+<td class="gt_row gt_right">0.801</td>
+<td class="gt_row gt_right">0.782</td>
+<td class="gt_row gt_right">0.096</td>
+<td class="gt_row gt_right">0.044</td>
+<td class="gt_row gt_right">0.066</td>
+<td class="gt_row gt_right">0.047</td>
+<td class="gt_row gt_right">0.042</td>
+<td class="gt_row gt_right">0.092</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">NK</td>
+<td class="gt_row gt_right">1.000</td>
+<td class="gt_row gt_right">1.000</td>
+<td class="gt_row gt_right">1.000</td>
+<td class="gt_row gt_right">1.000</td>
+<td class="gt_row gt_right">1.000</td>
+<td class="gt_row gt_right">1.000</td>
+<td class="gt_row gt_right">1.000</td>
+<td class="gt_row gt_right">1.000</td>
+<td class="gt_row gt_right">0.991</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">CD4 TCM</td>
+<td class="gt_row gt_right">0.809</td>
+<td class="gt_row gt_right">0.809</td>
+<td class="gt_row gt_right">0.794</td>
+<td class="gt_row gt_right">0.055</td>
+<td class="gt_row gt_right">0.023</td>
+<td class="gt_row gt_right">0.040</td>
+<td class="gt_row gt_right">0.029</td>
+<td class="gt_row gt_right">0.017</td>
+<td class="gt_row gt_right">0.048</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">CD4 Naive</td>
+<td class="gt_row gt_right">0.999</td>
+<td class="gt_row gt_right">0.999</td>
+<td class="gt_row gt_right">0.997</td>
+<td class="gt_row gt_right">0.719</td>
+<td class="gt_row gt_right">0.583</td>
+<td class="gt_row gt_right">0.692</td>
+<td class="gt_row gt_right">0.526</td>
+<td class="gt_row gt_right">0.453</td>
+<td class="gt_row gt_right">0.683</td></tr>
+  </tbody>
+  
+  
+</table>
+</div>
+<pre class="r"><code>foldchange &lt;- grp2.trueprops/grp1.trueprops
+o &lt;- order(abs(log(foldchange)))
+pheatmap(sig.disc[o,4:9], scale=&quot;none&quot;, cluster_rows = FALSE, cluster_cols = FALSE, main = &quot;Proportion of significant tests, ordered by fold-change&quot;)</code></pre>
+<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-35-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Within a simulation we can calculate the numbers of true positives
+etc.</p>
+<pre class="r"><code>tp &lt;- fp &lt;- sig &lt;- tn &lt;- matrix(NA,nrow=9,ncol=nsim)
+rownames(tp) &lt;- c(&quot;chisq&quot;,&quot;logbin&quot;,&quot;pois&quot;,&quot;asin&quot;, &quot;logit&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;nbQLF&quot;,&quot;CODA&quot;)
+
+tp[1,]&lt;-colSums(pval.chsq[de,]&lt;pcut) 
+tp[2,]&lt;-colSums(pval.lb[de,]&lt;pcut)
+tp[3,]&lt;-colSums(pval.pois[de,]&lt;pcut) 
+tp[4,]&lt;-colSums(pval.asin[de,]&lt;pcut) 
+tp[5,]&lt;-colSums(pval.logit[de,]&lt;pcut) 
+tp[6,]&lt;-colSums(pval.bb[de,]&lt;pcut)
+tp[7,]&lt;-colSums(pval.nb[de,]&lt;pcut)
+tp[8,]&lt;-colSums(pval.qlf[de,]&lt;pcut)
+tp[9,]&lt;-colSums(pval.coda[de,]&lt;pcut) 
+
+sig[1,]&lt;-colSums(pval.chsq&lt;pcut) 
+sig[2,]&lt;-colSums(pval.lb&lt;pcut)
+sig[3,]&lt;-colSums(pval.pois&lt;pcut) 
+sig[4,]&lt;-colSums(pval.asin&lt;pcut) 
+sig[5,]&lt;-colSums(pval.logit&lt;pcut) 
+sig[6,]&lt;-colSums(pval.bb&lt;pcut)
+sig[7,]&lt;-colSums(pval.nb&lt;pcut)
+sig[8,]&lt;-colSums(pval.qlf&lt;pcut)
+sig[9,]&lt;-colSums(pval.coda&lt;pcut) 
+
+recall &lt;- tp/8
+precision &lt;- tp/sig
+f1 &lt;- 2*(recall*precision)/(recall + precision)  
+
+rowMeans(recall)</code></pre>
+<pre><code>   chisq   logbin     pois     asin    logit  betabin   negbin    nbQLF 
+0.915500 0.922375 0.921625 0.650625 0.694500 0.725125 0.715125 0.691000 
+    CODA 
+0.794750 </code></pre>
+<pre class="r"><code>rowMeans(precision)</code></pre>
+<pre><code>    chisq    logbin      pois      asin     logit   betabin    negbin     nbQLF 
+0.5442174 0.5412529 0.5443047 0.9077964 0.9170337 0.9097524 0.8977022 0.9109782 
+     CODA 
+0.8649798 </code></pre>
+<pre class="r"><code>rowMeans(f1)</code></pre>
+<pre><code>    chisq    logbin      pois      asin     logit   betabin    negbin     nbQLF 
+0.6796567 0.6793506 0.6814316 0.7493063 0.7812391 0.7984140 0.7869849 0.7766171 
+     CODA 
+0.8193951 </code></pre>
+<pre class="r"><code>res &lt;- data.frame(Recall = rowMeans(recall), Precision = rowMeans(precision),
+                  F1score = rowMeans(f1))
+rownames(res) &lt;- rownames(recall)
+gt(res,rownames_to_stub=TRUE,caption=&quot;True differences in 8/20 cell types&quot;)</code></pre>
+<div id="wvwzfrkyyv" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#wvwzfrkyyv .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#wvwzfrkyyv .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#wvwzfrkyyv .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#wvwzfrkyyv .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#wvwzfrkyyv .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#wvwzfrkyyv .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#wvwzfrkyyv .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#wvwzfrkyyv .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#wvwzfrkyyv .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#wvwzfrkyyv .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#wvwzfrkyyv .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#wvwzfrkyyv .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#wvwzfrkyyv .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#wvwzfrkyyv .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#wvwzfrkyyv .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#wvwzfrkyyv .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#wvwzfrkyyv .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#wvwzfrkyyv .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#wvwzfrkyyv .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#wvwzfrkyyv .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#wvwzfrkyyv .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#wvwzfrkyyv .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#wvwzfrkyyv .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#wvwzfrkyyv .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#wvwzfrkyyv .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#wvwzfrkyyv .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#wvwzfrkyyv .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#wvwzfrkyyv .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#wvwzfrkyyv .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#wvwzfrkyyv .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#wvwzfrkyyv .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#wvwzfrkyyv .gt_left {
+  text-align: left;
+}
+
+#wvwzfrkyyv .gt_center {
+  text-align: center;
+}
+
+#wvwzfrkyyv .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#wvwzfrkyyv .gt_font_normal {
+  font-weight: normal;
+}
+
+#wvwzfrkyyv .gt_font_bold {
+  font-weight: bold;
+}
+
+#wvwzfrkyyv .gt_font_italic {
+  font-style: italic;
+}
+
+#wvwzfrkyyv .gt_super {
+  font-size: 65%;
+}
+
+#wvwzfrkyyv .gt_two_val_uncert {
+  display: inline-block;
+  line-height: 1em;
+  text-align: right;
+  font-size: 60%;
+  vertical-align: -0.25em;
+  margin-left: 0.1em;
+}
+
+#wvwzfrkyyv .gt_footnote_marks {
+  font-style: italic;
+  font-weight: normal;
+  font-size: 75%;
+  vertical-align: 0.4em;
+}
+
+#wvwzfrkyyv .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#wvwzfrkyyv .gt_slash_mark {
+  font-size: 0.7em;
+  line-height: 0.7em;
+  vertical-align: 0.15em;
+}
+
+#wvwzfrkyyv .gt_fraction_numerator {
+  font-size: 0.6em;
+  line-height: 0.6em;
+  vertical-align: 0.45em;
+}
+
+#wvwzfrkyyv .gt_fraction_denominator {
+  font-size: 0.6em;
+  line-height: 0.6em;
+  vertical-align: -0.05em;
+}
+</style>
+<table class="gt_table">
+  <caption>True differences in 8/20 cell types</caption>
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1"></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Recall</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Precision</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">F1score</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td class="gt_row gt_right gt_stub">chisq</td>
+<td class="gt_row gt_right">0.915500</td>
+<td class="gt_row gt_right">0.5442174</td>
+<td class="gt_row gt_right">0.6796567</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">logbin</td>
+<td class="gt_row gt_right">0.922375</td>
+<td class="gt_row gt_right">0.5412529</td>
+<td class="gt_row gt_right">0.6793506</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">pois</td>
+<td class="gt_row gt_right">0.921625</td>
+<td class="gt_row gt_right">0.5443047</td>
+<td class="gt_row gt_right">0.6814316</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">asin</td>
+<td class="gt_row gt_right">0.650625</td>
+<td class="gt_row gt_right">0.9077964</td>
+<td class="gt_row gt_right">0.7493063</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">logit</td>
+<td class="gt_row gt_right">0.694500</td>
+<td class="gt_row gt_right">0.9170337</td>
+<td class="gt_row gt_right">0.7812391</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">betabin</td>
+<td class="gt_row gt_right">0.725125</td>
+<td class="gt_row gt_right">0.9097524</td>
+<td class="gt_row gt_right">0.7984140</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">negbin</td>
+<td class="gt_row gt_right">0.715125</td>
+<td class="gt_row gt_right">0.8977022</td>
+<td class="gt_row gt_right">0.7869849</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">nbQLF</td>
+<td class="gt_row gt_right">0.691000</td>
+<td class="gt_row gt_right">0.9109782</td>
+<td class="gt_row gt_right">0.7766171</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">CODA</td>
+<td class="gt_row gt_right">0.794750</td>
+<td class="gt_row gt_right">0.8649798</td>
+<td class="gt_row gt_right">0.8193951</td></tr>
   </tbody>
   
   
 </table>
 </div>
 <pre class="r"><code>layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
-par(mar=c(8,5,3,2))
+par(mar=c(9,5,3,2))
 par(mgp=c(3, 0.5, 0))
 o &lt;- order(trueprops)
 names &lt;- c(&quot;propeller (asin)&quot;,&quot;propeller (logit)&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;negbinQLF&quot;,&quot;CODA&quot;)
-barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(b)),
+barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(trueprops)),
         ylab=&quot;Proportion sig. tests&quot;, names=names,
         cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
 title(paste(&quot;Significant tests, n=&quot;,nsamp/2,sep=&quot;&quot;), cex.main=1.5)
 abline(h=pcut,lty=2,lwd=2)
 par(mar=c(0,0,0,0))
 plot(1, type = &quot;n&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;, xaxt=&quot;n&quot;,yaxt=&quot;n&quot;, bty=&quot;n&quot;)
-legend(&quot;center&quot;, legend=paste(&quot;True p =&quot;,round(trueprops,3)[o]), fill=ggplotColors(length(b)), cex=1.5)</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-35-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>o &lt;- order(trueprops)
-mysig &lt;- sig.disc[o,4:9]
-colnames(mysig) &lt;- names
-pheatmap(mysig, scale=&quot;none&quot;, cluster_rows = FALSE, cluster_cols = FALSE,
-         labels_row = c(expression(paste(pi, &quot; = 0.008*&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.016&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.064&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.076&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.102&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.183*&quot;, sep=&quot;&quot;)),
-                        expression(paste(pi, &quot; = 0.551*&quot;, sep=&quot;&quot;))),
-         main=paste(&quot;Significant tests, n=&quot;,nsamp/2,sep=&quot;&quot;))</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-36-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>sig.disc20 &lt;- sig.disc</code></pre>
+legend(&quot;center&quot;, legend=paste(&quot;True p =&quot;,round(trueprops,3)[o]), fill=ggplotColors(length(trueprops)), cex=1.5)</code></pre>
+<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-38-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>auc.asin &lt;- auc.logit &lt;- auc.bb &lt;- auc.nb &lt;- auc.qlf &lt;- auc.coda &lt;- rep(NA,nsim)
 for(i in 1:nsim){
   auc.asin[i] &lt;- auroc(score=1-pval.asin[,i],bool=de)
@@ -3500,22 +4153,74 @@ for(i in 1:nsim){
 }
 
 mean(auc.asin)</code></pre>
-<pre><code>[1] 0.99975</code></pre>
+<pre><code>[1] 0.8993229</code></pre>
 <pre class="r"><code>mean(auc.logit)</code></pre>
-<pre><code>[1] 0.9995</code></pre>
+<pre><code>[1] 0.9117812</code></pre>
 <pre class="r"><code>mean(auc.bb)</code></pre>
-<pre><code>[1] 0.9995833</code></pre>
+<pre><code>[1] 0.9164062</code></pre>
 <pre class="r"><code>mean(auc.nb)</code></pre>
-<pre><code>[1] 0.9985833</code></pre>
+<pre><code>[1] 0.9135833</code></pre>
 <pre class="r"><code>mean(auc.qlf)</code></pre>
-<pre><code>[1] 0.9986667</code></pre>
+<pre><code>[1] 0.91275</code></pre>
 <pre class="r"><code>mean(auc.coda)</code></pre>
-<pre><code>[1] 0.9849167</code></pre>
+<pre><code>[1] 0.9297188</code></pre>
 <pre class="r"><code>par(mfrow=c(1,1))
 par(mar=c(9,5,3,2))
 barplot(c(mean(auc.asin),mean(auc.logit),mean(auc.bb),mean(auc.nb),mean(auc.qlf),mean(auc.coda)), ylim=c(0,1), ylab= &quot;AUC&quot;, cex.axis=1.5, cex.lab=1.5, names=names, las=2, cex.names = 1.5)
-title(paste(&quot;AUC: sample size n=&quot;,nsamp/2,sep=&quot;&quot;),cex.main=1.5)</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-39-1.png" width="672" style="display: block; margin: auto;" /></p>
+title(paste(&quot;AUC: sample size n=&quot;,nsamp/2,sep=&quot;&quot;),cex.main=1.5,adj=0)</code></pre>
+<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-40-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>true positive vs false positive rate</p>
+<pre class="r"><code>tp.rate.asin &lt;- fp.rate.asin &lt;- tp.rate.logit &lt;- fp.rate.logit &lt;-
+  tp.rate.bb &lt;- fp.rate.bb &lt;-  tp.rate.nb &lt;- fp.rate.nb &lt;- 
+  tp.rate.qlf &lt;- fp.rate.qlf &lt;- tp.rate.coda &lt;- fp.rate.coda  &lt;- matrix(NA,nrow=20,ncol=nsim)
+for(i in 1:nsim){
+  o &lt;- order(pval.asin[,i])
+  tp.rate.asin[,i] &lt;- cumsum(de[o]) 
+  fp.rate.asin[,i] &lt;- cumsum(1-de[o])
+  
+  o &lt;- order(pval.logit[,i])
+  tp.rate.logit[,i] &lt;- cumsum(de[o]) 
+  fp.rate.logit[,i] &lt;- cumsum(1-de[o])
+  
+  o &lt;- order(pval.bb[,i])
+  tp.rate.bb[,i] &lt;- cumsum(de[o]) 
+  fp.rate.bb[,i] &lt;- cumsum(1-de[o])
+  
+  o &lt;- order(pval.nb[,i])
+  tp.rate.nb[,i] &lt;- cumsum(de[o]) 
+  fp.rate.nb[,i] &lt;- cumsum(1-de[o])
+  
+  o &lt;- order(pval.qlf[,i])
+  tp.rate.qlf[,i] &lt;- cumsum(de[o]) 
+  fp.rate.qlf[,i] &lt;- cumsum(1-de[o])
+  
+  o &lt;- order(pval.coda[,i])
+  tp.rate.coda[,i] &lt;- cumsum(de[o]) 
+  fp.rate.coda[,i] &lt;- cumsum(1-de[o])
+}</code></pre>
+<pre class="r"><code>mycols &lt;- c(1,2,4,3,&quot;orange&quot;,8)
+plot(rowMeans(fp.rate.asin)/12,rowMeans(tp.rate.asin)/8,col=mycols[1], type=&quot;l&quot;,lwd=2,
+     ylab=&quot;True positive rate&quot;, xlab=&quot;False positive rate&quot;)
+lines(rowMeans(fp.rate.bb)/12,rowMeans(tp.rate.bb)/8,lwd=2,col=mycols[3])
+lines(rowMeans(fp.rate.nb)/12,rowMeans(tp.rate.nb)/8,lwd=2,col=mycols[4])
+lines(rowMeans(fp.rate.qlf)/12,rowMeans(tp.rate.nb)/8,lwd=2,col=mycols[5])
+lines(rowMeans(fp.rate.coda)/12,rowMeans(tp.rate.nb)/8,lwd=2,col=mycols[6])
+lines(rowMeans(fp.rate.logit)/12,rowMeans(tp.rate.logit)/8,lwd=2,col=mycols[2])
+
+legend(&quot;bottomright&quot;,legend=names,fill=mycols)
+title(&quot;ROC&quot;, adj=0)</code></pre>
+<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-42-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>plot(rowMeans(fp.rate.asin)/12,rowMeans(tp.rate.asin)/8,col=mycols[1], type=&quot;l&quot;,lwd=2,
+     ylab=&quot;True positive rate&quot;, xlab=&quot;False positive rate&quot;, xlim=c(0,0.2))
+lines(rowMeans(fp.rate.bb)/12,rowMeans(tp.rate.bb)/8,lwd=2,col=mycols[3])
+lines(rowMeans(fp.rate.nb)/12,rowMeans(tp.rate.nb)/8,lwd=2,col=mycols[4])
+lines(rowMeans(fp.rate.qlf)/12,rowMeans(tp.rate.nb)/8,lwd=2,col=mycols[5])
+lines(rowMeans(fp.rate.coda)/12,rowMeans(tp.rate.nb)/8,lwd=2,col=mycols[6])
+lines(rowMeans(fp.rate.logit)/12,rowMeans(tp.rate.logit)/8,lwd=2,col=mycols[2])
+
+legend(&quot;bottomright&quot;,legend=names,fill=mycols)
+title(&quot;ROC- zoomed in&quot;, adj=0)</code></pre>
+<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-43-1.png" width="672" style="display: block; margin: auto;" /></p>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -3601,32 +4306,33 @@ loaded via a namespace (and not attached):
 [105] mime_0.12                   compiler_4.2.0             
 [107] rstudioapi_0.13             plotly_4.10.0              
 [109] png_0.1-7                   spatstat.utils_2.3-1       
-[111] tibble_3.1.7                bslib_0.3.1                
-[113] stringi_1.7.6               highr_0.9                  
-[115] ps_1.7.0                    rgeos_0.5-9                
-[117] lattice_0.20-45             Matrix_1.4-1               
-[119] vctrs_0.4.1                 pillar_1.7.0               
-[121] lifecycle_1.0.1             spatstat.geom_2.4-0        
-[123] lmtest_0.9-40               jquerylib_0.1.4            
-[125] RcppAnnoy_0.0.19            data.table_1.14.2          
-[127] cowplot_1.1.1               bitops_1.0-7               
-[129] irlba_2.3.5                 GenomicRanges_1.48.0       
-[131] httpuv_1.6.5                patchwork_1.1.1            
-[133] R6_2.5.1                    promises_1.2.0.1           
-[135] KernSmooth_2.23-20          gridExtra_2.3              
-[137] IRanges_2.30.0              parallelly_1.31.1          
-[139] codetools_0.2-18            MASS_7.3-57                
-[141] assertthat_0.2.1            SummarizedExperiment_1.26.1
-[143] rprojroot_2.0.3             SeuratObject_4.1.0         
-[145] sctransform_0.3.3           S4Vectors_0.34.0           
-[147] GenomeInfoDbData_1.2.8      mgcv_1.8-40                
-[149] parallel_4.2.0              beachmat_2.12.0            
-[151] rpart_4.1.16                grid_4.2.0                 
-[153] tidyr_1.2.0                 DelayedMatrixStats_1.18.0  
-[155] rmarkdown_2.14              MatrixGenerics_1.8.0       
-[157] Rtsne_0.16                  git2r_0.30.1               
-[159] getPass_0.2-2               Biobase_2.56.0             
-[161] shiny_1.7.1                </code></pre>
+[111] statmod_1.4.36              tibble_3.1.7               
+[113] bslib_0.3.1                 stringi_1.7.6              
+[115] highr_0.9                   ps_1.7.0                   
+[117] rgeos_0.5-9                 lattice_0.20-45            
+[119] Matrix_1.4-1                vctrs_0.4.1                
+[121] pillar_1.7.0                lifecycle_1.0.1            
+[123] spatstat.geom_2.4-0         lmtest_0.9-40              
+[125] jquerylib_0.1.4             RcppAnnoy_0.0.19           
+[127] data.table_1.14.2           cowplot_1.1.1              
+[129] bitops_1.0-7                irlba_2.3.5                
+[131] GenomicRanges_1.48.0        httpuv_1.6.5               
+[133] patchwork_1.1.1             R6_2.5.1                   
+[135] promises_1.2.0.1            KernSmooth_2.23-20         
+[137] gridExtra_2.3               IRanges_2.30.0             
+[139] parallelly_1.31.1           codetools_0.2-18           
+[141] MASS_7.3-57                 assertthat_0.2.1           
+[143] SummarizedExperiment_1.26.1 rprojroot_2.0.3            
+[145] SeuratObject_4.1.0          sctransform_0.3.3          
+[147] S4Vectors_0.34.0            GenomeInfoDbData_1.2.8     
+[149] mgcv_1.8-40                 parallel_4.2.0             
+[151] beachmat_2.12.0             rpart_4.1.16               
+[153] grid_4.2.0                  tidyr_1.2.0                
+[155] DelayedMatrixStats_1.18.0   rmarkdown_2.14             
+[157] MatrixGenerics_1.8.0        Rtsne_0.16                 
+[159] git2r_0.30.1                getPass_0.2-2              
+[161] lubridate_1.8.0             Biobase_2.56.0             
+[163] shiny_1.7.1                </code></pre>
 </div>
 </div>
 </div>
