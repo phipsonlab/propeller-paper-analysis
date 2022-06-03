@@ -1,0 +1,214 @@
+---
+title: "Application to real single cell RNA-seq datasets"
+author: "Belinda Phipson"
+date: "06/03/2022"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    message = FALSE,
+    warning = FALSE
+)
+```
+
+# Introduction
+
+We analysed three different publicly available single cell datasets to highlight 
+the different types of models that can be fitted within the propeller framework.
+
+* Young and old female and male PBMCs
+  + Huang, Zhaohao, Binyao Chen, Xiuxing Liu, He Li, Lihui Xie, Yuehan Gao, Runping Duan, et al. 2021. “Effects of Sex and Aging on the Immune Cell Landscape as Assessed by Single-Cell Transcriptomic Analysis.” Proceedings of the National Academy of Sciences of the United States of America 118 (33). https://doi.org/10.1073/pnas.2023216118.
+
+* Healthy human heart biopsies across development
+  + Sim, Choon Boon, Belinda Phipson, Mark Ziemann, Haloom Rafehi, Richard J. Mills, Kevin I. Watt, Kwaku D. Abu-Bonsrah, et al. 2021. “Sex-Specific Control of Human Heart Maturation by the Progesterone Receptor.” Circulation 143 (16): 1614–28.
+
+* Bronchoalveolar lavage fluid in a COVID19 dataset
+  + Liao, Mingfeng, Yang Liu, Jing Yuan, Yanling Wen, Gang Xu, Juanjuan Zhao, Lin Cheng, et al. 2020. “Single-Cell Landscape of Bronchoalveolar Immune Cells in Patients with COVID-19.” Nature Medicine 26 (6): 842–44.
+
+
+# Load libraries
+
+```{r}
+library(speckle)
+library(limma)
+library(edgeR)
+library(pheatmap)
+library(gt)
+```
+
+
+# Young and old female and male PBMCs
+
+```{r}
+sexCT <- read.delim("./data/CTpropsTransposed.txt", row.names = 1)
+sexprops <- sexCT/100
+sexcounts <- sexprops*174684/20
+sampleinfo <- read.csv("./data/sampleinfo.csv", nrows = 20)
+celltypes <- read.csv("./data/CelltypeLevels.csv")
+group.immune <- paste(sampleinfo$Sex, sampleinfo$Age, sep=".")
+```
+
+```{r}
+gt(data.frame(table(sampleinfo$Sex, sampleinfo$Age)), rownames_to_stub = TRUE, caption="Sample info")
+```
+
+
+```{r}
+c2.props.logit <- t(t(sexcounts+0.5)/(colSums(sexcounts+0.5)))
+c2.logit.prop <- log(c2.props.logit/(1-c2.props.logit))
+```
+
+
+```{r}
+designAS <- model.matrix(~sampleinfo$Age + sampleinfo$Sex)
+fit.logit.c2 <- lmFit(c2.logit.prop, designAS)
+fit.logit.c2 <- eBayes(fit.logit.c2, robust=TRUE)
+summary(decideTests(fit.logit.c2))
+topTable(fit.logit.c2, coef=2)
+topTable(fit.logit.c2, coef=3)
+```
+
+```{r, fig.width=11, fig.height=6}
+par(mfrow=c(1,2))
+stripchart(as.numeric(sexprops["CD8.Naive",])~group.immune,
+           vertical=TRUE, pch=c(8,16), method="jitter",
+           col = c(ggplotColors(20)[20],"hotpink",4, "darkblue"),cex=2,
+           ylab="Proportions", cex.axis=1.25, cex.lab=1.5,
+           group.names=c("F.Old","F.Young","M.Old","M.Young"))
+title("CD8.Naive: Young Vs Old", cex.main=1.5, adj=0)
+text(3.2,0.18, labels = "Adj.Pval = 0.004")
+
+stripchart(as.numeric(sexprops["CD16",])~group.immune,
+           vertical=TRUE, pch=c(8,16), method="jitter",
+           col = c(ggplotColors(20)[20],"hotpink",4, "darkblue"),cex=2,
+           ylab="Proportions", cex.axis=1.25, cex.lab=1.5,
+           group.names=c("F.Old","F.Young","M.Old","M.Young"))
+title("CD16: Young Vs Old", cex.main=1.5, adj=0)
+text(2.2,0.049, labels = "Adj.Pval = 0.023")
+```
+
+
+# Heart development analysis
+```{r}
+heart.info <- read.csv(file="./data/cellinfo.csv", row.names = 1)
+heart.counts <- table(heart.info$Celltype, heart.info$Sample)
+trueprops <- rowSums(heart.counts)/sum(rowSums(heart.counts))
+
+heart.info$Group <- NA
+heart.info$Group[grep("f",heart.info$Sample)] <- "fetal"
+heart.info$Group[grep("y",heart.info$Sample)] <- "young"
+heart.info$Group[grep("a",heart.info$Sample)] <- "adult"
+
+sample <- factor(heart.info$Sample, levels= paste(rep(c("f","y","a"), each=3),c(1:3),sep=""))
+group <- factor(heart.info$Group, levels=c("fetal","young","adult"))
+```
+
+```{r}
+grp <- factor(rep(c("fetal","young","adult"),each=3), levels=c("fetal","young","adult"))
+sex <- factor(c("m","m","f","m","f","m","f","m","m"))
+```
+
+```{r}
+prop.logit <- getTransformedProps(clusters = heart.info$Celltype, sample=sample,
+                                  transform = "logit")
+dose <- rep(c(1,2,3), each=3) 
+
+des.dose <- model.matrix(~dose +sex)
+des.dose
+
+fit <- lmFit(prop.logit$TransformedProps,des.dose)
+fit <- eBayes(fit, robust=TRUE)
+topTable(fit,coef=2)
+
+fit.plot <- lmFit(prop.logit$Proportions,des.dose)
+fit.plot <- eBayes(fit.plot, robust=TRUE)
+```
+
+```{r,fig.width=12, fig.height=5}
+par(mfrow=c(1,3))
+stripchart(as.numeric(prop.logit$Proportions["Immune cells",])~grp,
+           vertical=TRUE, pch=16, method="jitter",
+           col = ggplotColors(4),cex=2, 
+           ylab="Proportions",cex.axis=1.25, cex.lab=1.5)
+title("Immune development", cex.main=1.5, adj=0)
+abline(a=fit.plot$coefficients["Immune cells",1], b=fit.plot$coefficients["Immune cells",2], lty=2, lwd=2)
+
+
+stripchart(as.numeric(prop.logit$Proportions["Cardiomyocytes",])~grp,
+           vertical=TRUE, pch=16, method="jitter",
+           col = ggplotColors(4),cex=2, 
+           ylab="Proportions",cex.axis=1.25, cex.lab=1.5)
+title("Cardiomyocyte development", cex.main=1.5, adj=0)
+abline(a=fit.plot$coefficients["Cardiomyocytes",1], b=fit.plot$coefficients["Cardiomyocytes",2], lty=2, lwd=2)
+text(2.6,0.77, labels = "Adj.Pval = 0.01")
+
+stripchart(as.numeric(prop.logit$Proportions["Fibroblast",])~grp,
+           vertical=TRUE, pch=16, method="jitter",
+           col = ggplotColors(4),cex=2, 
+           ylab="Proportions",cex.axis=1.25, cex.lab=1.5)
+title("Fibroblast development", cex.main=1.5, adj=0)
+abline(a=fit.plot$coefficients["Fibroblast",1], b=fit.plot$coefficients["Fibroblast",2], lty=2, lwd=2)
+```
+
+# COVID data
+
+```{r}
+covid <- read.delim("./data/covid.cell.annotation.meta.txt")
+```
+
+```{r}
+output <- propeller(clusters=covid$celltype, sample=covid$sample_new, group=covid$group, transform="logit")
+output
+```
+
+```{r}
+props.covid <- getTransformedProps(clusters=covid$celltype, sample=covid$sample_new,
+                                   transform="logit")
+```
+
+
+```{r}
+par(mfrow=c(1,1))
+grp.covid <- rep(c("Control","Moderate","Severe"), c(4, 3, 6))
+stripchart(as.numeric(props.covid$Proportions["Neutrophil",])~grp.covid,
+           vertical=TRUE, pch=16, method="jitter",
+           col = c(4,"purple",2),cex=2, 
+           ylab="Proportions",cex.axis=1.25, cex.lab=1.5)
+title("Neutrophils in severe covid", cex.main=1.5, adj=0)
+text(1.5,0.195, labels = "Adj.Pval = 3.5e-06")
+```
+
+All significant cell types
+```{r,fig.width=10, fig.height=10}
+par(mfrow=c(2,2))
+stripchart(as.numeric(props.covid$Proportions["Neutrophil",])~grp.covid,
+           vertical=TRUE, pch=16, method="jitter",
+           col = c(4,"purple",2),cex=2, 
+           ylab="Proportions",cex.axis=1.25, cex.lab=1.5)
+title("Neutrophils in covid", cex.main=1.5, adj=0)
+
+stripchart(as.numeric(props.covid$Proportions["Plasma",])~grp.covid,
+           vertical=TRUE, pch=16, method="jitter",
+           col = c(4,"purple",2),cex=2, 
+           ylab="Proportions",cex.axis=1.25, cex.lab=1.5)
+title("Plasma in covid", cex.main=1.5, adj=0)
+
+stripchart(as.numeric(props.covid$Proportions["pDC",])~grp.covid,
+           vertical=TRUE, pch=16, method="jitter",
+           col = c(4,"purple",2),cex=2, 
+           ylab="Proportions",cex.axis=1.25, cex.lab=1.5)
+title("pDC in covid", cex.main=1.5, adj=0)
+
+stripchart(as.numeric(props.covid$Proportions["NK",])~grp.covid,
+           vertical=TRUE, pch=16, method="jitter",
+           col = c(4,"purple",2),cex=2, 
+           ylab="Proportions",cex.axis=1.25, cex.lab=1.5)
+title("NK in covid", cex.main=1.5, adj=0)
+```
+
+
+
