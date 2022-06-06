@@ -394,7 +394,7 @@ class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2022-06-03
+<strong>Last updated:</strong> 2022-06-06
 </p>
 <p>
 <strong>Checks:</strong> <span
@@ -525,15 +525,15 @@ project makes it easier to run your code on other machines.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistreecf6f450596772a8a0899b8542cc100899faa8f09targetblankcf6f450a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistree622390eb1559c52277dd15ea1b02566f63f4bac4targetblank622390ea">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/cf6f450596772a8a0899b8542cc100899faa8f09" target="_blank">cf6f450</a>
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/622390eb1559c52277dd15ea1b02566f63f4bac4" target="_blank">622390e</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistreecf6f450596772a8a0899b8542cc100899faa8f09targetblankcf6f450a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistree622390eb1559c52277dd15ea1b02566f63f4bac4targetblank622390ea"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -543,7 +543,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/cf6f450596772a8a0899b8542cc100899faa8f09" target="_blank">cf6f450</a>.
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/622390eb1559c52277dd15ea1b02566f63f4bac4" target="_blank">622390e</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -569,6 +569,7 @@ Untracked files:
     Untracked:  code/SimCode.R
     Untracked:  code/SimCodeTrueDiff.R
     Untracked:  code/auroc.R
+    Untracked:  code/convertData.R
     Untracked:  data/CTpropsTransposed.txt
     Untracked:  data/CelltypeLevels.csv
     Untracked:  data/TypeIErrTables.Rdata
@@ -632,6 +633,40 @@ Message
 Rmd
 </td>
 <td>
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/blob/622390eb1559c52277dd15ea1b02566f63f4bac4/analysis/RealDataAnalysis.Rmd" target="_blank">622390e</a>
+</td>
+<td>
+bphipson
+</td>
+<td>
+2022-06-06
+</td>
+<td>
+update real data analysis
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/phipsonlab/propeller-paper-analysis/a39985a8740b5468e3b2d71315cf0c918dfa1505/docs/RealDataAnalysis.html" target="_blank">a39985a</a>
+</td>
+<td>
+bphipson
+</td>
+<td>
+2022-06-03
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
 <a href="https://github.com/phipsonlab/propeller-paper-analysis/blob/cf6f450596772a8a0899b8542cc100899faa8f09/analysis/RealDataAnalysis.Rmd" target="_blank">cf6f450</a>
 </td>
 <td>
@@ -681,6 +716,14 @@ Immune Cells in Patients with COVID-19.” Nature Medicine 26 (6):
 842–44.</li>
 </ul></li>
 </ul>
+<p>For all three datasets we use the logit transformation, except for
+the covid dataset. In the covid dataset, there is clearly an outlier for
+the plasma cell type. Using the logit transformation, plasma is found to
+be significantly enriched in severe covid, but using the arcsin square
+root transform shows that it is not significantly enriched. While logit
+may be more powerful according to the simulations, it appears sensitive
+to outliers, and in this case we would prefer to use the arcsin square
+root transform.</p>
 </div>
 <div id="load-libraries" class="section level1">
 <h1>Load libraries</h1>
@@ -689,16 +732,27 @@ library(limma)
 library(edgeR)
 library(pheatmap)
 library(gt)</code></pre>
+<pre class="r"><code>source(&quot;./code/convertData.R&quot;)</code></pre>
 </div>
 <div id="young-and-old-female-and-male-pbmcs" class="section level1">
 <h1>Young and old female and male PBMCs</h1>
+<p>This dataset was published in PNAS in 2021 and examined PBMCs from 20
+individuals. The dataset was balanced in terms of age and sex (5 samples
+in each group: Male + Young, Male + Old, Female + Young, Female +
+Old).</p>
+<p>From the supplementary data I have extracted the cell type
+proportions and using information from the paper I have converted the
+proportions into the necessary data type (a list object) to analyse with
+propeller.</p>
 <pre class="r"><code>sexCT &lt;- read.delim(&quot;./data/CTpropsTransposed.txt&quot;, row.names = 1)
 sexprops &lt;- sexCT/100
-sexcounts &lt;- sexprops*174684/20
+prop.list &lt;- convertDataToList(sexprops,data.type=&quot;proportions&quot;, transform=&quot;logit&quot;,
+                               scale.fac=174684/20)
+
 sampleinfo &lt;- read.csv(&quot;./data/sampleinfo.csv&quot;, nrows = 20)
 celltypes &lt;- read.csv(&quot;./data/CelltypeLevels.csv&quot;)
 group.immune &lt;- paste(sampleinfo$Sex, sampleinfo$Age, sep=&quot;.&quot;)</code></pre>
-<pre class="r"><code>gt(data.frame(table(sampleinfo$Sex, sampleinfo$Age)), rownames_to_stub = TRUE, caption=&quot;Sample info&quot;)</code></pre>
+<pre class="r"><code>gt(data.frame(table(sampleinfo$Sex, sampleinfo$Age)), rownames_to_stub = TRUE, caption=&quot;Sample info for aging dataset&quot;)</code></pre>
 <div id="aamalzggfc" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
@@ -1112,7 +1166,7 @@ group.immune &lt;- paste(sampleinfo$Sex, sampleinfo$Age, sep=&quot;.&quot;)</cod
 }
 </style>
 <table class="gt_table">
-  <caption>Sample info</caption>
+  <caption>Sample info for aging dataset</caption>
   
   <thead class="gt_col_headings">
     <tr>
@@ -1144,40 +1198,66 @@ group.immune &lt;- paste(sampleinfo$Sex, sampleinfo$Age, sep=&quot;.&quot;)</cod
   
 </table>
 </div>
-<pre class="r"><code>c2.props.logit &lt;- t(t(sexcounts+0.5)/(colSums(sexcounts+0.5)))
-c2.logit.prop &lt;- log(c2.props.logit/(1-c2.props.logit))</code></pre>
-<pre class="r"><code>designAS &lt;- model.matrix(~sampleinfo$Age + sampleinfo$Sex)
-fit.logit.c2 &lt;- lmFit(c2.logit.prop, designAS)
-fit.logit.c2 &lt;- eBayes(fit.logit.c2, robust=TRUE)
-summary(decideTests(fit.logit.c2))</code></pre>
-<pre><code>       (Intercept) sampleinfo$Ageyoung sampleinfo$Sexmale
-Down            24                   1                  0
-NotSig           0                  22                 24
-Up               0                   1                  0</code></pre>
-<pre class="r"><code>topTable(fit.logit.c2, coef=2)</code></pre>
-<pre><code>               logFC   AveExpr         t      P.Value   adj.P.Val          B
-CD8.Naive  1.6232449 -3.247755  4.565316 0.0001655915 0.003974195  0.8674723
-CD16      -0.7143307 -3.725612 -3.538451 0.0019313526 0.023176231 -1.4795286
-T-mito    -0.4606184 -5.570899 -2.705649 0.0130970606 0.104776485 -3.2711944
-INTER     -0.3904241 -3.963488 -2.342644 0.0288651941 0.136903877 -3.9878182
-CD4-CD8-   0.9610466 -4.129579  2.268932 0.0338557770 0.136903877 -4.1280803
-TREG      -0.2846572 -3.922781 -2.261672 0.0342259694 0.136903877 -4.1397512
-CD14      -0.2617785 -1.996191 -1.750426 0.0943497196 0.323484753 -5.0169518
-ABC       -0.4831755 -5.933410 -1.530597 0.1406904913 0.419930732 -5.3435560
-CD4.Naive  0.3295994 -2.095783  1.465576 0.1574740245 0.419930732 -5.4334259
-MBC        0.2914029 -3.264982  1.338849 0.1948341805 0.420972299 -5.5993772</code></pre>
-<pre class="r"><code>topTable(fit.logit.c2, coef=3)</code></pre>
-<pre><code>              logFC   AveExpr         t     P.Value adj.P.Val         B
-PC       -0.7424097 -5.443065 -3.166925 0.004618248 0.1108380 -1.977736
-pre-DC    0.6745026 -8.220112  2.511013 0.020226075 0.2427129 -3.242963
-CDC2      0.2612660 -4.373746  1.632579 0.117165640 0.6525306 -4.675749
-NK2       0.3706612 -2.972199  1.511624 0.145428553 0.6525306 -4.839341
-CD4-CD8-  0.6397062 -4.129579  1.510280 0.145769120 0.6525306 -4.841101
-T-mito    0.2393400 -5.570899  1.405871 0.174095994 0.6525306 -4.973952
-NK3       0.4437137 -2.747021  1.133550 0.269669984 0.6525306 -5.282921
-NK1       0.2312700 -4.549216  1.116493 0.276735756 0.6525306 -5.300368
-CD8.CTL  -0.3477298 -2.453654 -1.113149 0.278136717 0.6525306 -5.303761
-CDC1      0.3131922 -7.389070  1.090551 0.287740106 0.6525306 -5.326455</code></pre>
+<p>Set up design matrix using a means model, taking into account age and
+sex.</p>
+<pre class="r"><code>designAS &lt;- model.matrix(~0+sampleinfo$Age + sampleinfo$Sex)
+colnames(designAS) &lt;- c(&quot;old&quot;,&quot;young&quot;,&quot;MvsF&quot;)
+
+# Young vs old
+mycontr &lt;- makeContrasts(young-old, levels=designAS)
+propeller.ttest(prop.list = prop.list,design = designAS, contrasts = mycontr,
+                robust=TRUE,trend=FALSE,sort=TRUE)</code></pre>
+<pre><code>          PropMean.old PropMean.young PropRatio  Tstatistic      P.Value
+CD8.Naive 0.0251316033   0.0901386289 3.5866645  4.56531629 0.0001655915
+CD16      0.0346697484   0.0184110417 0.5310405 -3.53845105 0.0019313526
+T-mito    0.0050757865   0.0030999505 0.6107330 -2.70564864 0.0130970606
+INTER     0.0237901860   0.0160354568 0.6740366 -2.34264441 0.0288651941
+CD4-CD8-  0.0160339954   0.0301971880 1.8833227  2.26893189 0.0338557770
+TREG      0.0224289338   0.0173984106 0.7757128 -2.26167176 0.0342259694
+CD14      0.1381079661   0.1087546814 0.7874613 -1.75042587 0.0943497196
+ABC       0.0042268748   0.0024242272 0.5735271 -1.53059704 0.1406904913
+CD4.Naive 0.1048008357   0.1320789977 1.2602857  1.46557604 0.1574740245
+MBC       0.0358736549   0.0452983191 1.2627183  1.33884893 0.1948341805
+CD8.CTL   0.1154952554   0.0782456785 0.6774796 -1.31085637 0.2039626408
+PC        0.0054708831   0.0049397487 0.9029162 -1.26307895 0.2203089287
+pre-DC    0.0002285096   0.0003193005 1.3973177  1.24144109 0.2280358887
+CDC1      0.0005479607   0.0008647764 1.5781725  1.19434388 0.2455671742
+CD8.Tem   0.0639345157   0.0802785262 1.2556367  1.14556222 0.2646082927
+NK3       0.0886767142   0.0704022112 0.7939199 -1.02022467 0.3191513408
+NK1       0.0125858088   0.0102540186 0.8147286 -0.64532282 0.5256577519
+NBC       0.0487575349   0.0498363513 1.0221261  0.49890406 0.6229966249
+CD4.Tem   0.0873700973   0.0832684783 0.9530547 -0.40297138 0.6909611645
+CD4.Tcm   0.0799349205   0.0746146497 0.9334425  0.23348683 0.8176285211
+PDC       0.0031666984   0.0034597825 1.0925519  0.20366298 0.8405637766
+CD4+CD8+  0.0142514516   0.0133167354 0.9344126 -0.11420442 0.9101389532
+NK2       0.0568274310   0.0528156246 0.9294037  0.04492635 0.9645875142
+CDC2      0.0126126342   0.0135472159 1.0740989  0.03134858 0.9752816776
+                  FDR
+CD8.Naive 0.003974195
+CD16      0.023176231
+T-mito    0.104776485
+INTER     0.136903877
+CD4-CD8-  0.136903877
+TREG      0.136903877
+CD14      0.323484753
+ABC       0.419930732
+CD4.Naive 0.419930732
+MBC       0.420972299
+CD8.CTL   0.420972299
+PC        0.420972299
+pre-DC    0.420972299
+CDC1      0.420972299
+CD8.Tem   0.423373268
+NK3       0.478727011
+NK1       0.742105062
+NBC       0.830662167
+CD4.Tem   0.872793050
+CD4.Tcm   0.960644316
+PDC       0.960644316
+CD4+CD8+  0.975281678
+NK2       0.975281678
+CDC2      0.975281678</code></pre>
+<p>Visualise significant cell types:</p>
 <pre class="r"><code>par(mfrow=c(1,2))
 stripchart(as.numeric(sexprops[&quot;CD8.Naive&quot;,])~group.immune,
            vertical=TRUE, pch=c(8,16), method=&quot;jitter&quot;,
@@ -1198,6 +1278,21 @@ text(2.2,0.049, labels = &quot;Adj.Pval = 0.023&quot;)</code></pre>
 </div>
 <div id="heart-development-analysis" class="section level1">
 <h1>Heart development analysis</h1>
+<p>This dataset was published by Sim et al in 2021 and looked at heart
+development across fetal, young and adult developmental time points.
+There are three samples at each developmental time point. There is also
+mix of male and female samples and one of the key findings of the study
+was transcriptional differences in cardiomyocyte development between
+males and females.</p>
+<p>Here we look at differences in cellular composition of human hearts
+across the developmental trajectory, taking sex into account.</p>
+<p>We can simply perform an anova test to find any differences between
+the three time points. The propeller.anova function can be called to do
+this directly.</p>
+<p>We can also look at development as a continuous trajectory and model
+development as a continuous variable by getting the transformed
+proportions and using fitting functions in limma directly.</p>
+<p>Both of these analysis approaches are shown below.</p>
 <pre class="r"><code>heart.info &lt;- read.csv(file=&quot;./data/cellinfo.csv&quot;, row.names = 1)
 heart.counts &lt;- table(heart.info$Celltype, heart.info$Sample)
 trueprops &lt;- rowSums(heart.counts)/sum(rowSums(heart.counts))
@@ -1210,12 +1305,496 @@ heart.info$Group[grep(&quot;a&quot;,heart.info$Sample)] &lt;- &quot;adult&quot;
 sample &lt;- factor(heart.info$Sample, levels= paste(rep(c(&quot;f&quot;,&quot;y&quot;,&quot;a&quot;), each=3),c(1:3),sep=&quot;&quot;))
 group &lt;- factor(heart.info$Group, levels=c(&quot;fetal&quot;,&quot;young&quot;,&quot;adult&quot;))</code></pre>
 <pre class="r"><code>grp &lt;- factor(rep(c(&quot;fetal&quot;,&quot;young&quot;,&quot;adult&quot;),each=3), levels=c(&quot;fetal&quot;,&quot;young&quot;,&quot;adult&quot;))
-sex &lt;- factor(c(&quot;m&quot;,&quot;m&quot;,&quot;f&quot;,&quot;m&quot;,&quot;f&quot;,&quot;m&quot;,&quot;f&quot;,&quot;m&quot;,&quot;m&quot;))</code></pre>
+sex &lt;- factor(c(&quot;m&quot;,&quot;m&quot;,&quot;f&quot;,&quot;m&quot;,&quot;f&quot;,&quot;m&quot;,&quot;f&quot;,&quot;m&quot;,&quot;m&quot;))
+dose &lt;- rep(c(1,2,3), each=3) </code></pre>
+<p>The sample information is summarised below:</p>
+<pre class="r"><code>gt(data.frame(Sample=1:9,Group=grp, Sex=sex),caption=&quot;Sample info for heart dataset&quot;)</code></pre>
+<div id="kaiikfyajw" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#kaiikfyajw .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#kaiikfyajw .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#kaiikfyajw .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#kaiikfyajw .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#kaiikfyajw .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#kaiikfyajw .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#kaiikfyajw .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#kaiikfyajw .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#kaiikfyajw .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#kaiikfyajw .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#kaiikfyajw .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#kaiikfyajw .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#kaiikfyajw .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#kaiikfyajw .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#kaiikfyajw .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#kaiikfyajw .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#kaiikfyajw .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#kaiikfyajw .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#kaiikfyajw .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#kaiikfyajw .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#kaiikfyajw .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#kaiikfyajw .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#kaiikfyajw .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#kaiikfyajw .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#kaiikfyajw .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#kaiikfyajw .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#kaiikfyajw .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#kaiikfyajw .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#kaiikfyajw .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#kaiikfyajw .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#kaiikfyajw .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#kaiikfyajw .gt_left {
+  text-align: left;
+}
+
+#kaiikfyajw .gt_center {
+  text-align: center;
+}
+
+#kaiikfyajw .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#kaiikfyajw .gt_font_normal {
+  font-weight: normal;
+}
+
+#kaiikfyajw .gt_font_bold {
+  font-weight: bold;
+}
+
+#kaiikfyajw .gt_font_italic {
+  font-style: italic;
+}
+
+#kaiikfyajw .gt_super {
+  font-size: 65%;
+}
+
+#kaiikfyajw .gt_two_val_uncert {
+  display: inline-block;
+  line-height: 1em;
+  text-align: right;
+  font-size: 60%;
+  vertical-align: -0.25em;
+  margin-left: 0.1em;
+}
+
+#kaiikfyajw .gt_footnote_marks {
+  font-style: italic;
+  font-weight: normal;
+  font-size: 75%;
+  vertical-align: 0.4em;
+}
+
+#kaiikfyajw .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#kaiikfyajw .gt_slash_mark {
+  font-size: 0.7em;
+  line-height: 0.7em;
+  vertical-align: 0.15em;
+}
+
+#kaiikfyajw .gt_fraction_numerator {
+  font-size: 0.6em;
+  line-height: 0.6em;
+  vertical-align: 0.45em;
+}
+
+#kaiikfyajw .gt_fraction_denominator {
+  font-size: 0.6em;
+  line-height: 0.6em;
+  vertical-align: -0.05em;
+}
+</style>
+<table class="gt_table">
+  <caption>Sample info for heart dataset</caption>
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Sample</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">Group</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">Sex</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td class="gt_row gt_right">1</td>
+<td class="gt_row gt_center">fetal</td>
+<td class="gt_row gt_center">m</td></tr>
+    <tr><td class="gt_row gt_right">2</td>
+<td class="gt_row gt_center">fetal</td>
+<td class="gt_row gt_center">m</td></tr>
+    <tr><td class="gt_row gt_right">3</td>
+<td class="gt_row gt_center">fetal</td>
+<td class="gt_row gt_center">f</td></tr>
+    <tr><td class="gt_row gt_right">4</td>
+<td class="gt_row gt_center">young</td>
+<td class="gt_row gt_center">m</td></tr>
+    <tr><td class="gt_row gt_right">5</td>
+<td class="gt_row gt_center">young</td>
+<td class="gt_row gt_center">f</td></tr>
+    <tr><td class="gt_row gt_right">6</td>
+<td class="gt_row gt_center">young</td>
+<td class="gt_row gt_center">m</td></tr>
+    <tr><td class="gt_row gt_right">7</td>
+<td class="gt_row gt_center">adult</td>
+<td class="gt_row gt_center">f</td></tr>
+    <tr><td class="gt_row gt_right">8</td>
+<td class="gt_row gt_center">adult</td>
+<td class="gt_row gt_center">m</td></tr>
+    <tr><td class="gt_row gt_right">9</td>
+<td class="gt_row gt_center">adult</td>
+<td class="gt_row gt_center">m</td></tr>
+  </tbody>
+  
+  
+</table>
+</div>
+<div id="anova-test-with-propeller.anova" class="section level2">
+<h2>Anova test with propeller.anova</h2>
 <pre class="r"><code>prop.logit &lt;- getTransformedProps(clusters = heart.info$Celltype, sample=sample,
                                   transform = &quot;logit&quot;)
-dose &lt;- rep(c(1,2,3), each=3) 
+design.anova &lt;- model.matrix(~0+grp+sex)
 
-des.dose &lt;- model.matrix(~dose +sex)
+propeller.anova(prop.logit,design = design.anova, coef=c(1,2,3), robust=TRUE, 
+                trend = FALSE, sort=TRUE)</code></pre>
+<pre><code>                    PropMean.grpfetal PropMean.grpyoung PropMean.grpadult
+Erythroid                 0.004433044        0.00000000       0.000000000
+Immune cells              0.027545963        0.10875124       0.189587828
+Cardiomyocytes            0.682410381        0.42676145       0.273546585
+Fibroblast                0.111342233        0.26192406       0.298689329
+Neurons                   0.012643346        0.02620977       0.011380837
+Epicardial cells          0.051414853        0.07541028       0.093157709
+Smooth muscle cells       0.008101973        0.00846540       0.009099294
+Endothelial cells         0.102108207        0.09247781       0.124538418
+                    Fstatistic      P.Value          FDR
+Erythroid           42.8302506 1.162495e-13 9.299960e-13
+Immune cells        10.3529005 9.295704e-05 3.718282e-04
+Cardiomyocytes       7.6881182 8.440468e-04 2.250792e-03
+Fibroblast           4.0630697 2.057471e-02 4.114942e-02
+Neurons              1.3712270 2.592465e-01 4.147943e-01
+Epicardial cells     0.7965363 4.541612e-01 6.055483e-01
+Smooth muscle cells  0.3492357 7.062149e-01 7.326515e-01
+Endothelial cells    0.3122046 7.326515e-01 7.326515e-01</code></pre>
+</div>
+<div id="modelling-development-as-a-continuous-variable"
+class="section level2">
+<h2>Modelling development as a continuous variable</h2>
+<pre class="r"><code>des.dose &lt;- model.matrix(~dose + sex)
 des.dose</code></pre>
 <pre><code>  (Intercept) dose sexm
 1           1    1    1
@@ -1255,6 +1834,10 @@ Endothelial cells   -6.1872807
 Neurons             -6.3739773</code></pre>
 <pre class="r"><code>fit.plot &lt;- lmFit(prop.logit$Proportions,des.dose)
 fit.plot &lt;- eBayes(fit.plot, robust=TRUE)</code></pre>
+<p>The two analysis identify the same cell types as significantly
+enriched/depleted, although there is a change in the order of
+significance.</p>
+<p>Three significant cell types are visualised below.</p>
 <pre class="r"><code>par(mfrow=c(1,3))
 stripchart(as.numeric(prop.logit$Proportions[&quot;Immune cells&quot;,])~grp,
            vertical=TRUE, pch=16, method=&quot;jitter&quot;,
@@ -1278,13 +1861,24 @@ stripchart(as.numeric(prop.logit$Proportions[&quot;Fibroblast&quot;,])~grp,
            ylab=&quot;Proportions&quot;,cex.axis=1.25, cex.lab=1.5)
 title(&quot;Fibroblast development&quot;, cex.main=1.5, adj=0)
 abline(a=fit.plot$coefficients[&quot;Fibroblast&quot;,1], b=fit.plot$coefficients[&quot;Fibroblast&quot;,2], lty=2, lwd=2)</code></pre>
-<p><img src="figure/RealDataAnalysis.Rmd/unnamed-chunk-10-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<p><img src="figure/RealDataAnalysis.Rmd/unnamed-chunk-12-1.png" width="1152" style="display: block; margin: auto;" /></p>
+</div>
 </div>
 <div id="covid-data" class="section level1">
 <h1>COVID data</h1>
+<p>This dataset was published by Liao et al in 2020 in Nature Medicine.
+They compared moderate and severe covid to healthy controls. They
+sampled bronchoalveolar lavage fluid from each individual.</p>
+<p>For this dataset there are no additional covariates and we use the
+propeller() function with the cell level annotation information for cell
+type, sample, and group. The function automatically detects more than
+two groups and performs an ANOVA for each cell type. We fit with both
+the logit and arcsin square root transformed data to show the effect of
+an outlier sample in the plasma cell type.</p>
 <pre class="r"><code>covid &lt;- read.delim(&quot;./data/covid.cell.annotation.meta.txt&quot;)</code></pre>
-<pre class="r"><code>output &lt;- propeller(clusters=covid$celltype, sample=covid$sample_new, group=covid$group, transform=&quot;logit&quot;)
-output</code></pre>
+<p>propeller using logit transformed proportions:</p>
+<pre class="r"><code>output.logit &lt;- propeller(clusters=covid$celltype, sample=covid$sample_new, group=covid$group, transform=&quot;logit&quot;)
+output.logit</code></pre>
 <pre><code>            BaselineProp  PropMean.HC  PropMean.M  PropMean.S Fstatistic
 Neutrophil   0.024417668 0.0000000000 0.001204431 0.055593846 34.5347175
 Plasma       0.015817544 0.0002244276 0.002149909 0.050912723  8.7181367
@@ -1307,6 +1901,31 @@ B           1.171617e-01 1.673738e-01
 Epithelial  1.901866e-01 2.377332e-01
 Macrophages 2.239111e-01 2.487901e-01
 Mast        5.127128e-01 5.127128e-01</code></pre>
+<p>propeller using arcsin square root transformed proportions:</p>
+<pre class="r"><code>output.asin &lt;- propeller(clusters=covid$celltype, sample=covid$sample_new, group=covid$group, transform=&quot;asin&quot;)
+output.asin</code></pre>
+<pre><code>            BaselineProp  PropMean.HC  PropMean.M  PropMean.S Fstatistic
+pDC          0.002309574 0.0011342772 0.008209773 0.001065692 7.66800413
+Neutrophil   0.024417668 0.0000000000 0.001204431 0.055593846 7.69977312
+NK           0.016425326 0.0088943293 0.052465923 0.017978750 7.52069109
+T            0.117241275 0.0945944806 0.325029563 0.137097435 5.37765924
+mDC          0.014860286 0.0237761816 0.030831149 0.008875553 5.03722483
+B            0.003342805 0.0035032662 0.012989518 0.004005391 3.18020059
+Plasma       0.015817544 0.0002244276 0.002149909 0.050912723 1.37935620
+Macrophages  0.750869889 0.7352897831 0.512995844 0.604316237 1.21863016
+Epithelial   0.053652014 0.1302459194 0.051903406 0.118455372 0.30529601
+Mast         0.001063620 0.0023373349 0.002220485 0.001699001 0.04651485
+                P.Value        FDR
+pDC         0.007891726 0.02801024
+Neutrophil  0.008006769 0.02801024
+NK          0.008403072 0.02801024
+T           0.023311489 0.05466535
+mDC         0.027332677 0.05466535
+B           0.080297449 0.13382908
+Plasma      0.291776927 0.41544492
+Macrophages 0.332355933 0.41544492
+Epithelial  0.742906637 0.82545182
+Mast        0.954732486 0.95473249</code></pre>
 <pre class="r"><code>props.covid &lt;- getTransformedProps(clusters=covid$celltype, sample=covid$sample_new,
                                    transform=&quot;logit&quot;)</code></pre>
 <pre class="r"><code>par(mfrow=c(1,1))
@@ -1317,7 +1936,7 @@ stripchart(as.numeric(props.covid$Proportions[&quot;Neutrophil&quot;,])~grp.covi
            ylab=&quot;Proportions&quot;,cex.axis=1.25, cex.lab=1.5)
 title(&quot;Neutrophils in severe covid&quot;, cex.main=1.5, adj=0)
 text(1.5,0.195, labels = &quot;Adj.Pval = 3.5e-06&quot;)</code></pre>
-<p><img src="figure/RealDataAnalysis.Rmd/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/RealDataAnalysis.Rmd/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>All significant cell types</p>
 <pre class="r"><code>par(mfrow=c(2,2))
 stripchart(as.numeric(props.covid$Proportions[&quot;Neutrophil&quot;,])~grp.covid,
@@ -1330,7 +1949,7 @@ stripchart(as.numeric(props.covid$Proportions[&quot;Plasma&quot;,])~grp.covid,
            vertical=TRUE, pch=16, method=&quot;jitter&quot;,
            col = c(4,&quot;purple&quot;,2),cex=2, 
            ylab=&quot;Proportions&quot;,cex.axis=1.25, cex.lab=1.5)
-title(&quot;Plasma in covid&quot;, cex.main=1.5, adj=0)
+title(&quot;Plasma in covid - outlier sample&quot;, cex.main=1.5, adj=0)
 
 stripchart(as.numeric(props.covid$Proportions[&quot;pDC&quot;,])~grp.covid,
            vertical=TRUE, pch=16, method=&quot;jitter&quot;,
@@ -1343,7 +1962,7 @@ stripchart(as.numeric(props.covid$Proportions[&quot;NK&quot;,])~grp.covid,
            col = c(4,&quot;purple&quot;,2),cex=2, 
            ylab=&quot;Proportions&quot;,cex.axis=1.25, cex.lab=1.5)
 title(&quot;NK in covid&quot;, cex.main=1.5, adj=0)</code></pre>
-<p><img src="figure/RealDataAnalysis.Rmd/unnamed-chunk-15-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="figure/RealDataAnalysis.Rmd/unnamed-chunk-18-1.png" width="960" style="display: block; margin: auto;" /></p>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
