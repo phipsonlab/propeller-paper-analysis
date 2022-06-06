@@ -29,6 +29,12 @@ the different types of models that can be fitted within the propeller framework.
 * Bronchoalveolar lavage fluid in a COVID19 dataset
   + Liao, Mingfeng, Yang Liu, Jing Yuan, Yanling Wen, Gang Xu, Juanjuan Zhao, Lin Cheng, et al. 2020. “Single-Cell Landscape of Bronchoalveolar Immune Cells in Patients with COVID-19.” Nature Medicine 26 (6): 842–44.
 
+For all three datasets we use the logit transformation, except for the covid dataset.
+In the covid dataset, there is clearly an outlier for the plasma cell type. Using
+the logit transformation, plasma is found to be significantly enriched in severe
+covid, but using the arcsin square root transform shows that it is not significantly
+enriched. While logit may be more powerful according to the simulations, it appears
+sensitive to outliers, and in this case we would prefer to use the arcsin square root transform.
 
 # Load libraries
 
@@ -40,38 +46,51 @@ library(pheatmap)
 library(gt)
 ```
 
+```{r}
+source("./code/convertData.R")
+```
+
 
 # Young and old female and male PBMCs
+
+This dataset was published in PNAS in 2021 and examined PBMCs from 20 individuals.
+The dataset was balanced in terms of age and sex (5 samples in each group: Male + Young,
+Male + Old, Female + Young, Female + Old).
+
+From the supplementary data I have extracted the cell type proportions and using 
+information from the paper I have converted the proportions into the necessary
+data type (a list object) to analyse with propeller.
+
 
 ```{r}
 sexCT <- read.delim("./data/CTpropsTransposed.txt", row.names = 1)
 sexprops <- sexCT/100
-sexcounts <- sexprops*174684/20
+prop.list <- convertDataToList(sexprops,data.type="proportions", transform="logit",
+                               scale.fac=174684/20)
+
 sampleinfo <- read.csv("./data/sampleinfo.csv", nrows = 20)
 celltypes <- read.csv("./data/CelltypeLevels.csv")
 group.immune <- paste(sampleinfo$Sex, sampleinfo$Age, sep=".")
 ```
 
 ```{r}
-gt(data.frame(table(sampleinfo$Sex, sampleinfo$Age)), rownames_to_stub = TRUE, caption="Sample info")
+gt(data.frame(table(sampleinfo$Sex, sampleinfo$Age)), rownames_to_stub = TRUE, caption="Sample info for aging dataset")
 ```
 
+Set up design matrix using a means model, taking into account age and sex.
 
 ```{r}
-c2.props.logit <- t(t(sexcounts+0.5)/(colSums(sexcounts+0.5)))
-c2.logit.prop <- log(c2.props.logit/(1-c2.props.logit))
+designAS <- model.matrix(~0+sampleinfo$Age + sampleinfo$Sex)
+colnames(designAS) <- c("old","young","MvsF")
+
+# Young vs old
+mycontr <- makeContrasts(young-old, levels=designAS)
+propeller.ttest(prop.list = prop.list,design = designAS, contrasts = mycontr,
+                robust=TRUE,trend=FALSE,sort=TRUE)
+
 ```
 
-
-```{r}
-designAS <- model.matrix(~sampleinfo$Age + sampleinfo$Sex)
-fit.logit.c2 <- lmFit(c2.logit.prop, designAS)
-fit.logit.c2 <- eBayes(fit.logit.c2, robust=TRUE)
-summary(decideTests(fit.logit.c2))
-topTable(fit.logit.c2, coef=2)
-topTable(fit.logit.c2, coef=3)
-```
-
+Visualise significant cell types:
 ```{r, fig.width=11, fig.height=6}
 par(mfrow=c(1,2))
 stripchart(as.numeric(sexprops["CD8.Naive",])~group.immune,
@@ -93,6 +112,25 @@ text(2.2,0.049, labels = "Adj.Pval = 0.023")
 
 
 # Heart development analysis
+
+This dataset was published by Sim et al in 2021 and looked at heart development
+across fetal, young and adult developmental time points. There are three samples
+at each developmental time point. There is also mix of male 
+and female samples and one of the key findings of the study was transcriptional
+differences in cardiomyocyte development between males and females.
+
+Here we look at differences in cellular composition of human hearts across the
+developmental trajectory, taking sex into account.
+
+We can simply perform an anova test to find any differences between the three 
+time points. The propeller.anova function can be called to do this directly.
+
+We can also look at development as a continuous trajectory and model development
+as a continuous variable by getting the transformed proportions and using fitting
+functions in limma directly.
+
+Both of these analysis approaches are shown below.
+
 ```{r}
 heart.info <- read.csv(file="./data/cellinfo.csv", row.names = 1)
 heart.counts <- table(heart.info$Celltype, heart.info$Sample)
@@ -110,14 +148,32 @@ group <- factor(heart.info$Group, levels=c("fetal","young","adult"))
 ```{r}
 grp <- factor(rep(c("fetal","young","adult"),each=3), levels=c("fetal","young","adult"))
 sex <- factor(c("m","m","f","m","f","m","f","m","m"))
+dose <- rep(c(1,2,3), each=3) 
 ```
+
+The sample information is summarised below:
+
+```{r}
+gt(data.frame(Sample=1:9,Group=grp, Sex=sex),caption="Sample info for heart dataset")
+```
+
+
+## Anova test with propeller.anova
 
 ```{r}
 prop.logit <- getTransformedProps(clusters = heart.info$Celltype, sample=sample,
                                   transform = "logit")
-dose <- rep(c(1,2,3), each=3) 
+design.anova <- model.matrix(~0+grp+sex)
 
-des.dose <- model.matrix(~dose +sex)
+propeller.anova(prop.logit,design = design.anova, coef=c(1,2,3), robust=TRUE, 
+                trend = FALSE, sort=TRUE)
+```
+
+
+## Modelling development as a continuous variable
+
+```{r}
+des.dose <- model.matrix(~dose + sex)
 des.dose
 
 fit <- lmFit(prop.logit$TransformedProps,des.dose)
@@ -127,6 +183,11 @@ topTable(fit,coef=2)
 fit.plot <- lmFit(prop.logit$Proportions,des.dose)
 fit.plot <- eBayes(fit.plot, robust=TRUE)
 ```
+
+The two analysis identify the same cell types as significantly enriched/depleted, 
+although there is a change in the order of significance.
+
+Three significant cell types are visualised below.
 
 ```{r,fig.width=12, fig.height=5}
 par(mfrow=c(1,3))
@@ -156,13 +217,32 @@ abline(a=fit.plot$coefficients["Fibroblast",1], b=fit.plot$coefficients["Fibrobl
 
 # COVID data
 
+This dataset was published by Liao et al in 2020 in Nature Medicine. They compared 
+moderate and severe covid to healthy controls. They sampled bronchoalveolar lavage 
+fluid from each individual.
+
+For this dataset there are no additional covariates and we use the propeller()
+function with the cell level annotation information for cell type, sample, and 
+group. The function automatically detects more than two groups and performs
+an ANOVA for each cell type. We fit with both the logit and arcsin square root
+transformed data to show the effect of an outlier sample in the plasma cell type.
+
 ```{r}
 covid <- read.delim("./data/covid.cell.annotation.meta.txt")
 ```
 
+propeller using logit transformed proportions:
+
 ```{r}
-output <- propeller(clusters=covid$celltype, sample=covid$sample_new, group=covid$group, transform="logit")
-output
+output.logit <- propeller(clusters=covid$celltype, sample=covid$sample_new, group=covid$group, transform="logit")
+output.logit
+```
+
+propeller using arcsin square root transformed proportions:
+
+```{r}
+output.asin <- propeller(clusters=covid$celltype, sample=covid$sample_new, group=covid$group, transform="asin")
+output.asin
 ```
 
 ```{r}
@@ -195,7 +275,7 @@ stripchart(as.numeric(props.covid$Proportions["Plasma",])~grp.covid,
            vertical=TRUE, pch=16, method="jitter",
            col = c(4,"purple",2),cex=2, 
            ylab="Proportions",cex.axis=1.25, cex.lab=1.5)
-title("Plasma in covid", cex.main=1.5, adj=0)
+title("Plasma in covid - outlier sample", cex.main=1.5, adj=0)
 
 stripchart(as.numeric(props.covid$Proportions["pDC",])~grp.covid,
            vertical=TRUE, pch=16, method="jitter",
