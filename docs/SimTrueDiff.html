@@ -394,7 +394,7 @@ class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2022-06-03
+<strong>Last updated:</strong> 2022-08-18
 </p>
 <p>
 <strong>Checks:</strong> <span
@@ -525,15 +525,15 @@ project makes it easier to run your code on other machines.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistreeb239441ff07c603cec9799e8a31c9984972e1997targetblankb239441a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistree258645364849f1d433de4d608c200cbe2899f63btargetblank2586453a">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/b239441ff07c603cec9799e8a31c9984972e1997" target="_blank">b239441</a>
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/258645364849f1d433de4d608c200cbe2899f63b" target="_blank">2586453</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistreeb239441ff07c603cec9799e8a31c9984972e1997targetblankb239441a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistree258645364849f1d433de4d608c200cbe2899f63btargetblank2586453a"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -543,7 +543,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/b239441ff07c603cec9799e8a31c9984972e1997" target="_blank">b239441</a>.
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/258645364849f1d433de4d608c200cbe2899f63b" target="_blank">2586453</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -558,6 +558,7 @@ were generated:
 </p>
 <pre><code>
 Ignored files:
+    Ignored:    .Rhistory
     Ignored:    .Rproj.user/
     Ignored:    data/cold_warm_fresh_cellinfo.txt
     Ignored:    data/covid.cell.annotation.meta.txt
@@ -565,9 +566,11 @@ Ignored files:
     Ignored:    data/pool_1.rds
 
 Untracked files:
+    Untracked:  analysis/PlotsForPaper.Rmd
     Untracked:  code/SimCode.R
     Untracked:  code/SimCodeTrueDiff.R
     Untracked:  code/auroc.R
+    Untracked:  code/convertData.R
     Untracked:  data/CTpropsTransposed.txt
     Untracked:  data/CelltypeLevels.csv
     Untracked:  data/TypeIErrTables.Rdata
@@ -575,11 +578,46 @@ Untracked files:
     Untracked:  data/cellinfo.csv
     Untracked:  data/nullsimsVaryN_results.Rdata
     Untracked:  data/sampleinfo.csv
+    Untracked:  output/1x/
     Untracked:  output/Fig1ab.pdf
     Untracked:  output/Fig1cde.pdf
+    Untracked:  output/Fig2ab.pdf
+    Untracked:  output/Fig2abc.pdf
+    Untracked:  output/Fig2c.pdf
+    Untracked:  output/Figure1.pdf
+    Untracked:  output/Figure1.png
+    Untracked:  output/Figure2-01.png
+    Untracked:  output/Figure2-with#.pdf
+    Untracked:  output/Figure2-with#.png
+    Untracked:  output/Figure2.ai
+    Untracked:  output/Figure2.pdf
+    Untracked:  output/Figure2.png
+    Untracked:  output/Figure2_E_annotatedwithProp.pdf
+    Untracked:  output/Figure3.pdf
+    Untracked:  output/Figure3.png
+    Untracked:  output/PDF/
+    Untracked:  output/SuppFig4.pdf
+    Untracked:  output/SuppFig4.png
+    Untracked:  output/SuppTrueDiff10.pdf
+    Untracked:  output/SuppTrueDiff20.pdf
+    Untracked:  output/SuppTrueDiff3.pdf
+    Untracked:  output/Supplementary Figure 2 v2.png
+    Untracked:  output/Supplementary Figure 2.ai
+    Untracked:  output/Supplementary Figure 2.pdf
+    Untracked:  output/Supplementary Figure 2.png
+    Untracked:  output/SupplementaryFigure3.pdf
+    Untracked:  output/TrueDiffSimResults.Rda
+    Untracked:  output/covidResults.pdf
     Untracked:  output/example_simdata.pdf
+    Untracked:  output/extremeCaseTrueProps20CT.pdf
     Untracked:  output/fig2d.pdf
+    Untracked:  output/gude-2022-06-27.log
+    Untracked:  output/gude-2022-06-29.log
+    Untracked:  output/heartResults.pdf
+    Untracked:  output/heatmap20CT.pdf
     Untracked:  output/legend-fig2d.pdf
+    Untracked:  output/pbmcOldYoungResults.pdf
+    Untracked:  output/type1error5.csv
     Untracked:  output/typeIerrorResults.Rda
 
 </code></pre>
@@ -626,6 +664,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/blob/258645364849f1d433de4d608c200cbe2899f63b/analysis/SimTrueDiff.Rmd" target="_blank">2586453</a>
+</td>
+<td>
+bphipson
+</td>
+<td>
+2022-08-18
+</td>
+<td>
+update analysis scripts
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/phipsonlab/propeller-paper-analysis/67456c7b37efcc295b8c2b2dde1666ae88a9d495/docs/SimTrueDiff.html" target="_blank">67456c7</a>
+</td>
+<td>
+bphipson
+</td>
+<td>
+2022-06-03
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -1473,11 +1545,20 @@ mean(auc.asin)</code></pre>
 <pre><code>[1] 0.8266667</code></pre>
 <pre class="r"><code>mean(auc.coda)</code></pre>
 <pre><code>[1] 0.7779167</code></pre>
+<pre class="r"><code>auc.mat &lt;- matrix(NA,ncol=6,nrow=4)
+rownames(auc.mat) &lt;- c(&quot;n=3&quot;,&quot;n=5&quot;,&quot;n=10&quot;,&quot;n=20&quot;)
+colnames(auc.mat) &lt;- names
+auc.mat[1,1] &lt;- mean(auc.asin)
+auc.mat[1,2] &lt;- mean(auc.logit)
+auc.mat[1,3] &lt;- mean(auc.bb)
+auc.mat[1,4] &lt;- mean(auc.nb)
+auc.mat[1,5] &lt;- mean(auc.qlf)
+auc.mat[1,6] &lt;- mean(auc.coda)</code></pre>
 <pre class="r"><code>par(mfrow=c(1,1))
 par(mar=c(9,5,3,2))
 barplot(c(mean(auc.asin),mean(auc.logit),mean(auc.bb),mean(auc.nb),mean(auc.qlf),mean(auc.coda)), ylim=c(0,1), ylab= &quot;AUC&quot;, cex.axis=1.5, cex.lab=1.5, names=names, las=2, cex.names = 1.5)
 title(paste(&quot;AUC: sample size n=&quot;,nsamp/2,sep=&quot;&quot;),cex.main=1.5)</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>sig.disc3 &lt;- sig.disc</code></pre>
 </div>
 <div id="sample-size-of-5-in-each-group" class="section level2">
@@ -2116,7 +2197,7 @@ abline(h=pcut,lty=2,lwd=2)
 par(mar=c(0,0,0,0))
 plot(1, type = &quot;n&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;, xaxt=&quot;n&quot;,yaxt=&quot;n&quot;, bty=&quot;n&quot;)
 legend(&quot;center&quot;, legend=paste(&quot;True p =&quot;,round(trueprops,3)[o]), fill=ggplotColors(length(b)), cex=1.5)</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>o &lt;- order(trueprops)
 mysig &lt;- sig.disc[o,4:9]
 colnames(mysig) &lt;- names
@@ -2129,7 +2210,7 @@ pheatmap(mysig, scale=&quot;none&quot;, cluster_rows = FALSE, cluster_cols = FAL
                         expression(paste(pi, &quot; = 0.183*&quot;, sep=&quot;&quot;)),
                         expression(paste(pi, &quot; = 0.551*&quot;, sep=&quot;&quot;))),
          main=paste(&quot;Significant tests, n=&quot;,nsamp/2,sep=&quot;&quot;))</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>auc.asin &lt;- auc.logit &lt;- auc.bb &lt;- auc.nb &lt;- auc.qlf &lt;- auc.coda &lt;- rep(NA,nsim)
 for(i in 1:nsim){
   auc.asin[i] &lt;- auroc(score=1-pval.asin[,i],bool=de)
@@ -2152,11 +2233,17 @@ mean(auc.asin)</code></pre>
 <pre><code>[1] 0.91525</code></pre>
 <pre class="r"><code>mean(auc.coda)</code></pre>
 <pre><code>[1] 0.8665833</code></pre>
+<pre class="r"><code>auc.mat[2,1] &lt;- mean(auc.asin)
+auc.mat[2,2] &lt;- mean(auc.logit)
+auc.mat[2,3] &lt;- mean(auc.bb)
+auc.mat[2,4] &lt;- mean(auc.nb)
+auc.mat[2,5] &lt;- mean(auc.qlf)
+auc.mat[2,6] &lt;- mean(auc.coda)</code></pre>
 <pre class="r"><code>par(mfrow=c(1,1))
 par(mar=c(9,5,3,2))
 barplot(c(mean(auc.asin),mean(auc.logit),mean(auc.bb),mean(auc.nb),mean(auc.qlf),mean(auc.coda)), ylim=c(0,1), ylab= &quot;AUC&quot;, cex.axis=1.5, cex.lab=1.5, names=names, las=2, cex.names = 1.5)
 title(paste(&quot;AUC: sample size n=&quot;,nsamp/2,sep=&quot;&quot;),cex.main=1.5)</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-22-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>sig.disc5 &lt;- sig.disc</code></pre>
 </div>
 <div id="sample-size-of-10-in-each-group" class="section level2">
@@ -2795,7 +2882,7 @@ abline(h=pcut,lty=2,lwd=2)
 par(mar=c(0,0,0,0))
 plot(1, type = &quot;n&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;, xaxt=&quot;n&quot;,yaxt=&quot;n&quot;, bty=&quot;n&quot;)
 legend(&quot;center&quot;, legend=paste(&quot;True p =&quot;,round(trueprops,3)[o]), fill=ggplotColors(length(b)), cex=1.5)</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-27-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-29-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>o &lt;- order(trueprops)
 mysig &lt;- sig.disc[o,4:9]
 colnames(mysig) &lt;- names
@@ -2808,7 +2895,7 @@ pheatmap(mysig, scale=&quot;none&quot;, cluster_rows = FALSE, cluster_cols = FAL
                         expression(paste(pi, &quot; = 0.183*&quot;, sep=&quot;&quot;)),
                         expression(paste(pi, &quot; = 0.551*&quot;, sep=&quot;&quot;))),
          main=paste(&quot;Significant tests, n=&quot;,nsamp/2,sep=&quot;&quot;))</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-28-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-30-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>auc.asin &lt;- auc.logit &lt;- auc.bb &lt;- auc.nb &lt;- auc.qlf &lt;- auc.coda &lt;- rep(NA,nsim)
 for(i in 1:nsim){
   auc.asin[i] &lt;- auroc(score=1-pval.asin[,i],bool=de)
@@ -2831,11 +2918,17 @@ mean(auc.asin)</code></pre>
 <pre><code>[1] 0.98525</code></pre>
 <pre class="r"><code>mean(auc.coda)</code></pre>
 <pre><code>[1] 0.9490833</code></pre>
+<pre class="r"><code>auc.mat[3,1] &lt;- mean(auc.asin)
+auc.mat[3,2] &lt;- mean(auc.logit)
+auc.mat[3,3] &lt;- mean(auc.bb)
+auc.mat[3,4] &lt;- mean(auc.nb)
+auc.mat[3,5] &lt;- mean(auc.qlf)
+auc.mat[3,6] &lt;- mean(auc.coda)</code></pre>
 <pre class="r"><code>par(mfrow=c(1,1))
 par(mar=c(9,5,3,2))
 barplot(c(mean(auc.asin),mean(auc.logit),mean(auc.bb),mean(auc.nb),mean(auc.qlf),mean(auc.coda)), ylim=c(0,1), ylab= &quot;AUC&quot;, cex.axis=1.5, cex.lab=1.5, names=names, las=2, cex.names = 1.5)
 title(paste(&quot;AUC: sample size n=&quot;,nsamp/2,sep=&quot;&quot;),cex.main=1.5)</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-30-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-33-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>sig.disc10 &lt;- sig.disc</code></pre>
 </div>
 <div id="sample-size-of-20-in-each-group" class="section level2">
@@ -3474,7 +3567,7 @@ abline(h=pcut,lty=2,lwd=2)
 par(mar=c(0,0,0,0))
 plot(1, type = &quot;n&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;, xaxt=&quot;n&quot;,yaxt=&quot;n&quot;, bty=&quot;n&quot;)
 legend(&quot;center&quot;, legend=paste(&quot;True p =&quot;,round(trueprops,3)[o]), fill=ggplotColors(length(b)), cex=1.5)</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-35-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-38-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>o &lt;- order(trueprops)
 mysig &lt;- sig.disc[o,4:9]
 colnames(mysig) &lt;- names
@@ -3487,7 +3580,7 @@ pheatmap(mysig, scale=&quot;none&quot;, cluster_rows = FALSE, cluster_cols = FAL
                         expression(paste(pi, &quot; = 0.183*&quot;, sep=&quot;&quot;)),
                         expression(paste(pi, &quot; = 0.551*&quot;, sep=&quot;&quot;))),
          main=paste(&quot;Significant tests, n=&quot;,nsamp/2,sep=&quot;&quot;))</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-36-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-39-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>sig.disc20 &lt;- sig.disc</code></pre>
 <pre class="r"><code>auc.asin &lt;- auc.logit &lt;- auc.bb &lt;- auc.nb &lt;- auc.qlf &lt;- auc.coda &lt;- rep(NA,nsim)
 for(i in 1:nsim){
@@ -3511,11 +3604,19 @@ mean(auc.asin)</code></pre>
 <pre><code>[1] 0.9986667</code></pre>
 <pre class="r"><code>mean(auc.coda)</code></pre>
 <pre><code>[1] 0.9849167</code></pre>
+<pre class="r"><code>auc.mat[4,1] &lt;- mean(auc.asin)
+auc.mat[4,2] &lt;- mean(auc.logit)
+auc.mat[4,3] &lt;- mean(auc.bb)
+auc.mat[4,4] &lt;- mean(auc.nb)
+auc.mat[4,5] &lt;- mean(auc.qlf)
+auc.mat[4,6] &lt;- mean(auc.coda)</code></pre>
 <pre class="r"><code>par(mfrow=c(1,1))
 par(mar=c(9,5,3,2))
 barplot(c(mean(auc.asin),mean(auc.logit),mean(auc.bb),mean(auc.nb),mean(auc.qlf),mean(auc.coda)), ylim=c(0,1), ylab= &quot;AUC&quot;, cex.axis=1.5, cex.lab=1.5, names=names, las=2, cex.names = 1.5)
 title(paste(&quot;AUC: sample size n=&quot;,nsamp/2,sep=&quot;&quot;),cex.main=1.5)</code></pre>
-<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-39-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/SimTrueDiff.Rmd/unnamed-chunk-43-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>save(sig.disc3, sig.disc5, sig.disc10, sig.disc20, auc.mat, names, trueprops,
+     file=&quot;./output/TrueDiffSimResults.Rda&quot;)</code></pre>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">

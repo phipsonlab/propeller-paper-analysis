@@ -394,7 +394,7 @@ class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2022-06-03
+<strong>Last updated:</strong> 2022-08-18
 </p>
 <p>
 <strong>Checks:</strong> <span
@@ -525,15 +525,15 @@ project makes it easier to run your code on other machines.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistree5c6cf660f9fdf6943fb16cb5a2d9fe41e8898338targetblank5c6cf66a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistree258645364849f1d433de4d608c200cbe2899f63btargetblank2586453a">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/5c6cf660f9fdf6943fb16cb5a2d9fe41e8898338" target="_blank">5c6cf66</a>
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/258645364849f1d433de4d608c200cbe2899f63b" target="_blank">2586453</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistree5c6cf660f9fdf6943fb16cb5a2d9fe41e8898338targetblank5c6cf66a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistree258645364849f1d433de4d608c200cbe2899f63btargetblank2586453a"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -543,7 +543,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/5c6cf660f9fdf6943fb16cb5a2d9fe41e8898338" target="_blank">5c6cf66</a>.
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/258645364849f1d433de4d608c200cbe2899f63b" target="_blank">2586453</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -558,6 +558,7 @@ were generated:
 </p>
 <pre><code>
 Ignored files:
+    Ignored:    .Rhistory
     Ignored:    .Rproj.user/
     Ignored:    data/cold_warm_fresh_cellinfo.txt
     Ignored:    data/covid.cell.annotation.meta.txt
@@ -565,9 +566,11 @@ Ignored files:
     Ignored:    data/pool_1.rds
 
 Untracked files:
+    Untracked:  analysis/PlotsForPaper.Rmd
     Untracked:  code/SimCode.R
     Untracked:  code/SimCodeTrueDiff.R
     Untracked:  code/auroc.R
+    Untracked:  code/convertData.R
     Untracked:  data/CTpropsTransposed.txt
     Untracked:  data/CelltypeLevels.csv
     Untracked:  data/TypeIErrTables.Rdata
@@ -575,11 +578,46 @@ Untracked files:
     Untracked:  data/cellinfo.csv
     Untracked:  data/nullsimsVaryN_results.Rdata
     Untracked:  data/sampleinfo.csv
+    Untracked:  output/1x/
     Untracked:  output/Fig1ab.pdf
     Untracked:  output/Fig1cde.pdf
+    Untracked:  output/Fig2ab.pdf
+    Untracked:  output/Fig2abc.pdf
+    Untracked:  output/Fig2c.pdf
+    Untracked:  output/Figure1.pdf
+    Untracked:  output/Figure1.png
+    Untracked:  output/Figure2-01.png
+    Untracked:  output/Figure2-with#.pdf
+    Untracked:  output/Figure2-with#.png
+    Untracked:  output/Figure2.ai
+    Untracked:  output/Figure2.pdf
+    Untracked:  output/Figure2.png
+    Untracked:  output/Figure2_E_annotatedwithProp.pdf
+    Untracked:  output/Figure3.pdf
+    Untracked:  output/Figure3.png
+    Untracked:  output/PDF/
+    Untracked:  output/SuppFig4.pdf
+    Untracked:  output/SuppFig4.png
+    Untracked:  output/SuppTrueDiff10.pdf
+    Untracked:  output/SuppTrueDiff20.pdf
+    Untracked:  output/SuppTrueDiff3.pdf
+    Untracked:  output/Supplementary Figure 2 v2.png
+    Untracked:  output/Supplementary Figure 2.ai
+    Untracked:  output/Supplementary Figure 2.pdf
+    Untracked:  output/Supplementary Figure 2.png
+    Untracked:  output/SupplementaryFigure3.pdf
+    Untracked:  output/TrueDiffSimResults.Rda
+    Untracked:  output/covidResults.pdf
     Untracked:  output/example_simdata.pdf
+    Untracked:  output/extremeCaseTrueProps20CT.pdf
     Untracked:  output/fig2d.pdf
+    Untracked:  output/gude-2022-06-27.log
+    Untracked:  output/gude-2022-06-29.log
+    Untracked:  output/heartResults.pdf
+    Untracked:  output/heatmap20CT.pdf
     Untracked:  output/legend-fig2d.pdf
+    Untracked:  output/pbmcOldYoungResults.pdf
+    Untracked:  output/type1error5.csv
     Untracked:  output/typeIerrorResults.Rda
 
 </code></pre>
@@ -626,6 +664,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/blob/258645364849f1d433de4d608c200cbe2899f63b/analysis/Sims2vs20CT.Rmd" target="_blank">2586453</a>
+</td>
+<td>
+bphipson
+</td>
+<td>
+2022-08-18
+</td>
+<td>
+update analysis scripts
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/phipsonlab/propeller-paper-analysis/5dc2a6776de337c61dab3dc8bd4d102570a569b3/docs/Sims2vs20CT.html" target="_blank">5dc2a67</a>
+</td>
+<td>
+bphipson
+</td>
+<td>
+2022-06-03
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -2227,9 +2299,12 @@ pval.chsq &lt;- pval.bb &lt;- pval.lb &lt;- pval.nb &lt;- pval.qlf &lt;- pval.po
 <pre class="r"><code>par(mar=c(5,5,2,2))
 par(mfrow=c(1,1))
 barplot(t(cbind(grp1.trueprops,grp2.trueprops)), beside=TRUE, col=c(2,4), 
-        ylab=&quot;True cell type proportion&quot;)
-legend(&quot;topleft&quot;, fill=c(2,4),legend=c(&quot;Group 1&quot;,&quot;Group 2&quot;))
-title(&quot;True cell type proportions for Group 1 and 2&quot;,adj=0)</code></pre>
+        ylab=&quot;True cell type proportion&quot;, ylim=c(0,0.9), xlab=&quot;Cell types&quot;,
+        cex.axis = 1.5, cex.names = 1.5, cex.lab=1.5)
+legend(&quot;topleft&quot;, fill=c(2,4),legend=c(&quot;Group 1&quot;,&quot;Group 2&quot;), cex=1.25)
+title(&quot;a) True cell type proportions for Group 1 and 2&quot;,adj=0, cex=1.5)
+text(2,0.5,labels=&quot;*&quot;,cex=2)
+text(5,0.85,labels=&quot;*&quot;,cex=2)</code></pre>
 <p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code># Get hyperparameters for alpha and beta
 # Note group 1 and group 2 have different b parameters to accommodate true
@@ -2826,6 +2901,33 @@ par(mar=c(0,0,0,0))
 plot(1, type = &quot;n&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;, xaxt=&quot;n&quot;,yaxt=&quot;n&quot;, bty=&quot;n&quot;)
 legend(&quot;center&quot;, legend=paste(&quot;True p =&quot;,round(trueprops,3)[o]), fill=ggplotColors(length(b.grp1)), cex=1.5)</code></pre>
 <p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-26-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Plot for supplementary figure</p>
+<pre class="r"><code>pdf(file=&quot;./output/SupplementaryFigure3.pdf&quot;,width = 12,height=5.5)
+layout(matrix(c(1,1,1,2,2,2,3), 1, 7, byrow = TRUE))
+
+par(mar=c(5,5,2,2))
+barplot(t(cbind(grp1.trueprops,grp2.trueprops)), beside=TRUE, col=c(2,4), 
+        ylab=&quot;True cell type proportion&quot;, ylim=c(0,0.9), xlab=&quot;Cell types&quot;,
+        cex.axis = 1.5, cex.names = 1.5, cex.lab=1.5)
+legend(&quot;topleft&quot;, fill=c(2,4),legend=c(&quot;Group 1&quot;,&quot;Group 2&quot;), cex=1.25)
+title(&quot;a) True cell type proportions&quot;,adj=0, cex.main=1.5)
+text(2,0.5,labels=&quot;*&quot;,cex=3)
+text(5,0.85,labels=&quot;*&quot;,cex=3)
+par(mar=c(9,5,3,2))
+par(mgp=c(3, 0.5, 0))
+o &lt;- order(trueprops)
+names &lt;- c(&quot;propeller (asin)&quot;,&quot;propeller (logit)&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;negbinQLF&quot;,&quot;CODA&quot;)
+barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(b.grp1)),
+        ylab=&quot;Proportion sig. tests&quot;, names=names,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
+title(paste(&quot;b) Significant tests, n=&quot;,nsamp/2,sep=&quot;&quot;), cex.main=1.5,adj=0)
+abline(h=pcut,lty=2,lwd=2)
+par(mar=c(0,0,0,0))
+plot(1, type = &quot;n&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;, xaxt=&quot;n&quot;,yaxt=&quot;n&quot;, bty=&quot;n&quot;)
+legend(&quot;center&quot;, legend=paste(&quot;True p =&quot;,round(trueprops,3)[o]), fill=ggplotColors(length(b.grp1)), cex=1.5)
+dev.off()</code></pre>
+<pre><code>png 
+  2 </code></pre>
 </div>
 <div id="twenty-cell-types-two-groups-n5-true-differences"
 class="section level2">
@@ -2844,7 +2946,7 @@ b &lt;- abs(betaparams$beta)
 pval.chsq &lt;- pval.bb &lt;- pval.lb &lt;- pval.nb &lt;- pval.qlf &lt;- pval.pois &lt;- pval.logit &lt;-  pval.asin &lt;- pval.coda &lt;- matrix(NA,nrow=length(p),ncol=nsim)</code></pre>
 <p>Set up true proportions for the two groups:</p>
 <pre class="r"><code>barplot(trueprops,las=2)</code></pre>
-<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-29-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-30-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code># Randomly sample eight cell types to change between two groups
 diffct &lt;- c(&quot;cDC2&quot;,&quot;NK Proliferating&quot;,&quot;MAIT&quot;,&quot;B memory&quot;,&quot;CD14 Mono&quot;,&quot;B naive&quot;,
             &quot;NK&quot;,&quot;CD4 Naive&quot;)
@@ -2864,11 +2966,12 @@ sum(grp1.trueprops)</code></pre>
 <pre><code>[1] 1</code></pre>
 <pre class="r"><code>sum(grp2.trueprops)</code></pre>
 <pre><code>[1] 1</code></pre>
-<pre class="r"><code>par(mar=c(9,5,2,2))
+<pre class="r"><code>par(mar=c(7,6,2,2))
+par(mfrow=c(1,1))
 barplot(t(cbind(grp1.trueprops,grp2.trueprops)), beside=TRUE, col=c(2,4), 
-        las=2, ylab=&quot;True cell type proportion&quot;,ylim=c(0,0.32))
+        las=2, ylab=&quot;True cell type proportion&quot;,ylim=c(0,0.32), cex.lab=1.5, cex.axis=1.5)
 legend(&quot;top&quot;, fill=c(2,4),legend=c(&quot;Group 1&quot;,&quot;Group 2&quot;))
-title(&quot;True cell type proportions for Group 1 and 2&quot;,adj=0)
+title(&quot;a) True cell type proportions for Group 1 and 2&quot;,adj=0, cex.main=1.5)
 text(2,0.02,label=&quot;*&quot;, cex=2)
 text(11,0.02,label=&quot;*&quot;, cex=2)
 text(17,0.03,label=&quot;*&quot;, cex=2)
@@ -2879,7 +2982,28 @@ text(47,0.1,label=&quot;*&quot;, cex=2)
 text(53,0.18,label=&quot;*&quot;, cex=2)
 text(59,0.31,label=&quot;*&quot;, cex=2)
 legend(&quot;topleft&quot;,legend=&quot;* = true diff&quot;)</code></pre>
-<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-30-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-31-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>pdf(file=&quot;./output/extremeCaseTrueProps20CT.pdf&quot;,width=7,height=7)
+par(mar=c(7,6,2,2))
+par(mfrow=c(1,1))
+par(mgp=c(4,1,0))
+barplot(t(cbind(grp1.trueprops,grp2.trueprops)), beside=TRUE, col=c(2,4), 
+        las=2, ylab=&quot;True cell type proportion&quot;,ylim=c(0,0.32), cex.lab=1.5, cex.axis=1.5)
+legend(&quot;top&quot;, fill=c(2,4),legend=c(&quot;Group 1&quot;,&quot;Group 2&quot;))
+title(&quot;a) True cell type proportions for Group 1 and 2&quot;,adj=0, cex.main=1.5)
+text(2,0.02,label=&quot;*&quot;, cex=2)
+text(11,0.02,label=&quot;*&quot;, cex=2)
+text(17,0.03,label=&quot;*&quot;, cex=2)
+text(26,0.05,label=&quot;*&quot;, cex=2)
+text(38,0.06,label=&quot;*&quot;, cex=2)
+text(38,0.06,label=&quot;*&quot;, cex=2)
+text(47,0.1,label=&quot;*&quot;, cex=2)
+text(53,0.18,label=&quot;*&quot;, cex=2)
+text(59,0.31,label=&quot;*&quot;, cex=2)
+legend(&quot;topleft&quot;,legend=&quot;* = true diff&quot;)
+dev.off()</code></pre>
+<pre><code>png 
+  2 </code></pre>
 <pre class="r"><code># Get hyperparameters for alpha and beta
 # Note group 1 and group 2 have different b parameters to accommodate true
 # differences in cell type proportions
@@ -3645,10 +3769,19 @@ gt(data.frame(sig.disc[o,]),rownames_to_stub = TRUE,caption=&quot;Proportion of 
   
 </table>
 </div>
-<pre class="r"><code>foldchange &lt;- grp2.trueprops/grp1.trueprops
+<pre class="r"><code>names &lt;- c(&quot;propeller (asin)&quot;,&quot;propeller (logit)&quot;,&quot;betabin&quot;,&quot;negbin&quot;,&quot;negbinQLF&quot;,&quot;CODA&quot;)  
+mysigres &lt;- sig.disc[,4:9]
+
+colnames(mysigres) &lt;- names
+foldchange &lt;- grp2.trueprops/grp1.trueprops
 o &lt;- order(abs(log(foldchange)))
-pheatmap(sig.disc[o,4:9], scale=&quot;none&quot;, cluster_rows = FALSE, cluster_cols = FALSE, main = &quot;Proportion of significant tests, ordered by fold-change&quot;)</code></pre>
-<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-35-1.png" width="672" style="display: block; margin: auto;" /></p>
+pheatmap(mysigres[o,], scale=&quot;none&quot;, cluster_rows = FALSE, cluster_cols = FALSE, main = &quot;b) Simulation results, ordered by abs(log-fold-change)&quot;)</code></pre>
+<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-37-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>pdf(file=&quot;./output/heatmap20CT.pdf&quot;,width = 7,height = 7)
+pheatmap(mysigres[o,], scale=&quot;none&quot;, cluster_rows = FALSE, cluster_cols = FALSE, main = &quot;b) Simulation results, ordered by abs(log-fold-change)&quot;)
+dev.off()</code></pre>
+<pre><code>pdf 
+  3 </code></pre>
 <p>Within a simulation we can calculate the numbers of true positives
 etc.</p>
 <pre class="r"><code>tp &lt;- fp &lt;- sig &lt;- tn &lt;- matrix(NA,nrow=9,ncol=nsim)
@@ -4162,6 +4295,460 @@ gt(res,rownames_to_stub=TRUE,caption=&quot;True differences in 8/20 cell types&q
   
 </table>
 </div>
+<pre class="r"><code>gt(res[4:9,],rownames_to_stub=TRUE,caption=&quot;True differences in 8/20 cell types&quot;)</code></pre>
+<div id="bwahpbxmph" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#bwahpbxmph .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#bwahpbxmph .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#bwahpbxmph .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#bwahpbxmph .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#bwahpbxmph .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#bwahpbxmph .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#bwahpbxmph .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#bwahpbxmph .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#bwahpbxmph .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#bwahpbxmph .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#bwahpbxmph .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#bwahpbxmph .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#bwahpbxmph .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#bwahpbxmph .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#bwahpbxmph .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#bwahpbxmph .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#bwahpbxmph .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#bwahpbxmph .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#bwahpbxmph .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#bwahpbxmph .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#bwahpbxmph .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#bwahpbxmph .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#bwahpbxmph .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#bwahpbxmph .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#bwahpbxmph .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#bwahpbxmph .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#bwahpbxmph .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#bwahpbxmph .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#bwahpbxmph .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#bwahpbxmph .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#bwahpbxmph .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#bwahpbxmph .gt_left {
+  text-align: left;
+}
+
+#bwahpbxmph .gt_center {
+  text-align: center;
+}
+
+#bwahpbxmph .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#bwahpbxmph .gt_font_normal {
+  font-weight: normal;
+}
+
+#bwahpbxmph .gt_font_bold {
+  font-weight: bold;
+}
+
+#bwahpbxmph .gt_font_italic {
+  font-style: italic;
+}
+
+#bwahpbxmph .gt_super {
+  font-size: 65%;
+}
+
+#bwahpbxmph .gt_two_val_uncert {
+  display: inline-block;
+  line-height: 1em;
+  text-align: right;
+  font-size: 60%;
+  vertical-align: -0.25em;
+  margin-left: 0.1em;
+}
+
+#bwahpbxmph .gt_footnote_marks {
+  font-style: italic;
+  font-weight: normal;
+  font-size: 75%;
+  vertical-align: 0.4em;
+}
+
+#bwahpbxmph .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#bwahpbxmph .gt_slash_mark {
+  font-size: 0.7em;
+  line-height: 0.7em;
+  vertical-align: 0.15em;
+}
+
+#bwahpbxmph .gt_fraction_numerator {
+  font-size: 0.6em;
+  line-height: 0.6em;
+  vertical-align: 0.45em;
+}
+
+#bwahpbxmph .gt_fraction_denominator {
+  font-size: 0.6em;
+  line-height: 0.6em;
+  vertical-align: -0.05em;
+}
+</style>
+<table class="gt_table">
+  <caption>True differences in 8/20 cell types</caption>
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1"></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Recall</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Precision</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">F1score</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td class="gt_row gt_right gt_stub">asin</td>
+<td class="gt_row gt_right">0.650625</td>
+<td class="gt_row gt_right">0.9077964</td>
+<td class="gt_row gt_right">0.7493063</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">logit</td>
+<td class="gt_row gt_right">0.694500</td>
+<td class="gt_row gt_right">0.9170337</td>
+<td class="gt_row gt_right">0.7812391</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">betabin</td>
+<td class="gt_row gt_right">0.725125</td>
+<td class="gt_row gt_right">0.9097524</td>
+<td class="gt_row gt_right">0.7984140</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">negbin</td>
+<td class="gt_row gt_right">0.715125</td>
+<td class="gt_row gt_right">0.8977022</td>
+<td class="gt_row gt_right">0.7869849</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">nbQLF</td>
+<td class="gt_row gt_right">0.691000</td>
+<td class="gt_row gt_right">0.9109782</td>
+<td class="gt_row gt_right">0.7766171</td></tr>
+    <tr><td class="gt_row gt_right gt_stub">CODA</td>
+<td class="gt_row gt_right">0.794750</td>
+<td class="gt_row gt_right">0.8649798</td>
+<td class="gt_row gt_right">0.8193951</td></tr>
+  </tbody>
+  
+  
+</table>
+</div>
 <pre class="r"><code>layout(matrix(c(1,1,1,2), 1, 4, byrow = TRUE))
 par(mar=c(9,5,3,2))
 par(mgp=c(3, 0.5, 0))
@@ -4175,7 +4762,7 @@ abline(h=pcut,lty=2,lwd=2)
 par(mar=c(0,0,0,0))
 plot(1, type = &quot;n&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;, xaxt=&quot;n&quot;,yaxt=&quot;n&quot;, bty=&quot;n&quot;)
 legend(&quot;center&quot;, legend=paste(&quot;True p =&quot;,round(trueprops,3)[o]), fill=ggplotColors(length(trueprops)), cex=1.5)</code></pre>
-<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-38-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-42-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>auc.asin &lt;- auc.logit &lt;- auc.bb &lt;- auc.nb &lt;- auc.qlf &lt;- auc.coda &lt;- rep(NA,nsim)
 for(i in 1:nsim){
   auc.asin[i] &lt;- auroc(score=1-pval.asin[,i],bool=de)
@@ -4202,7 +4789,7 @@ mean(auc.asin)</code></pre>
 par(mar=c(9,5,3,2))
 barplot(c(mean(auc.asin),mean(auc.logit),mean(auc.bb),mean(auc.nb),mean(auc.qlf),mean(auc.coda)), ylim=c(0,1), ylab= &quot;AUC&quot;, cex.axis=1.5, cex.lab=1.5, names=names, las=2, cex.names = 1.5)
 title(paste(&quot;AUC: sample size n=&quot;,nsamp/2,sep=&quot;&quot;),cex.main=1.5,adj=0)</code></pre>
-<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-40-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-44-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>true positive vs false positive rate</p>
 <pre class="r"><code>tp.rate.asin &lt;- fp.rate.asin &lt;- tp.rate.logit &lt;- fp.rate.logit &lt;-
   tp.rate.bb &lt;- fp.rate.bb &lt;-  tp.rate.nb &lt;- fp.rate.nb &lt;- 
@@ -4243,7 +4830,7 @@ lines(rowMeans(fp.rate.logit)/12,rowMeans(tp.rate.logit)/8,lwd=2,col=mycols[2])
 
 legend(&quot;bottomright&quot;,legend=names,fill=mycols)
 title(&quot;ROC&quot;, adj=0)</code></pre>
-<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-42-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-46-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>plot(rowMeans(fp.rate.asin)/12,rowMeans(tp.rate.asin)/8,col=mycols[1], type=&quot;l&quot;,lwd=2,
      ylab=&quot;True positive rate&quot;, xlab=&quot;False positive rate&quot;, xlim=c(0,0.2))
 lines(rowMeans(fp.rate.bb)/12,rowMeans(tp.rate.bb)/8,lwd=2,col=mycols[3])
@@ -4254,7 +4841,7 @@ lines(rowMeans(fp.rate.logit)/12,rowMeans(tp.rate.logit)/8,lwd=2,col=mycols[2])
 
 legend(&quot;bottomright&quot;,legend=names,fill=mycols)
 title(&quot;ROC- zoomed in&quot;, adj=0)</code></pre>
-<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-43-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/Sims2vs20CT.Rmd/unnamed-chunk-47-1.png" width="672" style="display: block; margin: auto;" /></p>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
