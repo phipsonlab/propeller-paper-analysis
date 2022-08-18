@@ -57,25 +57,79 @@ This dataset was published in PNAS in 2021 and examined PBMCs from 20 individual
 The dataset was balanced in terms of age and sex (5 samples in each group: Male + Young,
 Male + Old, Female + Young, Female + Old).
 
+The data analysis reported in the paper was ANOVA directly on cell type proportions modelling sex and age plus interaction. It was not clear from the description whether separate models were fitted for sex and age, removing the interaction term in order to interpret the effects for sex and age correctly.
+
 From the supplementary data I have extracted the cell type proportions and using 
 information from the paper I have converted the proportions into the necessary
 data type (a list object) to analyse with propeller.
 
+## Broad cell types analysis
 
 ```{r}
 sexCT <- read.delim("./data/CTpropsTransposed.txt", row.names = 1)
 sexprops <- sexCT/100
-prop.list <- convertDataToList(sexprops,data.type="proportions", transform="logit",
+prop.list <- convertDataToList(sexprops,data.type="proportions", transform="asin",
                                scale.fac=174684/20)
 
 sampleinfo <- read.csv("./data/sampleinfo.csv", nrows = 20)
 celltypes <- read.csv("./data/CelltypeLevels.csv")
 group.immune <- paste(sampleinfo$Sex, sampleinfo$Age, sep=".")
+
+celltypes$Celltype_L0 <- celltypes$Celltype_L1
+celltypes$Celltype_L0[celltypes$Celltype_L1 == "CD4" | celltypes$Celltype_L1 == "CD8" | celltypes$Celltype_L1 == "CD4-CD8-" | celltypes$Celltype_L1 == "CD4+CD8+" | celltypes$Celltype_L1 == "T-mito"] <- "TC"
 ```
 
 ```{r}
 gt(data.frame(table(sampleinfo$Sex, sampleinfo$Age)), rownames_to_stub = TRUE, caption="Sample info for aging dataset")
 ```
+
+```{r}
+levels(factor(celltypes$Celltype_L0))
+sexprops.broad <-  matrix(NA,nrow=length(levels(factor(celltypes$Celltype_L0))), ncol=ncol(sexprops)) 
+rownames(sexprops.broad) <- levels(factor(celltypes$Celltype_L0))
+colnames(sexprops.broad) <- colnames(sexprops)
+
+for(i in 1:ncol(sexprops.broad)) sexprops.broad[,i] <- tapply(sexprops[,i],celltypes$Celltype_L0,sum)
+
+prop.broad.list <- convertDataToList(sexprops.broad,data.type="proportions", transform="asin", scale.fac=174684/20)
+```
+
+```{r, fig.width=10, fig.height=5}
+par(mfrow=c(1,5))
+for(i in 1:nrow(sexprops.broad)){
+  stripchart(as.numeric(sexprops.broad[i,])~group.immune,
+           vertical=TRUE, pch=c(8,16), method="jitter",
+           col = c(ggplotColors(20)[20],"hotpink",4, "darkblue"),cex=2,
+           ylab="Proportions", cex.axis=1.25, cex.lab=1.5,
+           group.names=c("F.Old","F.Young","M.Old","M.Young"))
+  title(rownames(sexprops.broad)[i], cex.main=1.5, adj=0)
+}
+```
+
+```{r}
+designAS <- model.matrix(~0+sampleinfo$Age + sampleinfo$Sex)
+colnames(designAS) <- c("old","young","MvsF")
+
+# Young vs old
+mycontr <- makeContrasts(young-old, levels=designAS)
+propeller.ttest(prop.list = prop.broad.list,design = designAS, contrasts = mycontr,
+                robust=TRUE,trend=FALSE,sort=TRUE)
+```
+
+```{r}
+designSex <- model.matrix(~0+sampleinfo$Sex + sampleinfo$Age)
+colnames(designSex) <- c("female","male","YvO")
+
+# Male vs female
+mycontr <- makeContrasts(male-female, levels=designSex)
+propeller.ttest(prop.list = prop.broad.list,design = designSex, contrasts = mycontr,
+                robust=TRUE,trend=FALSE,sort=TRUE)
+
+```
+
+## Refined cell types analysis
+
+## Young vs Old
 
 Set up design matrix using a means model, taking into account age and sex.
 
@@ -108,6 +162,39 @@ stripchart(as.numeric(sexprops["CD16",])~group.immune,
            group.names=c("F.Old","F.Young","M.Old","M.Young"))
 title("CD16: Young Vs Old", cex.main=1.5, adj=0)
 text(2.2,0.049, labels = "Adj.Pval = 0.023")
+```
+
+```{r}
+pbmc.oldyoung <- propeller.ttest(prop.list = prop.list,design = designAS, contrasts = mycontr,
+                robust=TRUE,trend=FALSE,sort=TRUE)
+sig.pbmc <- rownames(pbmc.oldyoung)
+
+pdf(file="output/pbmcOldYoungResults.pdf",width = 13, height=13)
+par(mfrow=c(6,4))
+par(mar=c(4,5,2,2))
+for(i in 1:length(sig.pbmc)){
+stripchart(as.numeric(sexprops[sig.pbmc[i],])~group.immune,
+           vertical=TRUE, pch=c(8,16), method="jitter",
+           col = c(ggplotColors(20)[20],"hotpink",4, "darkblue"),cex=2,
+           ylab="Proportions", cex.axis=1.25, cex.lab=1.5,
+           group.names=c("F.Old","F.Young","M.Old","M.Young"))
+title(paste(sig.pbmc[i],": Young Vs Old", sep=""), cex.main=1.5, adj=0)
+legend("top", legend = paste("Adj.Pval = ",round(pbmc.oldyoung$FDR,3)[i],sep=""),cex=1.5,bty="n",bg="n")  
+}
+dev.off()
+```
+
+## Male vs female
+
+```{r}
+designSex <- model.matrix(~0+sampleinfo$Sex + sampleinfo$Age)
+colnames(designSex) <- c("female","male","YvO")
+
+# Male vs female
+mycontr <- makeContrasts(male-female, levels=designSex)
+propeller.ttest(prop.list = prop.list,design = designSex, contrasts = mycontr,
+                robust=TRUE,trend=FALSE,sort=TRUE)
+
 ```
 
 
@@ -160,6 +247,9 @@ gt(data.frame(Sample=1:9,Group=grp, Sex=sex),caption="Sample info for heart data
 
 ## Anova test with propeller.anova
 
+For the original analysis in the published paper by Sim et al., we performed
+an ANOVA using propeller(logit).
+
 ```{r}
 prop.logit <- getTransformedProps(clusters = heart.info$Celltype, sample=sample,
                                   transform = "logit")
@@ -171,6 +261,9 @@ propeller.anova(prop.logit,design = design.anova, coef=c(1,2,3), robust=TRUE,
 
 
 ## Modelling development as a continuous variable
+
+Here we model the data in a different way with development as a continuous
+variable, and include sex as an additional covariate to control for.
 
 ```{r}
 des.dose <- model.matrix(~dose + sex)
@@ -184,7 +277,7 @@ fit.plot <- lmFit(prop.logit$Proportions,des.dose)
 fit.plot <- eBayes(fit.plot, robust=TRUE)
 ```
 
-The two analysis identify the same cell types as significantly enriched/depleted, 
+The two analyses identify the same cell types as significantly enriched/depleted, 
 although there is a change in the order of significance.
 
 Three significant cell types are visualised below.
@@ -214,6 +307,28 @@ stripchart(as.numeric(prop.logit$Proportions["Fibroblast",])~grp,
 title("Fibroblast development", cex.main=1.5, adj=0)
 abline(a=fit.plot$coefficients["Fibroblast",1], b=fit.plot$coefficients["Fibroblast",2], lty=2, lwd=2)
 ```
+
+```{r}
+
+sig.heart <- rownames(topTable(fit,coef=2))
+grp <- factor(rep(c("fetal","young","adult"),each=3), levels=c("fetal","young","adult"))
+
+pdf(file="output/heartResults.pdf",width = 13, height=6)
+par(mfrow=c(2,4))
+par(mar=c(4,5,2,2))
+for(i in 1:length(sig.heart)){
+  
+stripchart(as.numeric(prop.logit$Proportions[sig.heart[i],])~grp,
+           vertical=TRUE, pch=16, method="jitter",
+           col = ggplotColors(4),cex=2, 
+           ylab="Proportions",cex.axis=1.25, cex.lab=1.5)
+title(sig.heart[i], cex.main=1.5, adj=0)
+legend("top", legend = paste("Adj.Pval = ",round(topTable(fit,coef=2)$adj.P.Val,3)[i],sep=""),cex=1.5,bty="n",bg="n")
+#abline(a=fit.plot$coefficients[sig.heart[i],1], b=fit.plot$coefficients[sig.heart[i],2], lty=2, lwd=2)
+}
+dev.off()
+```
+
 
 # COVID data
 
@@ -262,6 +377,11 @@ title("Neutrophils in severe covid", cex.main=1.5, adj=0)
 text(1.5,0.195, labels = "Adj.Pval = 3.5e-06")
 ```
 
+Number of samples in each group:
+```{r}
+table(grp.covid)
+```
+
 All significant cell types
 ```{r,fig.width=10, fig.height=10}
 par(mfrow=c(2,2))
@@ -290,5 +410,225 @@ stripchart(as.numeric(props.covid$Proportions["NK",])~grp.covid,
 title("NK in covid", cex.main=1.5, adj=0)
 ```
 
+```{r}
+sig.covid <- rownames(output.logit)
+
+pdf(file="output/covidResults.pdf",width = 13, height=5)
+par(mfrow=c(2,5))
+par(mar=c(4,5,2,2))
+for(i in 1:length(sig.covid)){
+  
+stripchart(as.numeric(props.covid$Proportions[sig.covid[i],])~grp.covid,
+           vertical=TRUE, pch=16, method="jitter",
+           col = c(4,"purple",2),cex=2, 
+           ylab="Proportions",cex.axis=1.25, cex.lab=1.5)
+
+title(sig.covid[i], cex.main=1.5, adj=0)
+legend("top", legend = paste("Adj.Pval = ",round(output.asin[sig.covid[i],]$FDR,3),sep=""),cex=1.5,bty="n",bg="n")
+
+}
+dev.off()
+```
+
+
+# Figure 3
+
+```{r, fig.width=15, fig.height=9}
+layout(matrix(c(1,1,2,3,3,4,5,5,6,7,7,7,8,8,8,9,9,9), 2, 9, byrow = TRUE))
+
+par(mar=c(5.5,5.5,3,0))
+barplot(prop.logit$Proportions, col=ggplotColors(nrow(prop.logit$Proportions)),
+        cex.lab=1.5, cex.axis = 1.5, cex.names=1.5, ylab="Proportions",xlab="Samples",las=2)
+title("a) Human heart development", adj=0,cex.main=1.5)
+par(mar=c(0,0,0,0))
+plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
+legend("left",fill=ggplotColors(8),legend=rownames(prop.logit$Proportions), cex=1.25,
+       bty="n")
+
+par(mar=c(5.5,5.5,3,0))
+par(mgp=c(4,1,0))
+barplot(prop.list$Proportions, col=ggplotColors(24),las=2, cex.lab=1.5, 
+        cex.axis = 1.5, cex.names=1.5, ylab="Proportions",xlab="Samples")
+title("b) Old and young PBMCs", adj=0,cex.main=1.5)
+
+par(mar=c(0,0,0,0))
+plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
+legend("left",fill=ggplotColors(24),legend=rownames(prop.list$Proportions), cex=1.25,
+       bty="n")
+
+
+par(mar=c(5.5,5.5,3,0))
+barplot(props.covid$Proportions, col=ggplotColors(nrow(props.covid$Proportions)),
+        cex.lab=1.5, cex.axis = 1.5, cex.names=1.5, ylab="Proportions",xlab="Samples",las=2)
+title("c) COVID vs healthy controls ", adj=0,cex.main=1.5)
+
+par(mar=c(0,0,0,0))
+plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
+legend("left",fill=ggplotColors(10),legend=rownames(props.covid$Proportions), cex=1.25,
+       bty="n")
+
+par(mar=c(5,5.5,3,2))
+stripchart(as.numeric(prop.logit$Proportions["Cardiomyocytes",])~grp,
+           vertical=TRUE, pch=16, method="jitter",
+           col = ggplotColors(4),cex=2, 
+           ylab="Proportions",cex.axis=1.5, cex.lab=1.5)
+title("d) Cardiomyocyte development", cex.main=1.5, adj=0)
+abline(a=fit.plot$coefficients["Cardiomyocytes",1], b=fit.plot$coefficients["Cardiomyocytes",2], lty=2, lwd=2)
+text(2.6,0.77, labels = "Adj.Pval = 0.01",cex=1.5)
+
+
+stripchart(as.numeric(sexprops["CD8.Naive",])~group.immune,
+           vertical=TRUE, pch=c(8,16), method="jitter",
+           col = c(ggplotColors(20)[20],"hotpink",4, "darkblue"),cex=2,
+           ylab="Proportions", cex.axis=1.5, cex.lab=1.5,
+           group.names=c("F.Old","F.Young","M.Old","M.Young"))
+title("e) CD8.Naive: Young Vs Old", cex.main=1.5, adj=0)
+text(3.2,0.18, labels = "Adj.Pval = 0.004",cex=1.5)
+
+
+
+grp.covid <- rep(c("Control","Moderate","Severe"), c(4, 3, 6))
+stripchart(as.numeric(props.covid$Proportions["Neutrophil",])~grp.covid,
+           vertical=TRUE, pch=16, method="jitter",
+           col = c(4,"purple",2),cex=2, 
+           ylab="Proportions",cex.axis=1.5, cex.lab=1.5)
+title("f) Neutrophils in severe covid", cex.main=1.5, adj=0)
+text(1.5,0.195, labels = "Adj.Pval = 0.028",cex=1.5)
+```
+
+
+
+```{r, echo=FALSE, eval=FALSE}
+pdf(file="./output/Figure3.pdf", width = 15,height=9)
+layout(matrix(c(1,1,2,3,3,4,5,5,6,7,7,7,8,8,8,9,9,9), 2, 9, byrow = TRUE))
+
+par(mar=c(5.5,5.5,3,0))
+barplot(prop.logit$Proportions, col=ggplotColors(nrow(prop.logit$Proportions)),
+        cex.lab=1.5, cex.axis = 1.5, cex.names=1.5, ylab="Proportions",xlab="Samples",las=2)
+title("a) Human heart development", adj=0,cex.main=1.5)
+par(mar=c(0,0,0,0))
+plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
+legend("left",fill=ggplotColors(8),legend=rownames(prop.logit$Proportions), cex=1.25,
+       bty="n")
+
+par(mar=c(5.5,5.5,3,0))
+par(mgp=c(4,1,0))
+barplot(prop.list$Proportions, col=ggplotColors(24),las=2, cex.lab=1.5, 
+        cex.axis = 1.5, cex.names=1.5, ylab="Proportions",xlab="Samples")
+title("b) Old and young PBMCs", adj=0,cex.main=1.5)
+
+par(mar=c(0,0,0,0))
+plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
+legend("left",fill=ggplotColors(24),legend=rownames(prop.list$Proportions), cex=1.25,
+       bty="n")
+
+
+par(mar=c(5.5,5.5,3,0))
+barplot(props.covid$Proportions, col=ggplotColors(nrow(props.covid$Proportions)),
+        cex.lab=1.5, cex.axis = 1.5, cex.names=1.5, ylab="Proportions",xlab="Samples",las=2)
+title("c) COVID vs healthy controls ", adj=0,cex.main=1.5)
+
+par(mar=c(0,0,0,0))
+plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
+legend("left",fill=ggplotColors(10),legend=rownames(props.covid$Proportions), cex=1.25,
+       bty="n")
+
+par(mar=c(5,5.5,3,2))
+stripchart(as.numeric(prop.logit$Proportions["Cardiomyocytes",])~grp,
+           vertical=TRUE, pch=16, method="jitter",
+           col = ggplotColors(4),cex=2, 
+           ylab="Proportions",cex.axis=1.5, cex.lab=1.5)
+title("d) Cardiomyocyte development", cex.main=1.5, adj=0)
+abline(a=fit.plot$coefficients["Cardiomyocytes",1], b=fit.plot$coefficients["Cardiomyocytes",2], lty=2, lwd=2)
+text(2.6,0.77, labels = "Adj.Pval = 0.01",cex=1.5)
+
+
+stripchart(as.numeric(sexprops["CD8.Naive",])~group.immune,
+           vertical=TRUE, pch=c(8,16), method="jitter",
+           col = c(ggplotColors(20)[20],"hotpink",4, "darkblue"),cex=2,
+           ylab="Proportions", cex.axis=1.5, cex.lab=1.5,
+           group.names=c("F.Old","F.Young","M.Old","M.Young"))
+title("e) CD8.Naive: Young Vs Old", cex.main=1.5, adj=0)
+text(3.2,0.18, labels = "Adj.Pval = 0.004",cex=1.5)
+
+
+
+grp.covid <- rep(c("Control","Moderate","Severe"), c(4, 3, 6))
+stripchart(as.numeric(props.covid$Proportions["Neutrophil",])~grp.covid,
+           vertical=TRUE, pch=16, method="jitter",
+           col = c(4,"purple",2),cex=2, 
+           ylab="Proportions",cex.axis=1.5, cex.lab=1.5)
+title("f) Neutrophils in severe covid", cex.main=1.5, adj=0)
+text(1.5,0.195, labels = "Adj.Pval = 0.028",cex=1.5)
+
+dev.off()
+```
+
+
+```{r,echo=FALSE, eval=FALSE}
+png(file="./output/Figure3.png", width = 15,height=9, units="in",res=300,bg="transparent")
+layout(matrix(c(1,1,2,3,3,4,5,5,6,7,7,7,8,8,8,9,9,9), 2, 9, byrow = TRUE))
+
+par(mar=c(5.5,5.5,3,0))
+barplot(prop.logit$Proportions, col=ggplotColors(nrow(prop.logit$Proportions)),
+        cex.lab=1.5, cex.axis = 1.5, cex.names=1.5, ylab="Proportions",xlab="Samples",las=2)
+title("a) Human heart development", adj=0,cex.main=1.5)
+par(mar=c(0,0,0,0))
+plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
+legend("left",fill=ggplotColors(8),legend=rownames(prop.logit$Proportions), cex=1.25,
+       bty="n")
+
+par(mar=c(5.5,5.5,3,0))
+par(mgp=c(4,1,0))
+barplot(prop.list$Proportions, col=ggplotColors(24),las=2, cex.lab=1.5, 
+        cex.axis = 1.5, cex.names=1.5, ylab="Proportions",xlab="Samples")
+title("b) Old and young PBMCs", adj=0,cex.main=1.5)
+
+par(mar=c(0,0,0,0))
+plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
+legend("left",fill=ggplotColors(24),legend=rownames(prop.list$Proportions), cex=1.25,
+       bty="n")
+
+
+par(mar=c(5.5,5.5,3,0))
+barplot(props.covid$Proportions, col=ggplotColors(nrow(props.covid$Proportions)),
+        cex.lab=1.5, cex.axis = 1.5, cex.names=1.5, ylab="Proportions",xlab="Samples",las=2)
+title("c) COVID vs healthy controls ", adj=0,cex.main=1.5)
+
+par(mar=c(0,0,0,0))
+plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
+legend("left",fill=ggplotColors(10),legend=rownames(props.covid$Proportions), cex=1.25,
+       bty="n")
+
+par(mar=c(5,5.5,3,2))
+stripchart(as.numeric(prop.logit$Proportions["Cardiomyocytes",])~grp,
+           vertical=TRUE, pch=16, method="jitter",
+           col = ggplotColors(4),cex=2, 
+           ylab="Proportions",cex.axis=1.5, cex.lab=1.5)
+title("d) Cardiomyocyte development", cex.main=1.5, adj=0)
+abline(a=fit.plot$coefficients["Cardiomyocytes",1], b=fit.plot$coefficients["Cardiomyocytes",2], lty=2, lwd=2)
+text(2.6,0.77, labels = "Adj.Pval = 0.01",cex=1.5)
+
+
+stripchart(as.numeric(sexprops["CD8.Naive",])~group.immune,
+           vertical=TRUE, pch=c(8,16), method="jitter",
+           col = c(ggplotColors(20)[20],"hotpink",4, "darkblue"),cex=2,
+           ylab="Proportions", cex.axis=1.5, cex.lab=1.5,
+           group.names=c("F.Old","F.Young","M.Old","M.Young"))
+title("e) CD8.Naive: Young Vs Old", cex.main=1.5, adj=0)
+text(3.2,0.18, labels = "Adj.Pval = 0.004",cex=1.5)
+
+
+
+grp.covid <- rep(c("Control","Moderate","Severe"), c(4, 3, 6))
+stripchart(as.numeric(props.covid$Proportions["Neutrophil",])~grp.covid,
+           vertical=TRUE, pch=16, method="jitter",
+           col = c(4,"purple",2),cex=2, 
+           ylab="Proportions",cex.axis=1.5, cex.lab=1.5)
+title("f) Neutrophils in severe covid", cex.main=1.5, adj=0)
+text(1.5,0.195, labels = "Adj.Pval = 0.028",cex=1.5)
+
+dev.off()
+```
 
 

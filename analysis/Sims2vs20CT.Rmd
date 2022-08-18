@@ -491,9 +491,12 @@ pval.chsq <- pval.bb <- pval.lb <- pval.nb <- pval.qlf <- pval.pois <- pval.logi
 par(mar=c(5,5,2,2))
 par(mfrow=c(1,1))
 barplot(t(cbind(grp1.trueprops,grp2.trueprops)), beside=TRUE, col=c(2,4), 
-        ylab="True cell type proportion")
-legend("topleft", fill=c(2,4),legend=c("Group 1","Group 2"))
-title("True cell type proportions for Group 1 and 2",adj=0)
+        ylab="True cell type proportion", ylim=c(0,0.9), xlab="Cell types",
+        cex.axis = 1.5, cex.names = 1.5, cex.lab=1.5)
+legend("topleft", fill=c(2,4),legend=c("Group 1","Group 2"), cex=1.25)
+title("a) True cell type proportions for Group 1 and 2",adj=0, cex=1.5)
+text(2,0.5,labels="*",cex=2)
+text(5,0.85,labels="*",cex=2)
 ```
 
 ```{r}
@@ -653,6 +656,34 @@ plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
 legend("center", legend=paste("True p =",round(trueprops,3)[o]), fill=ggplotColors(length(b.grp1)), cex=1.5)
 ```
 
+Plot for supplementary figure
+
+```{r}
+pdf(file="./output/SupplementaryFigure3.pdf",width = 12,height=5.5)
+layout(matrix(c(1,1,1,2,2,2,3), 1, 7, byrow = TRUE))
+
+par(mar=c(5,5,2,2))
+barplot(t(cbind(grp1.trueprops,grp2.trueprops)), beside=TRUE, col=c(2,4), 
+        ylab="True cell type proportion", ylim=c(0,0.9), xlab="Cell types",
+        cex.axis = 1.5, cex.names = 1.5, cex.lab=1.5)
+legend("topleft", fill=c(2,4),legend=c("Group 1","Group 2"), cex=1.25)
+title("a) True cell type proportions",adj=0, cex.main=1.5)
+text(2,0.5,labels="*",cex=3)
+text(5,0.85,labels="*",cex=3)
+par(mar=c(9,5,3,2))
+par(mgp=c(3, 0.5, 0))
+o <- order(trueprops)
+names <- c("propeller (asin)","propeller (logit)","betabin","negbin","negbinQLF","CODA")
+barplot(sig.disc[o,4:9],beside=TRUE,col=ggplotColors(length(b.grp1)),
+        ylab="Proportion sig. tests", names=names,
+        cex.axis = 1.5, cex.lab=1.5, cex.names = 1.35, ylim=c(0,1), las=2)
+title(paste("b) Significant tests, n=",nsamp/2,sep=""), cex.main=1.5,adj=0)
+abline(h=pcut,lty=2,lwd=2)
+par(mar=c(0,0,0,0))
+plot(1, type = "n", xlab = "", ylab = "", xaxt="n",yaxt="n", bty="n")
+legend("center", legend=paste("True p =",round(trueprops,3)[o]), fill=ggplotColors(length(b.grp1)), cex=1.5)
+dev.off()
+```
 
 
 ## Twenty cell types, two groups, n=5, true differences
@@ -699,11 +730,12 @@ sum(grp2.trueprops)
 ```
 
 ```{r}
-par(mar=c(9,5,2,2))
+par(mar=c(7,6,2,2))
+par(mfrow=c(1,1))
 barplot(t(cbind(grp1.trueprops,grp2.trueprops)), beside=TRUE, col=c(2,4), 
-        las=2, ylab="True cell type proportion",ylim=c(0,0.32))
+        las=2, ylab="True cell type proportion",ylim=c(0,0.32), cex.lab=1.5, cex.axis=1.5)
 legend("top", fill=c(2,4),legend=c("Group 1","Group 2"))
-title("True cell type proportions for Group 1 and 2",adj=0)
+title("a) True cell type proportions for Group 1 and 2",adj=0, cex.main=1.5)
 text(2,0.02,label="*", cex=2)
 text(11,0.02,label="*", cex=2)
 text(17,0.03,label="*", cex=2)
@@ -714,6 +746,29 @@ text(47,0.1,label="*", cex=2)
 text(53,0.18,label="*", cex=2)
 text(59,0.31,label="*", cex=2)
 legend("topleft",legend="* = true diff")
+```
+
+
+```{r}
+pdf(file="./output/extremeCaseTrueProps20CT.pdf",width=7,height=7)
+par(mar=c(7,6,2,2))
+par(mfrow=c(1,1))
+par(mgp=c(4,1,0))
+barplot(t(cbind(grp1.trueprops,grp2.trueprops)), beside=TRUE, col=c(2,4), 
+        las=2, ylab="True cell type proportion",ylim=c(0,0.32), cex.lab=1.5, cex.axis=1.5)
+legend("top", fill=c(2,4),legend=c("Group 1","Group 2"))
+title("a) True cell type proportions for Group 1 and 2",adj=0, cex.main=1.5)
+text(2,0.02,label="*", cex=2)
+text(11,0.02,label="*", cex=2)
+text(17,0.03,label="*", cex=2)
+text(26,0.05,label="*", cex=2)
+text(38,0.06,label="*", cex=2)
+text(38,0.06,label="*", cex=2)
+text(47,0.1,label="*", cex=2)
+text(53,0.18,label="*", cex=2)
+text(59,0.31,label="*", cex=2)
+legend("topleft",legend="* = true diff")
+dev.off()
 ```
 
 ```{r}
@@ -860,9 +915,19 @@ gt(data.frame(sig.disc[o,]),rownames_to_stub = TRUE,caption="Proportion of signi
 ```
 
 ```{r}
+names <- c("propeller (asin)","propeller (logit)","betabin","negbin","negbinQLF","CODA")  
+mysigres <- sig.disc[,4:9]
+
+colnames(mysigres) <- names
 foldchange <- grp2.trueprops/grp1.trueprops
 o <- order(abs(log(foldchange)))
-pheatmap(sig.disc[o,4:9], scale="none", cluster_rows = FALSE, cluster_cols = FALSE, main = "Proportion of significant tests, ordered by fold-change")
+pheatmap(mysigres[o,], scale="none", cluster_rows = FALSE, cluster_cols = FALSE, main = "b) Simulation results, ordered by abs(log-fold-change)")
+```
+
+```{r}
+pdf(file="./output/heatmap20CT.pdf",width = 7,height = 7)
+pheatmap(mysigres[o,], scale="none", cluster_rows = FALSE, cluster_cols = FALSE, main = "b) Simulation results, ordered by abs(log-fold-change)")
+dev.off()
 ```
 
 
@@ -907,6 +972,9 @@ rownames(res) <- rownames(recall)
 gt(res,rownames_to_stub=TRUE,caption="True differences in 8/20 cell types")
 ```
 
+```{r}
+gt(res[4:9,],rownames_to_stub=TRUE,caption="True differences in 8/20 cell types")
+```
 
 
 ```{r}
