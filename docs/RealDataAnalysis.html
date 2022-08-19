@@ -394,7 +394,7 @@ class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2022-08-18
+<strong>Last updated:</strong> 2022-08-19
 </p>
 <p>
 <strong>Checks:</strong> <span
@@ -525,15 +525,15 @@ project makes it easier to run your code on other machines.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistree258645364849f1d433de4d608c200cbe2899f63btargetblank2586453a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistree3bd56e03b4dbde80eb02bf8c23f6bd8720546984targetblank3bd56e0a">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/258645364849f1d433de4d608c200cbe2899f63b" target="_blank">2586453</a>
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/3bd56e03b4dbde80eb02bf8c23f6bd8720546984" target="_blank">3bd56e0</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistree258645364849f1d433de4d608c200cbe2899f63btargetblank2586453a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomphipsonlabpropellerpaperanalysistree3bd56e03b4dbde80eb02bf8c23f6bd8720546984targetblank3bd56e0a"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -543,7 +543,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/258645364849f1d433de4d608c200cbe2899f63b" target="_blank">2586453</a>.
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/tree/3bd56e03b4dbde80eb02bf8c23f6bd8720546984" target="_blank">3bd56e0</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -561,23 +561,14 @@ Ignored files:
     Ignored:    .Rhistory
     Ignored:    .Rproj.user/
     Ignored:    data/cold_warm_fresh_cellinfo.txt
-    Ignored:    data/covid.cell.annotation.meta.txt
     Ignored:    data/heartFYA.Rds
     Ignored:    data/pool_1.rds
 
 Untracked files:
     Untracked:  analysis/PlotsForPaper.Rmd
-    Untracked:  code/SimCode.R
-    Untracked:  code/SimCodeTrueDiff.R
-    Untracked:  code/auroc.R
-    Untracked:  code/convertData.R
-    Untracked:  data/CTpropsTransposed.txt
-    Untracked:  data/CelltypeLevels.csv
     Untracked:  data/TypeIErrTables.Rdata
     Untracked:  data/appnote1cdata.rdata
-    Untracked:  data/cellinfo.csv
     Untracked:  data/nullsimsVaryN_results.Rdata
-    Untracked:  data/sampleinfo.csv
     Untracked:  output/1x/
     Untracked:  output/Fig1ab.pdf
     Untracked:  output/Fig1cde.pdf
@@ -664,6 +655,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/phipsonlab/propeller-paper-analysis/blob/3bd56e03b4dbde80eb02bf8c23f6bd8720546984/analysis/RealDataAnalysis.Rmd" target="_blank">3bd56e0</a>
+</td>
+<td>
+bphipson
+</td>
+<td>
+2022-08-19
+</td>
+<td>
+update real data analysis
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/phipsonlab/propeller-paper-analysis/f900e44ecf6150a2e055864fc495c522b107f8bd/docs/RealDataAnalysis.html" target="_blank">f900e44</a>
+</td>
+<td>
+bphipson
+</td>
+<td>
+2022-08-18
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -823,7 +848,7 @@ propeller.</p>
 <h2>Broad cell types analysis</h2>
 <pre class="r"><code>sexCT &lt;- read.delim(&quot;./data/CTpropsTransposed.txt&quot;, row.names = 1)
 sexprops &lt;- sexCT/100
-prop.list &lt;- convertDataToList(sexprops,data.type=&quot;proportions&quot;, transform=&quot;asin&quot;,
+prop.list &lt;- convertDataToList(sexprops,data.type=&quot;proportions&quot;, transform=&quot;logit&quot;,
                                scale.fac=174684/20)
 
 sampleinfo &lt;- read.csv(&quot;./data/sampleinfo.csv&quot;, nrows = 20)
@@ -1286,17 +1311,18 @@ colnames(sexprops.broad) &lt;- colnames(sexprops)
 
 for(i in 1:ncol(sexprops.broad)) sexprops.broad[,i] &lt;- tapply(sexprops[,i],celltypes$Celltype_L0,sum)
 
-prop.broad.list &lt;- convertDataToList(sexprops.broad,data.type=&quot;proportions&quot;, transform=&quot;asin&quot;, scale.fac=174684/20)</code></pre>
+prop.broad.list &lt;- convertDataToList(sexprops.broad,data.type=&quot;proportions&quot;, transform=&quot;logit&quot;, scale.fac=174684/20)</code></pre>
 <pre class="r"><code>par(mfrow=c(1,5))
+par(mar=c(6,5,3,2))
 for(i in 1:nrow(sexprops.broad)){
   stripchart(as.numeric(sexprops.broad[i,])~group.immune,
            vertical=TRUE, pch=c(8,16), method=&quot;jitter&quot;,
            col = c(ggplotColors(20)[20],&quot;hotpink&quot;,4, &quot;darkblue&quot;),cex=2,
            ylab=&quot;Proportions&quot;, cex.axis=1.25, cex.lab=1.5,
-           group.names=c(&quot;F.Old&quot;,&quot;F.Young&quot;,&quot;M.Old&quot;,&quot;M.Young&quot;))
+           group.names=c(&quot;F.Old&quot;,&quot;F.Young&quot;,&quot;M.Old&quot;,&quot;M.Young&quot;), las=2)
   title(rownames(sexprops.broad)[i], cex.main=1.5, adj=0)
 }</code></pre>
-<p><img src="figure/RealDataAnalysis.Rmd/unnamed-chunk-6-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="figure/RealDataAnalysis.Rmd/unnamed-chunk-6-1.png" width="1152" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>designAS &lt;- model.matrix(~0+sampleinfo$Age + sampleinfo$Sex)
 colnames(designAS) &lt;- c(&quot;old&quot;,&quot;young&quot;,&quot;MvsF&quot;)
 
@@ -1304,12 +1330,12 @@ colnames(designAS) &lt;- c(&quot;old&quot;,&quot;young&quot;,&quot;MvsF&quot;)
 mycontr &lt;- makeContrasts(young-old, levels=designAS)
 propeller.ttest(prop.list = prop.broad.list,design = designAS, contrasts = mycontr,
                 robust=TRUE,trend=FALSE,sort=TRUE)</code></pre>
-<pre><code>   PropMean.old PropMean.young PropRatio Tstatistic     P.Value        FDR
-MC   0.19656790     0.14320118 0.7285074 -3.0721365 0.006146365 0.03073183
-TC   0.53445740     0.60263724 1.1275684  1.9680058 0.063474712 0.15868678
-NK   0.15808995     0.13347185 0.8442779 -1.0554668 0.304133538 0.50688923
-BC   0.09432895     0.10249865 1.0866086  0.6569470 0.518905633 0.64863204
-DC   0.01655580     0.01819108 1.0987734  0.4041554 0.690503393 0.69050339</code></pre>
+<pre><code>   PropMean.old PropMean.young PropRatio Tstatistic    P.Value        FDR
+MC   0.19656790     0.14320118 0.7285074 -2.4782763 0.01517944 0.07589718
+TC   0.53445740     0.60263724 1.1275684  1.7958220 0.07607623 0.19019057
+NK   0.15808995     0.13347185 0.8442779 -1.2139485 0.22812958 0.38021597
+BC   0.09432895     0.10249865 1.0866086  0.8453907 0.40026618 0.50033273
+DC   0.01655580     0.01819108 1.0987734  0.2439462 0.80786033 0.80786033</code></pre>
 <pre class="r"><code>designSex &lt;- model.matrix(~0+sampleinfo$Sex + sampleinfo$Age)
 colnames(designSex) &lt;- c(&quot;female&quot;,&quot;male&quot;,&quot;YvO&quot;)
 
@@ -1317,12 +1343,12 @@ colnames(designSex) &lt;- c(&quot;female&quot;,&quot;male&quot;,&quot;YvO&quot;)
 mycontr &lt;- makeContrasts(male-female, levels=designSex)
 propeller.ttest(prop.list = prop.broad.list,design = designSex, contrasts = mycontr,
                 robust=TRUE,trend=FALSE,sort=TRUE)</code></pre>
-<pre><code>   PropMean.female PropMean.male PropRatio Tstatistic    P.Value       FDR
-NK       0.1169176    0.17464421 1.4937377  2.3732661 0.02805937 0.1402968
-TC       0.5973764    0.53971825 0.9034811 -1.6579946 0.11334335 0.2833584
-DC       0.0157718    0.01897507 1.2031011  1.0868808 0.29036247 0.4839375
-BC       0.1011660    0.09566164 0.9455912 -0.3897772 0.70093229 0.8761654
-MC       0.1687683    0.17100082 1.0132286  0.1074843 0.91550468 0.9155047</code></pre>
+<pre><code>   PropMean.female PropMean.male PropRatio  Tstatistic     P.Value       FDR
+NK       0.1169176    0.17464421 1.4937377  2.68780027 0.008652239 0.0432612
+TC       0.5973764    0.53971825 0.9034811 -1.50690429 0.135542825 0.3388571
+DC       0.0157718    0.01897507 1.2031011  1.09443016 0.276858018 0.4614300
+BC       0.1011660    0.09566164 0.9455912 -0.46829428 0.640772810 0.8009660
+MC       0.1687683    0.17100082 1.0132286  0.06740726 0.946415797 0.9464158</code></pre>
 </div>
 <div id="refined-cell-types-analysis" class="section level2">
 <h2>Refined cell types analysis</h2>
@@ -1338,56 +1364,56 @@ colnames(designAS) &lt;- c(&quot;old&quot;,&quot;young&quot;,&quot;MvsF&quot;)
 mycontr &lt;- makeContrasts(young-old, levels=designAS)
 propeller.ttest(prop.list = prop.list,design = designAS, contrasts = mycontr,
                 robust=TRUE,trend=FALSE,sort=TRUE)</code></pre>
-<pre><code>          PropMean.old PropMean.young PropRatio Tstatistic      P.Value
-CD8.Naive 0.0251316033   0.0901386289 3.5866645  4.5220310 0.0002519973
-CD16      0.0346697484   0.0184110417 0.5310405 -3.9241289 0.0009547072
-TREG      0.0224289338   0.0173984106 0.7757128 -2.7351400 0.0133315595
-T-mito    0.0050757865   0.0030999505 0.6107330 -2.6230363 0.0169438969
-INTER     0.0237901860   0.0160354568 0.6740366 -2.4875531 0.0225506463
-CD4-CD8-  0.0160339954   0.0301971880 1.8833227  2.2851533 0.0343944316
-CD14      0.1381079661   0.1087546814 0.7874613 -2.0325551 0.0568152857
-ABC       0.0042268748   0.0024242272 0.5735271 -1.6729544 0.1110894015
-CD4.Naive 0.1048008357   0.1320789977 1.2602857  1.4434939 0.1657237113
-CD8.CTL   0.1154952554   0.0782456785 0.6774796 -1.2843478 0.2149863850
-CD8.Tem   0.0639345157   0.0802785262 1.2556367  1.2590561 0.2237791504
-MBC       0.0358736549   0.0452983191 1.2627183  1.2537215 0.2256688587
-CDC1      0.0005479607   0.0008647764 1.5781725  1.0625556 0.3015992495
-NK3       0.0886767142   0.0704022112 0.7939199 -0.8885615 0.3857294967
-pre-DC    0.0002285096   0.0003193005 1.3973177  0.8863058 0.3867803942
-NK1       0.0125858088   0.0102540186 0.8147286 -0.8762818 0.3920651391
-PC        0.0054708831   0.0049397487 0.9029162 -0.8219337 0.4215370844
-CD4.Tem   0.0873700973   0.0832684783 0.9530547 -0.4812340 0.6360341593
-CD4+CD8+  0.0142514516   0.0133167354 0.9344126 -0.3026144 0.7655453386
-NBC       0.0487575349   0.0498363513 1.0221261  0.2928181 0.7729439779
-PDC       0.0031666984   0.0034597825 1.0925519  0.2888826 0.7758695169
-CDC2      0.0126126342   0.0135472159 1.0740989  0.2557422 0.8009596764
-NK2       0.0568274310   0.0528156246 0.9294037 -0.1699836 0.8668815789
-CD4.Tcm   0.0799349205   0.0746146497 0.9334425 -0.1236681 0.9029215277
+<pre><code>          PropMean.old PropMean.young PropRatio  Tstatistic      P.Value
+CD8.Naive 0.0251316033   0.0901386289 3.5866645  4.56531629 0.0001655915
+CD16      0.0346697484   0.0184110417 0.5310405 -3.53845105 0.0019313526
+T-mito    0.0050757865   0.0030999505 0.6107330 -2.70564864 0.0130970606
+INTER     0.0237901860   0.0160354568 0.6740366 -2.34264441 0.0288651941
+CD4-CD8-  0.0160339954   0.0301971880 1.8833227  2.26893189 0.0338557770
+TREG      0.0224289338   0.0173984106 0.7757128 -2.26167176 0.0342259694
+CD14      0.1381079661   0.1087546814 0.7874613 -1.75042587 0.0943497196
+ABC       0.0042268748   0.0024242272 0.5735271 -1.53059704 0.1406904913
+CD4.Naive 0.1048008357   0.1320789977 1.2602857  1.46557604 0.1574740245
+MBC       0.0358736549   0.0452983191 1.2627183  1.33884893 0.1948341805
+CD8.CTL   0.1154952554   0.0782456785 0.6774796 -1.31085637 0.2039626408
+PC        0.0054708831   0.0049397487 0.9029162 -1.26307895 0.2203089287
+pre-DC    0.0002285096   0.0003193005 1.3973177  1.24144109 0.2280358887
+CDC1      0.0005479607   0.0008647764 1.5781725  1.19434388 0.2455671742
+CD8.Tem   0.0639345157   0.0802785262 1.2556367  1.14556222 0.2646082927
+NK3       0.0886767142   0.0704022112 0.7939199 -1.02022467 0.3191513408
+NK1       0.0125858088   0.0102540186 0.8147286 -0.64532282 0.5256577519
+NBC       0.0487575349   0.0498363513 1.0221261  0.49890406 0.6229966249
+CD4.Tem   0.0873700973   0.0832684783 0.9530547 -0.40297138 0.6909611645
+CD4.Tcm   0.0799349205   0.0746146497 0.9334425  0.23348683 0.8176285211
+PDC       0.0031666984   0.0034597825 1.0925519  0.20366298 0.8405637766
+CD4+CD8+  0.0142514516   0.0133167354 0.9344126 -0.11420442 0.9101389532
+NK2       0.0568274310   0.0528156246 0.9294037  0.04492635 0.9645875142
+CDC2      0.0126126342   0.0135472159 1.0740989  0.03134858 0.9752816776
                   FDR
-CD8.Naive 0.006047935
-CD16      0.011456486
-TREG      0.101663382
-T-mito    0.101663382
-INTER     0.108243102
-CD4-CD8-  0.137577726
-CD14      0.194795265
-ABC       0.333268204
-CD4.Naive 0.441929897
-CD8.CTL   0.451337717
-CD8.Tem   0.451337717
-MBC       0.451337717
-CDC1      0.556798615
-NK3       0.588097709
-pre-DC    0.588097709
-NK1       0.588097709
-PC        0.595111178
-CD4.Tem   0.848045546
-CD4+CD8+  0.873774192
-NBC       0.873774192
-PDC       0.873774192
-CDC2      0.873774192
-NK2       0.902921528
-CD4.Tcm   0.902921528</code></pre>
+CD8.Naive 0.003974195
+CD16      0.023176231
+T-mito    0.104776485
+INTER     0.136903877
+CD4-CD8-  0.136903877
+TREG      0.136903877
+CD14      0.323484753
+ABC       0.419930732
+CD4.Naive 0.419930732
+MBC       0.420972299
+CD8.CTL   0.420972299
+PC        0.420972299
+pre-DC    0.420972299
+CDC1      0.420972299
+CD8.Tem   0.423373268
+NK3       0.478727011
+NK1       0.742105062
+NBC       0.830662167
+CD4.Tem   0.872793050
+CD4.Tcm   0.960644316
+PDC       0.960644316
+CD4+CD8+  0.975281678
+NK2       0.975281678
+CDC2      0.975281678</code></pre>
 <p>Visualise significant cell types:</p>
 <pre class="r"><code>par(mfrow=c(1,2))
 stripchart(as.numeric(sexprops[&quot;CD8.Naive&quot;,])~group.immune,
@@ -1435,56 +1461,56 @@ colnames(designSex) &lt;- c(&quot;female&quot;,&quot;male&quot;,&quot;YvO&quot;)
 mycontr &lt;- makeContrasts(male-female, levels=designSex)
 propeller.ttest(prop.list = prop.list,design = designSex, contrasts = mycontr,
                 robust=TRUE,trend=FALSE,sort=TRUE)</code></pre>
-<pre><code>          PropMean.female PropMean.male PropRatio Tstatistic    P.Value
-PC           0.0071388502   0.003271782 0.4583065 -2.9676619 0.00804369
-CD4-CD8-     0.0169315724   0.029299611 1.7304720  1.7466913 0.09739463
-CDC2         0.0114064513   0.014753399 1.2934258  1.7028982 0.10525677
-pre-DC       0.0001775081   0.000370302 2.0861130  1.6922855 0.10729321
-NK2          0.0457752659   0.063867790 1.3952467  1.5792666 0.13134444
-T-mito       0.0034714265   0.004704310 1.3551520  1.5108683 0.14764218
-NK3          0.0607526719   0.098326253 1.6184680  1.3381691 0.19717535
-CD8.CTL      0.1180843551   0.075656579 0.6406994 -1.2934355 0.21189365
-NK1          0.0103896562   0.012450171 1.1983237  1.0360062 0.31349508
-TREG         0.0209130057   0.018914339 0.9044295 -0.9699518 0.34452822
-PDC          0.0035994459   0.003027035 0.8409725 -0.8723142 0.39416997
-CDC1         0.0005883982   0.000824339 1.4009883  0.8506963 0.40576781
-CD16         0.0281162892   0.024964501 0.8879017 -0.7867408 0.44141885
-CD4.Tcm      0.0843546548   0.070194915 0.8321404 -0.7086577 0.48743577
-CD8.Tem      0.0747782768   0.069434765 0.9285419 -0.6242353 0.54015091
-CD8.Naive    0.0547935108   0.060476721 1.1037205  0.6099297 0.54938164
-CD4.Naive    0.1243810258   0.112498808 0.9044692 -0.6072558 0.55111630
-CD4+CD8+     0.0134400072   0.014128180 1.0512033  0.4069711 0.68867913
-ABC          0.0035141234   0.003136979 0.8926774 -0.3947226 0.69754192
-CD14         0.1200231846   0.126839463 1.0567913  0.3939839 0.69813009
-INTER        0.0206287843   0.019196858 0.9305860 -0.3590350 0.72361649
-CD4.Tem      0.0862285523   0.084410023 0.9789104 -0.2035515 0.84094249
-NBC          0.0497589512   0.048834935 0.9814301  0.1775313 0.86103455
-MBC          0.0407540321   0.040417942 0.9917532 -0.1763579 0.86194297
+<pre><code>          PropMean.female PropMean.male PropRatio Tstatistic     P.Value
+PC           0.0071388502   0.003271782 0.4583065 -3.1669247 0.004618248
+pre-DC       0.0001775081   0.000370302 2.0861130  2.5110134 0.020226075
+CDC2         0.0114064513   0.014753399 1.2934258  1.6325785 0.117165640
+NK2          0.0457752659   0.063867790 1.3952467  1.5116244 0.145428553
+CD4-CD8-     0.0169315724   0.029299611 1.7304720  1.5102803 0.145769120
+T-mito       0.0034714265   0.004704310 1.3551520  1.4058711 0.174095994
+NK3          0.0607526719   0.098326253 1.6184680  1.1335501 0.269669984
+NK1          0.0103896562   0.012450171 1.1983237  1.1164933 0.276735756
+CD8.CTL      0.1180843551   0.075656579 0.6406994 -1.1131493 0.278136717
+CDC1         0.0005883982   0.000824339 1.4009883  1.0905509 0.287740106
+PDC          0.0035994459   0.003027035 0.8409725 -1.0645655 0.299076537
+CD8.Naive    0.0547935108   0.060476721 1.1037205  0.9733622 0.341375491
+CD8.Tem      0.0747782768   0.069434765 0.9285419 -0.7670999 0.451391030
+TREG         0.0209130057   0.018914339 0.9044295 -0.7245891 0.476541303
+CD16         0.0281162892   0.024964501 0.8879017 -0.7035509 0.489386405
+ABC          0.0035141234   0.003136979 0.8926774 -0.5597871 0.581505744
+CD4.Naive    0.1243810258   0.112498808 0.9044692 -0.5287280 0.602499455
+NBC          0.0497589512   0.048834935 0.9814301  0.4375921 0.666118271
+CD4+CD8+     0.0134400072   0.014128180 1.0512033  0.4252468 0.674896446
+MBC          0.0407540321   0.040417942 0.9917532 -0.3094240 0.760026981
+INTER        0.0206287843   0.019196858 0.9305860 -0.2751525 0.785834451
+CD14         0.1200231846   0.126839463 1.0567913  0.2749839 0.785962262
+CD4.Tcm      0.0843546548   0.070194915 0.8321404 -0.1934495 0.848452765
+CD4.Tem      0.0862285523   0.084410023 0.9789104 -0.1642394 0.871081911
                 FDR
-PC        0.1930486
-CD4-CD8-  0.5905687
-CDC2      0.5905687
-pre-DC    0.5905687
-NK2       0.5905687
-T-mito    0.5905687
-NK3       0.6356810
-CD8.CTL   0.6356810
-NK1       0.7780465
-TREG      0.7780465
-PDC       0.7780465
-CDC1      0.7780465
-CD16      0.7780465
-CD4.Tcm   0.7780465
-CD8.Tem   0.7780465
-CD8.Naive 0.7780465
-CD4.Naive 0.7780465
-CD4+CD8+  0.8269903
-ABC       0.8269903
-CD14      0.8269903
-INTER     0.8269903
-CD4.Tem   0.8619430
-NBC       0.8619430
-MBC       0.8619430</code></pre>
+PC        0.1108380
+pre-DC    0.2427129
+CDC2      0.6525306
+NK2       0.6525306
+CD4-CD8-  0.6525306
+T-mito    0.6525306
+NK3       0.6525306
+NK1       0.6525306
+CD8.CTL   0.6525306
+CDC1      0.6525306
+PDC       0.6525306
+CD8.Naive 0.6827510
+CD8.Tem   0.7830182
+TREG      0.7830182
+CD16      0.7830182
+ABC       0.8505875
+CD4.Naive 0.8505875
+NBC       0.8525008
+CD4+CD8+  0.8525008
+MBC       0.8574134
+INTER     0.8574134
+CD14      0.8574134
+CD4.Tcm   0.8710819
+CD4.Tem   0.8710819</code></pre>
 </div>
 </div>
 <div id="heart-development-analysis" class="section level1">
@@ -2319,84 +2345,76 @@ loaded via a namespace (and not attached):
   [1] backports_1.4.1             plyr_1.8.7                 
   [3] igraph_1.3.1                lazyeval_0.2.2             
   [5] sp_1.4-7                    splines_4.2.0              
-  [7] BiocParallel_1.30.2         listenv_0.8.0              
-  [9] scattermore_0.8             GenomeInfoDb_1.32.2        
- [11] ggplot2_3.3.6               digest_0.6.29              
- [13] htmltools_0.5.2             fansi_1.0.3                
- [15] checkmate_2.1.0             magrittr_2.0.3             
- [17] memoise_2.0.1               tensor_1.5                 
- [19] cluster_2.1.3               ROCR_1.0-11                
- [21] globals_0.15.0              Biostrings_2.64.0          
- [23] matrixStats_0.62.0          spatstat.sparse_2.1-1      
- [25] colorspace_2.0-3            blob_1.2.3                 
- [27] ggrepel_0.9.1               xfun_0.31                  
- [29] dplyr_1.0.9                 callr_3.7.0                
- [31] crayon_1.5.1                RCurl_1.98-1.6             
- [33] jsonlite_1.8.0              org.Mm.eg.db_3.15.0        
- [35] progressr_0.10.0            spatstat.data_2.2-0        
- [37] survival_3.3-1              zoo_1.8-10                 
- [39] glue_1.6.2                  polyclip_1.10-0            
- [41] gtable_0.3.0                zlibbioc_1.42.0            
- [43] XVector_0.36.0              leiden_0.4.2               
- [45] DelayedArray_0.22.0         SingleCellExperiment_1.18.0
- [47] future.apply_1.9.0          BiocGenerics_0.42.0        
- [49] abind_1.4-5                 scales_1.2.0               
- [51] DBI_1.1.2                   spatstat.random_2.2-0      
- [53] miniUI_0.1.1.1              Rcpp_1.0.8.3               
- [55] viridisLite_0.4.0           xtable_1.8-4               
- [57] reticulate_1.25             spatstat.core_2.4-4        
- [59] bit_4.0.4                   stats4_4.2.0               
- [61] htmlwidgets_1.5.4           httr_1.4.3                 
- [63] RColorBrewer_1.1-3          ellipsis_0.3.2             
- [65] Seurat_4.1.1                ica_1.0-2                  
- [67] scuttle_1.6.2               pkgconfig_2.0.3            
- [69] uwot_0.1.11                 sass_0.4.1                 
- [71] deldir_1.0-6                locfit_1.5-9.5             
- [73] utf8_1.2.2                  tidyselect_1.1.2           
- [75] rlang_1.0.2                 reshape2_1.4.4             
- [77] later_1.3.0                 AnnotationDbi_1.58.0       
- [79] munsell_0.5.0               tools_4.2.0                
- [81] cachem_1.0.6                cli_3.3.0                  
- [83] generics_0.1.2              RSQLite_2.2.14             
- [85] ggridges_0.5.3              evaluate_0.15              
- [87] stringr_1.4.0               fastmap_1.1.0              
- [89] yaml_2.3.5                  goftest_1.2-3              
- [91] org.Hs.eg.db_3.15.0         processx_3.5.3             
- [93] knitr_1.39                  bit64_4.0.5                
- [95] fs_1.5.2                    fitdistrplus_1.1-8         
- [97] purrr_0.3.4                 RANN_2.6.1                 
- [99] KEGGREST_1.36.0             sparseMatrixStats_1.8.0    
-[101] pbapply_1.5-0               future_1.26.1              
-[103] nlme_3.1-157                whisker_0.4                
-[105] mime_0.12                   compiler_4.2.0             
-[107] rstudioapi_0.13             plotly_4.10.0              
-[109] png_0.1-7                   spatstat.utils_2.3-1       
-[111] statmod_1.4.36              tibble_3.1.7               
-[113] bslib_0.3.1                 stringi_1.7.6              
-[115] highr_0.9                   ps_1.7.0                   
-[117] rgeos_0.5-9                 lattice_0.20-45            
-[119] Matrix_1.4-1                vctrs_0.4.1                
-[121] pillar_1.7.0                lifecycle_1.0.1            
-[123] spatstat.geom_2.4-0         lmtest_0.9-40              
-[125] jquerylib_0.1.4             RcppAnnoy_0.0.19           
-[127] data.table_1.14.2           cowplot_1.1.1              
-[129] bitops_1.0-7                irlba_2.3.5                
-[131] GenomicRanges_1.48.0        httpuv_1.6.5               
-[133] patchwork_1.1.1             R6_2.5.1                   
-[135] promises_1.2.0.1            KernSmooth_2.23-20         
-[137] gridExtra_2.3               IRanges_2.30.0             
-[139] parallelly_1.31.1           codetools_0.2-18           
-[141] MASS_7.3-57                 assertthat_0.2.1           
-[143] SummarizedExperiment_1.26.1 rprojroot_2.0.3            
-[145] SeuratObject_4.1.0          sctransform_0.3.3          
-[147] S4Vectors_0.34.0            GenomeInfoDbData_1.2.8     
-[149] mgcv_1.8-40                 parallel_4.2.0             
-[151] beachmat_2.12.0             rpart_4.1.16               
-[153] grid_4.2.0                  tidyr_1.2.0                
-[155] DelayedMatrixStats_1.18.0   rmarkdown_2.14             
-[157] MatrixGenerics_1.8.0        Rtsne_0.16                 
-[159] git2r_0.30.1                getPass_0.2-2              
-[161] Biobase_2.56.0              shiny_1.7.1                </code></pre>
+  [7] listenv_0.8.0               scattermore_0.8            
+  [9] GenomeInfoDb_1.32.2         ggplot2_3.3.6              
+ [11] digest_0.6.29               htmltools_0.5.2            
+ [13] fansi_1.0.3                 checkmate_2.1.0            
+ [15] magrittr_2.0.3              tensor_1.5                 
+ [17] cluster_2.1.3               ROCR_1.0-11                
+ [19] globals_0.15.0              matrixStats_0.62.0         
+ [21] spatstat.sparse_2.1-1       colorspace_2.0-3           
+ [23] ggrepel_0.9.1               xfun_0.31                  
+ [25] dplyr_1.0.9                 callr_3.7.0                
+ [27] crayon_1.5.1                RCurl_1.98-1.6             
+ [29] jsonlite_1.8.0              progressr_0.10.0           
+ [31] spatstat.data_2.2-0         survival_3.3-1             
+ [33] zoo_1.8-10                  glue_1.6.2                 
+ [35] polyclip_1.10-0             gtable_0.3.0               
+ [37] zlibbioc_1.42.0             XVector_0.36.0             
+ [39] leiden_0.4.2                DelayedArray_0.22.0        
+ [41] future.apply_1.9.0          SingleCellExperiment_1.18.0
+ [43] BiocGenerics_0.42.0         abind_1.4-5                
+ [45] scales_1.2.0                DBI_1.1.2                  
+ [47] spatstat.random_2.2-0       miniUI_0.1.1.1             
+ [49] Rcpp_1.0.8.3                viridisLite_0.4.0          
+ [51] xtable_1.8-4                reticulate_1.25            
+ [53] spatstat.core_2.4-4         stats4_4.2.0               
+ [55] htmlwidgets_1.5.4           httr_1.4.3                 
+ [57] RColorBrewer_1.1-3          ellipsis_0.3.2             
+ [59] Seurat_4.1.1                ica_1.0-2                  
+ [61] pkgconfig_2.0.3             sass_0.4.1                 
+ [63] uwot_0.1.11                 deldir_1.0-6               
+ [65] locfit_1.5-9.5              utf8_1.2.2                 
+ [67] tidyselect_1.1.2            rlang_1.0.2                
+ [69] reshape2_1.4.4              later_1.3.0                
+ [71] munsell_0.5.0               tools_4.2.0                
+ [73] cli_3.3.0                   generics_0.1.2             
+ [75] ggridges_0.5.3              evaluate_0.15              
+ [77] stringr_1.4.0               fastmap_1.1.0              
+ [79] yaml_2.3.5                  goftest_1.2-3              
+ [81] processx_3.5.3              knitr_1.39                 
+ [83] fs_1.5.2                    fitdistrplus_1.1-8         
+ [85] purrr_0.3.4                 RANN_2.6.1                 
+ [87] pbapply_1.5-0               future_1.26.1              
+ [89] nlme_3.1-157                whisker_0.4                
+ [91] mime_0.12                   compiler_4.2.0             
+ [93] rstudioapi_0.13             plotly_4.10.0              
+ [95] png_0.1-7                   spatstat.utils_2.3-1       
+ [97] statmod_1.4.36              tibble_3.1.7               
+ [99] bslib_0.3.1                 stringi_1.7.6              
+[101] highr_0.9                   ps_1.7.0                   
+[103] rgeos_0.5-9                 lattice_0.20-45            
+[105] Matrix_1.4-1                vctrs_0.4.1                
+[107] pillar_1.7.0                lifecycle_1.0.1            
+[109] spatstat.geom_2.4-0         lmtest_0.9-40              
+[111] jquerylib_0.1.4             RcppAnnoy_0.0.19           
+[113] data.table_1.14.2           cowplot_1.1.1              
+[115] bitops_1.0-7                irlba_2.3.5                
+[117] GenomicRanges_1.48.0        httpuv_1.6.5               
+[119] patchwork_1.1.1             R6_2.5.1                   
+[121] promises_1.2.0.1            KernSmooth_2.23-20         
+[123] gridExtra_2.3               IRanges_2.30.0             
+[125] parallelly_1.31.1           codetools_0.2-18           
+[127] MASS_7.3-57                 assertthat_0.2.1           
+[129] SummarizedExperiment_1.26.1 rprojroot_2.0.3            
+[131] SeuratObject_4.1.0          sctransform_0.3.3          
+[133] S4Vectors_0.34.0            GenomeInfoDbData_1.2.8     
+[135] mgcv_1.8-40                 parallel_4.2.0             
+[137] grid_4.2.0                  rpart_4.1.16               
+[139] tidyr_1.2.0                 rmarkdown_2.14             
+[141] MatrixGenerics_1.8.0        Rtsne_0.16                 
+[143] git2r_0.30.1                getPass_0.2-2              
+[145] Biobase_2.56.0              shiny_1.7.1                </code></pre>
 </div>
 </div>
 
